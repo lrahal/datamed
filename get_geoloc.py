@@ -41,7 +41,7 @@ BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json?'
 # Backoff time sets how many minutes to wait between google pings when your API limit is hit
 BACKOFF_TIME = 30
 # Set your output file name here.
-output_filename = 'data/output-addresses.csv'
+output_filename = '/Users/linerahal/Documents/GitHub/datamed/data/output-addresses.csv'
 # Return Full Google Results? If True, full JSON results from Google are included in output
 RETURN_FULL_RESULTS = False
 
@@ -80,7 +80,8 @@ def get_google_results(address):
             "accuracy": None,
             "google_place_id": None,
             "type": None,
-            "postcode": None
+            "postcode": None,
+            "country": None,
         }
     else:
         answer = results['results'][0]
@@ -109,7 +110,7 @@ def get_google_results(address):
 
 # ------------------ PROCESSING LOOP -----------------------------
 
-def get_countries(df, nb_countries=20):
+def get_countries(df, nb_addresses=20):
     # Form a list of addresses for geocoding:
     # Make a big list of all of the addresses to be processed.
     # addresses = data[address_column_name].tolist()
@@ -124,7 +125,7 @@ def get_countries(df, nb_countries=20):
     # Create a list to hold results
     results = []
     # Go through each address in turn
-    for address in addresses[:nb_countries]:
+    for address in addresses[:nb_addresses]:
         # While the address geocoding is not finished:
         geocoded = False
         while geocoded is not True:
