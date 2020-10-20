@@ -18,160 +18,159 @@ from get_geoloc import *
 
 
 # Get dataframe with only rows containing same columns
-df_dci = get_filtered_dataframe()
+df_sites = get_filtered_dataframe()
+
+# Sites possibilities:
+# site(s) de production  / sites de production alternatif(s)
+# site(s) de conditionnement primaire
+# site(s) de conditionnement secondaire
+# site d'importation
+# site(s) de contrôle
+# site(s) d'échantillothèque
+# site(s) de certification
+site_name = 'site(s) de production  / sites de production alternatif(s)'
+
+# Add site to dataframe columns
+df_sites = add_selected_site(df_sites, site_name=site_name)
 
 
 # In[3]:
 
 
-# Add main production site to dataframe columns
-df_dci = add_main_prod_site(df_dci)
+df_sites.head(1)
 
 
 # In[4]:
 
 
-df_dci.main_prod_site = df_dci.main_prod_site.apply(lambda x: re.sub(' +', ' ', x))
+all_cis = df_sites.cis.unique()   # 4982
+bad_cis = df_sites[df_sites.cis.apply(lambda x: isinstance(x, str))].cis.unique()   # 381
 
 
 # In[5]:
 
 
-df_dci.head(1)
+# Keep rows having integer cis (optional)
+# df_sites = df_sites[df_sites.cis.apply(lambda x: isinstance(x, int))].copy()
 
 
 # In[6]:
 
 
-def convert_cis(cis_str):
-    if cis_str.replace(' ', '').replace('.', '').replace('cis', '').replace(':', '').isdigit():
-        cis = int(float(cis_str.replace(' ', '').replace('.', '').replace('cis', '').replace(':', '')))
-    else:
-        cis = cis_str
-    return cis
+len(df_sites)
 
 
 # In[7]:
 
 
-df_dci.cis = df_dci.cis.apply(lambda x: convert_cis(x))
+nb_addresses = len(df_sites.site_name.unique())
 
+
+# # Get country
 
 # In[8]:
 
 
-all_cis = df_dci.cis.unique()   # 4982
-bad_cis = df_dci[df_dci.cis.apply(lambda x: isinstance(x, str))].cis.unique()   # 381
+get_countries(df_sites, nb_addresses=200)
 
 
 # In[9]:
 
 
-df_good_dci = df_dci[df_dci.cis.apply(lambda x: isinstance(x, int))].copy()
+df_sites_sample = df_sites.iloc[:200, :]
 
 
 # In[10]:
 
 
-len(df_good_dci)
+#df_sites['country'] = df_sites.apply(
+#    lambda x: get_google_results(x.site_name)['country'], axis=1
+#)
 
 
 # In[11]:
 
 
-nb_addresses = len(df_good_dci.main_prod_site.unique())
-
-
-# # Get country
-
-# In[12]:
-
-
-get_countries(df_good_dci, nb_addresses=200)
-
-
-# In[13]:
-
-
-df_good_dci_sample = df_good_dci.iloc[:200, :]
-
-
-# In[14]:
-
-
-#df_dci['country'] = df_dci.apply(
-#    lambda x: get_google_results(x.main_prod_site)['country'], axis=1
-#)
-
-
-# In[15]:
-
-
-df_good_dci_sample.head(1)
+df_sites_sample.head(1)
 
 
 # # Production sites map
 
 # ## Production sites by cis (speciality)
 
-# In[16]:
+# In[18]:
 
 
 df_addresses = pd.read_csv('/Users/linerahal/Documents/GitHub/datamed/data/output-addresses.csv')
 
 
-# In[17]:
+# In[19]:
 
 
 df_addresses = df_addresses.drop(columns=['Unnamed: 0'])
-df_addresses = df_addresses.rename(columns={'input_string': 'main_prod_site'})
+df_addresses = df_addresses.rename(columns={'input_string': 'site_name'})
 
 
-# In[18]:
+# In[35]:
 
 
 df = pd.merge(
-    df_good_dci_sample[['dénomination de la spécialité', 'cis', 'main_prod_site']],
+    df_sites_sample[['dénomination de la spécialité', 'cis', 'substance active', 'site_name']],
     df_addresses,
-    on='main_prod_site',
+    on='site_name',
     how='inner')
 
 
-# In[19]:
+# In[36]:
 
 
 len(df)
 
 
-# In[20]:
+# In[37]:
 
 
 df.head(1)
 
 
-# In[21]:
+# In[38]:
+
+
+api_list = df['substance active'].unique().tolist()
+
+
+# In[39]:
+
+
+len(api_list)
+
+
+# In[40]:
+
+
+df['substance active'].value_counts()
+
+
+# In[45]:
 
 
 # import the plotly express
 import plotly.express as px
 
 # set up the chart from the df dataFrame
-fig = px.scatter_geo(df, 
-                     # longitude is taken from the df["lon"] columns and latitude from df["lat"]
+fig = px.scatter_geo(df[df['substance active'] == 'hydrochlorothiazide'], 
+                     # longitude is taken from the df['longitude'] columns and latitude from df['latitude']
                      lon='longitude', 
                      lat='latitude',
                      # style
                      color='country',
                      # choose the map chart's projection
                      projection='natural earth',
-                     # columns which is in bold in the pop up
+                     # columns which is in bold in the pop-up
                      hover_name = 'cis',
-                     # format of the popup not to display these columns' data
-                     hover_data = {'cis':False,
-                                   'longitude': False,
-                                   'latitude': False
-                                  }
-                     )
+                     # format of the pop-up not to display these columns' data
+                     hover_data = {'cis': False, 'longitude': False, 'latitude': False}
+                    )
 #fig.update_traces(marker=dict(size=10, color='red'))
 fig.update_traces(marker=dict(size=10))
 fig.update_geos(fitbounds='locations', showcountries=True)

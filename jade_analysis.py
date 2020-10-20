@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 
 PATH = '/Users/linerahal/Desktop/DataMed/RS/JADE/'
@@ -47,6 +48,17 @@ def get_dataset_columns():
     return df
 
 
+def convert_cis(cis_str):
+    """
+    Keep only integer cis codes
+    """
+    if cis_str.replace(' ', '').replace('.', '').replace('cis', '').replace(':', '').isdigit():
+        cis_int = int(float(cis_str.replace(' ', '').replace('.', '').replace('cis', '').replace(':', '')))
+    else:
+        cis_int = cis_str
+    return cis_int
+
+
 def get_filtered_dataframe():
     """
     Choose interesting columns (corresponding to most recent files)
@@ -72,17 +84,18 @@ def get_filtered_dataframe():
     ]
     clean_df = clean_data(df_data)
     clean_df = clean_df.iloc[:, :-23]
+    clean_df.cis = clean_df.cis.apply(lambda x: convert_cis(x))
     return clean_df
 
 
-def add_main_prod_site(df):
+def add_selected_site(df, site_name='site(s) de production  / sites de production alternatif(s)'):
     """
-    Retrieve the first address mentioned for prod site
+    Retrieve the first address mentioned for site name
     :param df: DataFame (= clean DataFrame)
     :return: DataFrame
+    ex: site_name = 'site(s) de production  / sites de production alternatif(s)'
     """
-    df['main_prod_site'] = df.apply(
-        lambda x: x['site(s) de production  / sites de production alternatif(s)'].split(';')[0], axis=1)
+    df['site_name'] = df.apply(lambda x: re.sub(' +', ' ', x[site_name].split(';')[0]), axis=1)
     return df
 
 

@@ -114,7 +114,7 @@ def get_countries(df, nb_addresses=20):
     # Form a list of addresses for geocoding:
     # Make a big list of all of the addresses to be processed.
     # addresses = data[address_column_name].tolist()
-    addresses = df.main_prod_site.unique()
+    addresses = df.site_name.unique()
 
     test_result = get_google_results("London, England")
     if (test_result['status'] != 'OK') or (test_result['formatted_address'] != 'London, UK'):
