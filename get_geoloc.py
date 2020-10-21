@@ -41,10 +41,9 @@ BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json?'
 # Backoff time sets how many minutes to wait between google pings when your API limit is hit
 BACKOFF_TIME = 30
 # Set your output file name here.
-output_filename = '/Users/linerahal/Documents/GitHub/datamed/data/output-addresses.csv'
+output_folder_path = '/Users/linerahal/Documents/GitHub/datamed/data/'
 # Return Full Google Results? If True, full JSON results from Google are included in output
 RETURN_FULL_RESULTS = False
-
 
 # ------------------	FUNCTION DEFINITIONS ------------------------
 
@@ -110,7 +109,7 @@ def get_google_results(address):
 
 # ------------------ PROCESSING LOOP -----------------------------
 
-def get_countries(df, nb_addresses=20):
+def get_locations(df, output_filename, nb_addresses=20):
     # Form a list of addresses for geocoding:
     # Make a big list of all of the addresses to be processed.
     # addresses = data[address_column_name].tolist()
@@ -158,9 +157,9 @@ def get_countries(df, nb_addresses=20):
 
         # Every 500 addresses, save progress to file(in case of a failure so you have something!)
         if len(results) % 500 == 0:
-            pd.DataFrame(results).to_csv("{}_bak".format(output_filename))
+            pd.DataFrame(results).to_csv("{}_bak".format(output_folder_path + output_filename))
 
     # All done
     logger.info("Finished geocoding all addresses")
     # Write the full results to csv using the pandas library.
-    pd.DataFrame(results).to_csv(output_filename, encoding='utf8')
+    pd.DataFrame(results).to_csv(output_folder_path + output_filename, encoding='utf8')
