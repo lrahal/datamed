@@ -44,7 +44,8 @@ def get_dataset_columns():
         file_dict = {'filename': f}
         file_dict.update({'col_' + str(i+1): col for i, col in enumerate(df_file.columns)})
         columns_list.append(file_dict)
-    df = pd.DataFrame(columns_list)
+    columns = ['filename'] + ['col_' + str(i) for i in range(1, max(map(len, columns_list)))]
+    df = pd.DataFrame(columns_list, columns=columns)
     return df
 
 
@@ -53,7 +54,10 @@ def convert_cis(cis_str):
     Keep only integer cis codes
     """
     if cis_str.replace(' ', '').replace('.', '').replace('cis', '').replace(':', '').isdigit():
-        cis_int = int(float(cis_str.replace(' ', '').replace('.', '').replace('cis', '').replace(':', '')))
+        try:
+            cis_int = int(float(cis_str))
+        except ValueError:
+            cis_int = int(float(cis_str.replace(' ', '').replace('.', '').replace('cis', '').replace(':', '')))
     else:
         cis_int = cis_str
     return cis_int
@@ -77,7 +81,7 @@ def get_filtered_dataframe():
     df_cols['cols_ok'] = df_cols.apply(lambda x: list(x)[1:17] == cols, axis=1)
 
     filenames = list(df_cols[df_cols.cols_ok].filename)
-    df_data = pd.concat((pd.read_excel(PATH + f) for f in filenames), axis=0, ignore_index=True)
+    df_data = pd.concat((pd.read_excel(PATH + f) for f in filenames), axis=0, ignore_index=True, sort=False)
     df_data = df_data[
         (~df_data['Dénomination de la spécialité'].isna())
         & (df_data['Dénomination de la spécialité'] != 'une ligne par dénomination et par susbtance active')
