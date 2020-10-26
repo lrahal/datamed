@@ -15,6 +15,7 @@ def clean_data(df):
     df = df.apply(lambda x: x.astype(str).str.lower())
     df = df.apply(lambda x: x.astype(str).str.strip())
     df = df.apply(lambda x: x.astype(str).str.replace('\n', ' '))
+    df = df.applymap(lambda x: re.sub(' +', ' ', x) if isinstance(x, str) else x)
     df.columns = df.columns.str.lower()
     df.columns = df.columns.str.strip()
     df.columns = df.columns.str.replace('\n', ' ')
@@ -89,6 +90,23 @@ def get_filtered_dataframe():
     clean_df = clean_data(df_data)
     clean_df = clean_df.iloc[:, :-23]
     clean_df.cis = clean_df.cis.apply(lambda x: convert_cis(x))
+    clean_df = clean_df.rename(
+        columns={'dénomination de la spécialité': 'denomination_specialite',
+                 'dénomination commune (dci)': 'dci',
+                 "type d'amm": 'type_amm',
+                 "titulaire de l'amm": 'titulaire_amm',
+                 'site(s) de production  / sites de production alternatif(s)': 'sites_production',
+                 'site(s) de conditionnement primaire': 'sites_conditionnement_primaire',
+                 'site(s) de conditionnement secondaire': 'sites_conditionnement_secondaire',
+                 "site d'importation": 'sites_importation',
+                 'site(s) de contrôle': 'sites_controle',
+                 "site(s) d'échantillothèque": 'sites_echantillotheque',
+                 'site(s) de certification': 'sites_certification',
+                 'substance active': 'substance_active',
+                 'site(s) de fabrication de la substance active': 'sites_fabrication_substance_active',
+                 'mitm (oui/non)': 'mitm',
+                 'pgp (oui/non)': 'pgp'
+                 })
     return clean_df
 
 
@@ -99,7 +117,7 @@ def add_selected_site(df, site_name='site(s) de production  / sites de productio
     :return: DataFrame
     ex: site_name = 'site(s) de production  / sites de production alternatif(s)'
     """
-    df['site_name'] = df.apply(lambda x: re.sub(' +', ' ', x[site_name].split(';')[0]), axis=1)
+    df['site_name'] = df.apply(lambda x: x[site_name].split(';')[0], axis=1)
     return df
 
 
