@@ -10,10 +10,9 @@ UNAME='root'
 MYSQL_PWD = os.environ.get('MYSQL_PWD')
 
 
-def create_db():
+def create_db(cursor):
     # Set connection to create new database
-    connection = pymysql.connect(host=HOSTNAME, user=UNAME, password=MYSQL_PWD, charset='utf8mb4')
-    cursor = connection.cursor()
+    print('Database {} creation...'.format(DBNAME))
     cursor.execute('create database ' + DBNAME)
     cursor.execute('alter database ' + DBNAME + ' character set utf8mb4 collate utf8mb4_unicode_ci;')
 
@@ -36,14 +35,9 @@ def connect_to_engine():
     return engine
 
 
-def create_table():
-    # Create dataframe
-    df = ja.get_filtered_dataframe()
-
-    # Create rs_db database
-    create_db()
-
+def create_table(df, table_name):
     # Set connection to created database
+    print('Table {} creation...'.format(table_name))
     connection = pymysql.connect(host=HOSTNAME, db=DBNAME, user=UNAME, password=MYSQL_PWD,
                                  charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
     cursor = connection.cursor()
@@ -52,8 +46,32 @@ def create_table():
     engine = connect_to_engine()
 
     # Convert dataframe to SQL table
-    df.to_sql('api_fab_sites', engine, schema=None, if_exists='append', index=False,
+    df.to_sql(table_name, engine, schema=None, if_exists='append', index=False,
               index_label=None, chunksize=None, dtype=None, method=None)
 
-    # cursor.execute('alter table ' + DBNAME + '.api_fab_sites convert to character set utf8mb4 collate utf8mb4_unicode_ci;')
+    # cursor.execute('alter table ' + DBNAME + '.fabrication_sites convert to character set utf8mb4 collate utf8mb4_unicode_ci;')
 
+
+def main():
+    # Load dataframe
+    print('Loading dataframe...')
+    df = ja.get_filtered_dataframe()
+
+    # Check if rs_db database exists:
+    connection = pymysql.connect(host=HOSTNAME, user=UNAME, password=MYSQL_PWD, charset='utf8mb4')
+    cursor = connection.cursor()
+    db_exists = cursor.execute(
+        "select schema_name from information_schema.schemata where schema_name = '{}';".format(DBNAME)
+    ) == 1
+    if not db_exists:
+        # Create rs_db database
+        create_db(cursor)
+        print('Database {} created!'.format(DBNAME))
+
+    table_name = 'fabrication_sites'
+    create_table(df, table_name)
+    print('Table {} created! Youpiyé!'.format(table_name) )
+
+
+if __name__ == '__main__':
+    main()
