@@ -1,6 +1,7 @@
 import os
 import re
 import pandas as pd
+from xlrd import XLRDError
 
 PATH = '/Users/linerahal/Desktop/DataMed/RS/JADE/'
 
@@ -18,14 +19,7 @@ def convert_cis(cis_str: str) -> str:
     """
     Convert cis codes in int type if possible
     """
-    if cis_str.replace(' ', '').replace('.', '').replace('cis', '').replace(':', '').isdigit():
-        try:
-            cis_int = int(float(cis_str))
-        except ValueError:
-            cis_int = int(float(cis_str.replace(' ', '').replace('.', '').replace('cis', '').replace(':', '')))
-    else:
-        cis_int = cis_str
-    return cis_int
+    return cis_str.replace(' ', '').replace('cis', '').replace(':', '').replace(u'\xa0', u'').replace('.', '')[:8]
 
 
 def clean_data(df):
@@ -80,10 +74,14 @@ def get_good_filenames():
 
     filenames = []
     for f in files:
-        df_file = pd.read_excel(PATH + f)
-        df_file.columns = df_file.columns.str.lower().str.strip().str.replace('\n', ' ')   # Clean column title
-        if list(df_file.columns)[:16] == cols:
-            filenames.append(f)
+        try:
+            df_file = pd.read_excel(PATH + f)
+            df_file.columns = df_file.columns.str.lower().str.strip().str.replace('\n', ' ')   # Clean column title
+            if list(df_file.columns)[:16] == cols:
+                filenames.append(f)
+        except XLRDError:
+            print('File {} corrupted'.format(f))
+            continue
     return filenames
 
 
