@@ -55,5 +55,5 @@ def get_api_by_cis():
     # List CIS codes
     cis_list = set(df.cis.unique())
     # Create dict of list
-    api_by_cis = {cis: list(df[df.cis == cis].substance_active.unique()) for cis in cis_list}
+    api_by_cis = {str(cis): list(df[df.cis == cis].substance_active.unique()) for cis in cis_list}
     return api_by_cis
