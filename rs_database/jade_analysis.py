@@ -4,7 +4,31 @@ import pandas as pd
 from typing import List
 from xlrd import XLRDError
 
-PATH = '/Users/linerahal/Desktop/DataMed/RS/JADE/'
+
+SCHEMA = {
+    'dénomination de la spécialité': 'denomination_specialite',
+    'cis': 'cis',
+    'dénomination commune (dci)': 'dci',
+    "type d'amm": 'type_amm',
+    "titulaire de l'amm": 'titulaire_amm',
+    'site(s) de production  / sites de production alternatif(s)': 'sites_production',
+    'site(s) de conditionnement primaire': 'sites_conditionnement_primaire',
+    'site(s) de conditionnement secondaire': 'sites_conditionnement_secondaire',
+    "site d'importation": 'sites_importation',
+    'site(s) de contrôle': 'sites_controle',
+    "site(s) d'échantillothèque": 'sites_echantillotheque',
+    'site(s) de certification': 'sites_certification',
+    'substance active': 'substance_active',
+    'site(s) de fabrication de la substance active': 'sites_fabrication_substance_active',
+    'mitm (oui/non)': 'mitm',
+    'pgp (oui/non)': 'pgp',
+}
+
+
+def listdir_nohidden(path: str):
+    for f in os.listdir(path):
+        if not f.startswith('.'):
+            yield f
 
 
 def clean_column(col):
@@ -27,70 +51,54 @@ def convert_cis(cis_str: str) -> str:
         return cis_str
 
 
-def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+def global_cleaning(df: pd.DataFrame) -> pd.DataFrame:
     """
     Data cleaning
-    Lower case + remove spaces
+    Lower case + remove spaces + remove all NaN rows
     :param df: DataFrame (raw data)
     :return: DataFrame
     """
     # Global cleaning
+    df = df.dropna(how='all')
     df[df.columns] = df[df.columns].apply(clean_column)
     df = df.applymap(lambda x: re.sub(' +', ' ', x) if isinstance(x, str) else x)
     df.columns = df.columns.str.lower().str.strip().str.replace('\n', ' ')
-    df.cis = df.cis.apply(lambda x: convert_cis(x))
-
-    # Select only 17 first columns
-    df = df.iloc[:, :-23]
-    df = df.rename(
-        columns={'dénomination de la spécialité': 'denomination_specialite',
-                 'dénomination commune (dci)': 'dci',
-                 "type d'amm": 'type_amm',
-                 "titulaire de l'amm": 'titulaire_amm',
-                 'site(s) de production  / sites de production alternatif(s)': 'sites_production',
-                 'site(s) de conditionnement primaire': 'sites_conditionnement_primaire',
-                 'site(s) de conditionnement secondaire': 'sites_conditionnement_secondaire',
-                 "site d'importation": 'sites_importation',
-                 'site(s) de contrôle': 'sites_controle',
-                 "site(s) d'échantillothèque": 'sites_echantillotheque',
-                 'site(s) de certification': 'sites_certification',
-                 'substance active': 'substance_active',
-                 'site(s) de fabrication de la substance active': 'sites_fabrication_substance_active',
-                 'mitm (oui/non)': 'mitm',
-                 'pgp (oui/non)': 'pgp'
-                 })
     return df
 
 
-def get_good_filenames() -> List:
+def columns_cleaning(df: pd.DataFrame) -> pd.DataFrame:
+    # Select only 17 first columns
+    df = df.iloc[:, :len(SCHEMA)]
+    df = df.rename(columns=SCHEMA)
+    # Correct CIS codes
+    df.cis = df.cis.apply(lambda x: convert_cis(x))
+    # Remove rows having bad information
+    df = df[df.denomination_specialite != 'une ligne par dénomination et par susbtance active']
+    return df
+
+
+def get_filenames(path: str) -> List:
     """
     Get the list of files sharing the same structure (given in cols list)
     Upgrade: should find a way to load only the header of the Excel file
     :return: list
     """
-    files = os.listdir(PATH)
-    files = files[1:]   # Remove DS_Store file
+    # List all files in directory
+    # (avoid .DS_Store files for macos)
+    files = list(listdir_nohidden(path))
 
-    cols = ['dénomination de la spécialité', 'cis', 'dénomination commune (dci)', "type d'amm", "titulaire de l'amm",
-            'site(s) de production  / sites de production alternatif(s)', 'site(s) de conditionnement primaire',
-            'site(s) de conditionnement secondaire', "site d'importation", 'site(s) de contrôle',
-            "site(s) d'échantillothèque", 'site(s) de certification', 'substance active',
-            'site(s) de fabrication de la substance active', 'mitm (oui/non)', 'pgp (oui/non)']
-
-    filenames = []
     for f in files:
         try:
-            df_file = pd.read_excel(PATH + f)
+            df_file = pd.read_excel(path + f)
             df_file.columns = df_file.columns.str.lower().str.strip().str.replace('\n', ' ')   # Clean column title
-            if list(df_file.columns)[:16] == cols:
-                filenames.append(f)
+            if list(df_file.columns)[:len(SCHEMA)] == SCHEMA.keys():
+                yield f
         except XLRDError:
-            print('File {} corrupted'.format(f))
+            print('File {} is corrupted'.format(f))
             continue
-    return filenames
 
 
-def get_filtered_dataframe() -> pd.DataFrame:
+def build_api_fab_sites_dataframe(path: str) -> pd.DataFrame:
     """
     Choose interesting columns (corresponding to most recent files)
     Filter on files containing those columns
@@ -99,17 +107,14 @@ def get_filtered_dataframe() -> pd.DataFrame:
     :return: DataFrame
     """
     # Get filenames having good structure
-    filenames = get_good_filenames()
+    filenames = list(get_filenames(path))
     # Create dataframe
-    df_data = pd.concat((pd.read_excel(PATH + f) for f in filenames), axis=0, ignore_index=True, sort=False)
-    # Remove rows having bad information
-    df_data = df_data[
-        (~df_data['Dénomination de la spécialité'].isna())
-        & (df_data['Dénomination de la spécialité'] != 'une ligne par dénomination et par susbtance active')
-    ]
+    df_data = pd.concat((pd.read_excel(path + f) for f in filenames),
+                        axis=0, ignore_index=True, sort=False)
     # Clean dataframe
-    clean_df = clean_data(df_data)
-    return clean_df
+    df_tmp = global_cleaning(df_data)
+    df_cleaned = columns_cleaning(df_tmp)
+    return df_cleaned
 
 
 def add_selected_site(df: pd.DataFrame, site_name: str) -> pd.DataFrame:
