@@ -1,6 +1,6 @@
 import os
 import pymysql
-import jade_analysis as ja
+from jade_analysis import get_filtered_dataframe
 from sqlalchemy import create_engine, exc
 
 # Credentials to database connection
@@ -53,9 +53,10 @@ def create_table(df: pd.DataFrame, table_name: str):
 
 
 def main():
+    path = '/Users/linerahal/Desktop/DataMed/RS/JADE/'
     # Load dataframe
     print('Loading dataframe from concatenated Excel files...')
-    df = ja.get_filtered_dataframe()
+    df = build_api_fab_sites_dataframe(path)
 
     # Check if rs_db database exists:
     connection = pymysql.connect(host=HOSTNAME, user=UNAME, password=MYSQL_PWD, charset='utf8mb4')
@@ -75,3 +76,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
