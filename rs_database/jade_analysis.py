@@ -1,6 +1,7 @@
 import os
 import re
 import pandas as pd
+from typing import List
 from xlrd import XLRDError
 
 PATH = '/Users/linerahal/Desktop/DataMed/RS/JADE/'
@@ -19,10 +20,14 @@ def convert_cis(cis_str: str) -> str:
     """
     Convert cis codes in int type if possible
     """
-    return cis_str.replace(' ', '').replace('cis', '').replace(':', '').replace(u'\xa0', u'').replace('.', '')[:8]
+    cis_tmp = cis_str.replace(' ', '').replace('cis', '').replace(':', '').replace(u'\xa0', u'').replace('.', '')[:8]
+    if cis_tmp.isdigit():
+        return cis_tmp
+    else:
+        return cis_str
 
 
-def clean_data(df):
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Data cleaning
     Lower case + remove spaces
@@ -57,7 +62,7 @@ def clean_data(df):
     return df
 
 
-def get_good_filenames():
+def get_good_filenames() -> List:
     """
     Get the list of files sharing the same structure (given in cols list)
     Upgrade: should find a way to load only the header of the Excel file
@@ -85,7 +90,7 @@ def get_good_filenames():
     return filenames
 
 
-def get_filtered_dataframe():
+def get_filtered_dataframe() -> pd.DataFrame:
     """
     Choose interesting columns (corresponding to most recent files)
     Filter on files containing those columns
@@ -107,7 +112,7 @@ def get_filtered_dataframe():
     return clean_df
 
 
-def add_selected_site(df, site_name='site(s) de production  / sites de production alternatif(s)'):
+def add_selected_site(df: pd.DataFrame, site_name: str) -> pd.DataFrame:
     """
     Retrieve the first address mentioned for site name
     Multiple addresses are separated by ';'
