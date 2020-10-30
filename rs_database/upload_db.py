@@ -1,6 +1,7 @@
 import os
 import pymysql
 import pandas as pd
+from typing import Dict
 from sqlalchemy import create_engine
 from jade_analysis import convert_cis
 
@@ -22,13 +23,13 @@ def upload_fab_sites(table_name='fabrication_sites'):
                            echo=False)
 
     # Load dataframe from database
-    print('Loading dataframe from database...')
+    print('Start uploading fabrication_sites table in dataframe...', end='\n')
     df = pd.read_sql('SELECT * FROM ' + table_name, con=engine)
     df.cis = df.cis.apply(lambda x: convert_cis(x))
     return df
 
 
-def upload_bdpm():
+def upload_bdpm() -> pd.DataFrame:
     """
     Upload BDPM compositions database
     In http://base-donnees-publique.medicaments.gouv.fr/telechargement.php
@@ -45,15 +46,18 @@ def upload_bdpm():
     return df
 
 
-def get_api_by_cis():
+def get_api_by_cis() -> Dict:
     """
     Get substance_active (API) list for each CIS
     :return: dict of list
     """
     # Load dataframe
-    df = upload_bdpm()
+    df_bdpm = upload_bdpm()
     # List CIS codes
-    cis_list = set(df.cis.unique())
+    cis_list = set(df_bdpm.cis.unique())
     # Create dict of list
-    api_by_cis = {str(cis): list(df[df.cis == cis].substance_active.unique()) for cis in cis_list}
+    api_by_cis = {
+        str(cis): list(df_bdpm[df_bdpm.cis == cis].substance_active.unique())
+        for cis in cis_list
+    }
     return api_by_cis
