@@ -35,7 +35,7 @@ def connect_to_engine():
     return engine
 
 
-def create_table(df, table_name):
+def create_table(df: pd.DataFrame, table_name: str):
     # Set connection to created database
     print('Table {} creation...'.format(table_name))
     connection = pymysql.connect(host=HOSTNAME, db=DBNAME, user=UNAME, password=MYSQL_PWD,
@@ -54,7 +54,7 @@ def create_table(df, table_name):
 
 def main():
     # Load dataframe
-    print('Loading dataframe...')
+    print('Loading dataframe from concatenated Excel files...')
     df = ja.get_filtered_dataframe()
 
     # Check if rs_db database exists:
