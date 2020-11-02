@@ -80,13 +80,13 @@ def get_filenames(path: str) -> List:
     """
     # List all files in directory
     # (avoid .DS_Store files for macos)
-    files = list(listdir_nohidden(path))
+    files = list(files_explorer.listdir_nohidden(path))
 
     for f in files:
         try:
             df_file = pd.read_excel(path + f)
             df_file.columns = df_file.columns.str.lower().str.strip().str.replace('\n', ' ')   # Clean column title
-            if list(df_file.columns)[:len(SCHEMA)] == SCHEMA.keys():
+            if list(df_file.columns)[:len(SCHEMA)] == list(SCHEMA.keys()):
                 yield f
         except XLRDError:
             print('File {} is corrupted'.format(f))

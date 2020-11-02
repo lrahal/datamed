@@ -1,6 +1,7 @@
 import os
 import pymysql
-from jade_analysis import get_filtered_dataframe
+import pandas as pd
+from .jade_analysis import build_api_fab_sites_dataframe
 from sqlalchemy import create_engine, exc
 
 # Credentials to database connection
@@ -53,7 +54,7 @@ def create_table(df: pd.DataFrame, table_name: str):
 
 
 def main():
-    path = '/Users/linerahal/Desktop/DataMed/RS/JADE/'
+    path = '/Users/linerahal/Documents/GitHub/datamed/create_database/data/jade_final/'
     # Load dataframe
     print('Loading dataframe from concatenated Excel files...')
     df = build_api_fab_sites_dataframe(path)
@@ -76,5 +77,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
