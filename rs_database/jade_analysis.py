@@ -3,6 +3,7 @@ import re
 import pandas as pd
 from typing import List
 from xlrd import XLRDError
+from helpers import files_explorer
 
 
 SCHEMA = {
@@ -23,12 +24,6 @@ SCHEMA = {
     'mitm (oui/non)': 'mitm',
     'pgp (oui/non)': 'pgp',
 }
-
-
-def listdir_nohidden(path: str):
-    for f in os.listdir(path):
-        if not f.startswith('.'):
-            yield f
 
 
 def clean_column(col):
