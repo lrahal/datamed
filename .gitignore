@@ -128,8 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# data folder output files
-/data
+# data folders
+data/
 
 # Notebook Checkpoints
 .ipynb_checkpoints/
