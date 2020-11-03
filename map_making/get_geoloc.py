@@ -11,14 +11,15 @@ Addresses and data are held in memory, so this script may need to be adjusted to
 by line if you are processing millions of entries.
 """
 
-import pandas as pd
-import requests
-import logging
-import urllib
-import time
 import json
+import logging
 import os
 import re
+import time
+import urllib
+
+import pandas as pd
+import requests
 
 logger = logging.getLogger("root")
 logger.setLevel(logging.DEBUG)
