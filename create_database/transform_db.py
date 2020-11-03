@@ -1,20 +1,24 @@
+# coding: utf-8
+
 import csv
 import string
-import unidecode
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
-from nltk.corpus import stopwords
 from collections import defaultdict
 from typing import Tuple, List, Dict, DefaultDict
-from upload_db import upload_fab_sites, get_api_by_cis
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import CountVectorizer
+
+import numpy as np
+import pandas as pd
+import unidecode
+from helpers import files_explorer
+from nltk.corpus import stopwords
+from tqdm import tqdm
+
+from .compute_similarity import get_similarity
+from .upload_db import upload_table_from_db, get_api_by_cis
 
 STOPWORDS = stopwords.words('french')
 
 
-def get_api_correspondance(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[DefaultDict, List]:
+def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[DefaultDict, List]:
     """
     Excel database: CIS -> api
     BDPM: CIS -> [api1, api2, ...] (referential)
@@ -44,31 +48,7 @@ def clean_string(text: str) -> str:
     return text
 
 
-def get_vectors(sentences: Tuple[str]) -> np.ndarray:
-    """
-    Convert a collection of sentences to a matrix of token counts
-    :param sentences: text
-    :return:
-    """
-    vectorizer = CountVectorizer()
-    X = vectorizer.fit_transform(sentences)
-    vectors = X.toarray()
-    return vectors
-
-
-def cosine_sim_vectors(vec1: np.ndarray, vec2: np.ndarray) -> np.float64:
-    """
-    Compute the similarity between two vectors
-    :param vec1: api (Excel)
-    :param vec2: api (BDPM)
-    :return: similarity measure (between 0 and 1)
-    """
-    vec1 = vec1.reshape(1, -1)
-    vec2 = vec2.reshape(1, -1)
-    return cosine_similarity(vec1, vec2)[0][0]
-
-
-def get_api_similarities(api_corresp_dict: DefaultDict) -> DefaultDict:
+def get_api_similarities(api_corresp_dict: DefaultDict, ndigits: int) -> DefaultDict:
     """
     Get for each api_excel, its similarity with the corresponding api
     contained in the api_bdpm_list
@@ -80,11 +60,9 @@ def get_api_similarities(api_corresp_dict: DefaultDict) -> DefaultDict:
             # Create sentences tuple
             api_tuple = (api_excel, api)
             # Clean the words in api_tuple
-            cleaned = tuple(map(clean_string, api_tuple))
-            # Vectorize
-            vectors = get_vectors(cleaned)
+            cleaned_api_tuple = tuple(map(clean_string, api_tuple))
             # Compute cosine similarity between the 2 words in tuple
-            api_sim_dict[api_excel][api] = cosine_sim_vectors(vectors[0], vectors[1])
+            api_sim_dict[api_excel][api] = get_similarity(cleaned_api_tuple, ndigits)
     return api_sim_dict
 
 
@@ -94,34 +72,38 @@ def get_most_sim_api(api_sim_dict: DefaultDict) -> Dict:
     :return: dict
     """
     return {
-        api_excel: max(api_sim_dict[api_excel], key=api_sim_dict[api_excel].get)
+        api_excel: max(api_sim_dict[api_excel], key=api_sim_dict[api_excel].get, default=None)
         for api_excel in api_sim_dict.keys()
     }
 
 
 def main():
     # Upload dataframe from fabrication_sites table
-    df = upload_fab_sites()
+    table_name = 'fabrication_sites'
+    df = upload_table_from_db(table_name)
 
     # Get api by CIS from BDPM CIS_COMPO_bdpm.txt file
     api_by_cis = get_api_by_cis()
 
     # Find correspondence between Excel api and BDPM api
     # 1 -> N
-    print('Finding correspondances between Excels api and BDPM api...')
-    api_corresp_dict, bad_cis = get_api_correspondance(df, api_by_cis)
+    print('Finding correspondences between Excels api and BDPM api...')
+    api_corresp_dict, bad_cis = get_api_correspondence(df, api_by_cis)
     print('{} CIS codes over {} are not referenced in the BDPM'.format(
         len(bad_cis), len(df.cis.unique())), end='\n')
 
+    # Save bad_cis list in file
+    files_explorer.write_txt_file('./create_database/data/bad_cis.txt', bad_cis)
+
     # Get the cosine similarity score for each couple (api_excel, api_bdpm)
     print('Computing similarity scores...', end='\n')
-    api_sim_dict = get_api_similarities(api_corresp_dict)
+    api_sim_dict = get_api_similarities(api_corresp_dict, ndigits=2)
 
     # Save the one with the highest score
     print('Storing best matches...', end='\n')
     best_match_api = get_most_sim_api(api_sim_dict)
 
-    with open('/data/best_match_api.csv', 'w', encoding='utf-8') as f:
+    with open('./create_database/data/best_match_api.csv', 'w', encoding='utf-8') as f:
         w = csv.writer(f, delimiter=';')
         w.writerow(['substance_active_excel', 'substance_active_bdpm'])
         for key, value in best_match_api.items():
