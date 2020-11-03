@@ -1,8 +1,10 @@
 import os
-import pymysql
+
 import pandas as pd
-from .jade_analysis import build_api_fab_sites_dataframe
+import pymysql
 from sqlalchemy import create_engine, exc
+
+from .jade_analysis import build_api_fab_sites_dataframe
 
 # Credentials to database connection
 HOSTNAME='localhost'

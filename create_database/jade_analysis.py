@@ -1,10 +1,10 @@
 import os
 import re
-import pandas as pd
 from typing import List
-from xlrd import XLRDError
-from helpers import files_explorer
 
+import pandas as pd
+from helpers import files_explorer
+from xlrd import XLRDError
 
 SCHEMA = {
     'dénomination de la spécialité': 'denomination_specialite',
