@@ -1,9 +1,11 @@
 import os
-import pymysql
-import pandas as pd
 from typing import Dict
+
+import pandas as pd
+import pymysql
 from sqlalchemy import create_engine
-from jade_analysis import convert_cis
+
+from .jade_analysis import convert_cis
 
 # Credentials to database connection
 HOSTNAME='localhost'
@@ -12,7 +14,7 @@ UNAME='root'
 MYSQL_PWD = os.environ.get('MYSQL_PWD')
 
 
-def upload_fab_sites(table_name='fabrication_sites'):
+def upload_table_from_db(table_name: str) -> pd.DataFrame:
     """
     Upload fabrication_sites table
     :param table_name: name of the table ('fabrication_sites' in rs_db database)
@@ -24,8 +26,15 @@ def upload_fab_sites(table_name='fabrication_sites'):
 
     # Load dataframe from database
     print('Start uploading fabrication_sites table in dataframe...', end='\n')
-    df = pd.read_sql('SELECT * FROM ' + table_name, con=engine)
-    df.cis = df.cis.apply(lambda x: convert_cis(x))
+    df = pd.read_sql('SELECT * FROM {}'.format(table_name), con=engine)
+    return df
+
+
+def clean_columns(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
+    """
+    Put column fields in lower case
+    """
+    df[col_name] = df[col_name].apply(lambda x: x.lower().strip())
     return df
 
 
@@ -38,11 +47,8 @@ def upload_bdpm() -> pd.DataFrame:
     # Read CIS_COMPO_bdpm.txt file and put in dataframe
     col_names = ['cis', 'elem_pharma', 'code_substance', 'substance_active',
                  'dosage', 'ref_dosage', 'nature_composant', 'num_lien', 'v']
-    df = pd.read_csv('~/Documents/GitHub/datamed/data/CIS_COMPO_bdpm.txt',
+    df = pd.read_csv('./create_database/data/CIS_COMPO_bdpm.txt',
                      sep='\t', encoding='latin1', names=col_names, header=None)
-
-    # Put substance_active field in lower case
-    df.substance_active = df.substance_active.apply(lambda x: x.lower().strip())
     return df
 
 
@@ -53,8 +59,10 @@ def get_api_by_cis() -> Dict:
     """
     # Load dataframe
     df_bdpm = upload_bdpm()
+    # Put substance_active field in lower case
+    df_bdpm = clean_columns(df_bdpm, 'substance_active')
     # List CIS codes
-    cis_list = set(df_bdpm.cis.unique())
+    cis_list = df_bdpm.cis.unique()
     # Create dict of list
     api_by_cis = {
         str(cis): list(df_bdpm[df_bdpm.cis == cis].substance_active.unique())
