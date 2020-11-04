@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Dict
 
 
 def listdir_nohidden(path: str):
@@ -16,3 +16,11 @@ def write_txt_file(path: str, list_to_write: List):
     with open(path, 'w') as f:
         for item in list_to_write:
             f.write("%s\n" % item)
+
+
+def write_csv(dict_to_write: Dict, path: str, fieldnames: List):
+    with open(path, 'w', encoding='utf-8') as f:
+        w = csv.writer(f, delimiter=';')
+        w.writerow(fieldnames)
+        for key, value in dict_to_write.items():
+            w.writerow([key, value])
