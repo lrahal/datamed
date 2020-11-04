@@ -1,19 +1,18 @@
 # coding: utf-8
 
-import csv
 import string
 from collections import defaultdict
-from typing import Tuple, List, Dict, DefaultDict
+from typing import Tuple, List, Dict, DefaultDict, Set
 
 import mysql.connector
 import numpy as np
 import pandas as pd
 import pymysql
 import unidecode
-from helpers import files_explorer
 from mysql.connector import errorcode
 from nltk.corpus import stopwords
 from tqdm import tqdm
+from utils import files_explorer
 
 from .compute_similarity import get_similarity
 from .create_mysql_db import connect_to_engine, HOSTNAME, DBNAME, UNAME, MYSQL_PWD
@@ -22,26 +21,28 @@ from .upload_db import upload_table_from_db, get_api_by_cis
 STOPWORDS = stopwords.words('french')
 
 
-def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[DefaultDict, List]:
+def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[DefaultDict, Set]:
     """
-    Excel database: CIS -> api
-    BDPM: CIS -> [api1, api2, ...] (referential)
-    Make the correspondence api (Excel) -> api (BDPM) in order to put the good syntax
+    - Excel database: CIS -> api
+    - BDPM: CIS -> [api1, api2, ...] (referential)
+    - Make the correspondence api (Excel) -> api (BDPM) in order to put the good syntax
     in the MySQL database
+    - API = Active Pharmaceutical Ingredient (shortcut for active substance)
     :return: dict of list
     """
-    cis_list = df.cis.unique()
-    bad_cis = []
+    cis_table = set(df.cis.unique())
+    cis_bdpm = set(api_by_cis.keys())
+    cis_set = cis_table.intersection(cis_bdpm)
+    cis_not_in_bdpm = cis_table - cis_set   # CIS that are in Excels but not in BDPM db
+
     api_corresp_dict = defaultdict(list)  # {api_excel: [api_bdpm]}
-    for cis in tqdm(cis_list):
+    for cis in tqdm(cis_set):
         for api in df[df.cis == cis].substance_active:
-            try:
-                api_corresp_dict[api] = api_by_cis[cis]
-            except KeyError:
-                if cis not in bad_cis:
-                    bad_cis.append(cis)
+            if api == 'nan':
                 continue
-    return api_corresp_dict, bad_cis
+            else:
+                api_corresp_dict[api] = api_by_cis[cis]
+    return api_corresp_dict, cis_not_in_bdpm
 
 
 def clean_string(text: str) -> str:
@@ -81,16 +82,16 @@ def get_most_sim_api(api_sim_dict: DefaultDict) -> Dict:
     }
 
 
-def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Dict:
+def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[Dict, Set]:
     # Find correspondence between Excel api and BDPM api
     # 1 -> N
     print('Finding correspondences between Excels api and BDPM api...')
-    api_corresp_dict, bad_cis = get_api_correspondence(df, api_by_cis)
+    api_corresp_dict, cis_not_in_bdpm = get_api_correspondence(df, api_by_cis)
     print('{} CIS codes over {} are not referenced in the BDPM'.format(
-        len(bad_cis), len(df.cis.unique())), end='\n')
+        len(cis_not_in_bdpm), len(df.cis.unique())), end='\n')
 
-    # Save bad_cis list in file
-    files_explorer.write_txt_file('./create_database/data/bad_cis.txt', bad_cis)
+    # Save cis_not_in_bdpm list in file
+    files_explorer.write_txt_file('./create_database/data/cis_not_in_bdpm.txt', cis_not_in_bdpm)
 
     # Get the cosine similarity score for each couple (api_excel, api_bdpm)
     print('Computing similarity scores...', end='\n')
@@ -99,7 +100,7 @@ def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Dict:
     # Select the one with the highest score
     print('Selecting best matches...', end='\n')
     best_match_api = get_most_sim_api(api_sim_dict)
-    return best_match_api
+    return best_match_api, cis_not_in_bdpm
 
 
 def add_best_match_api_to_table(best_match_api: Dict, table_name: str, col_name: str):
@@ -113,13 +114,15 @@ def add_best_match_api_to_table(best_match_api: Dict, table_name: str, col_name:
 
     # Create new column for best match api
     try:
-        # If column doesn't exist
+        # If column doesn't exist, create column
         cursor.execute(
-            'ALTER TABLE {} ADD {} VARCHAR(1000) NULL AFTER substance_active;'.format(table_name, col_name)
+            'ALTER TABLE {} ADD {} TEXT NULL AFTER substance_active;'.format(table_name, col_name)
         )
     except pymysql.Error as e:
+        # If column already exists, print error
         if e.args[0] == 1060:
             print(e.args[1])
+        # If other error, print error
         else:
             print(e)
 
@@ -140,7 +143,7 @@ def main():
     # Get api by CIS from BDPM CIS_COMPO_bdpm.txt file
     api_by_cis = get_api_by_cis()
 
-    best_match_api = compute_best_matches(df, api_by_cis)
+    best_match_api, cis_not_in_bdpm = compute_best_matches(df, api_by_cis)
     files_explorer.write_csv(
         best_match_api,
         path='./create_database/data/best_match_api.csv',
@@ -151,7 +154,6 @@ def main():
     # Add new substance_active field to table using best_match_api dict
     add_best_match_api_to_table(best_match_api, table_name, 'substance_active_new')
     print('substance_active_new column created!')
-
 
 
 if __name__ == '__main__':
