@@ -8,9 +8,9 @@ from sqlalchemy import create_engine
 from .jade_analysis import convert_cis
 
 # Credentials to database connection
-HOSTNAME='localhost'
-DBNAME='rs_db'
-UNAME='root'
+HOSTNAME = 'localhost'
+DBNAME = 'rs_db'
+UNAME = 'root'
 MYSQL_PWD = os.environ.get('MYSQL_PWD')
 
 
