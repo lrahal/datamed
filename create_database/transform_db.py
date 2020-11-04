@@ -150,6 +150,7 @@ def main():
 
     # Add new substance_active field to table using best_match_api dict
     add_best_match_api_to_table(best_match_api, table_name, 'substance_active_new')
+    print('substance_active_new column created!')
 
 
 
