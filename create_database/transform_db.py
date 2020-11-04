@@ -5,14 +5,18 @@ import string
 from collections import defaultdict
 from typing import Tuple, List, Dict, DefaultDict
 
+import mysql.connector
 import numpy as np
 import pandas as pd
+import pymysql
 import unidecode
 from helpers import files_explorer
+from mysql.connector import errorcode
 from nltk.corpus import stopwords
 from tqdm import tqdm
 
 from .compute_similarity import get_similarity
+from .create_mysql_db import connect_to_engine, HOSTNAME, DBNAME, UNAME, MYSQL_PWD
 from .upload_db import upload_table_from_db, get_api_by_cis
 
 STOPWORDS = stopwords.words('french')
@@ -77,14 +81,7 @@ def get_most_sim_api(api_sim_dict: DefaultDict) -> Dict:
     }
 
 
-def main():
-    # Upload dataframe from fabrication_sites table
-    table_name = 'fabrication_sites'
-    df = upload_table_from_db(table_name)
-
-    # Get api by CIS from BDPM CIS_COMPO_bdpm.txt file
-    api_by_cis = get_api_by_cis()
-
+def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Dict:
     # Find correspondence between Excel api and BDPM api
     # 1 -> N
     print('Finding correspondences between Excels api and BDPM api...')
@@ -99,16 +96,61 @@ def main():
     print('Computing similarity scores...', end='\n')
     api_sim_dict = get_api_similarities(api_corresp_dict, ndigits=2)
 
-    # Save the one with the highest score
-    print('Storing best matches...', end='\n')
+    # Select the one with the highest score
+    print('Selecting best matches...', end='\n')
     best_match_api = get_most_sim_api(api_sim_dict)
+    return best_match_api
 
-    with open('./create_database/data/best_match_api.csv', 'w', encoding='utf-8') as f:
-        w = csv.writer(f, delimiter=';')
-        w.writerow(['substance_active_excel', 'substance_active_bdpm'])
-        for key, value in best_match_api.items():
-            w.writerow([key, value])
+
+def add_best_match_api_to_table(best_match_api: Dict, table_name: str, col_name: str):
+    """
+    Add new substance_active field to table using best_match_api dict
+    :return: Update table in database
+    """
+    connection = pymysql.connect(host=HOSTNAME, db=DBNAME, user=UNAME, password=MYSQL_PWD,
+                                 charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
+    cursor = connection.cursor()
+
+    # Create new column for best match api
+    try:
+        # If column doesn't exist
+        cursor.execute(
+            'ALTER TABLE {} ADD {} VARCHAR(1000) NULL AFTER substance_active;'.format(table_name, col_name)
+        )
+    except pymysql.Error as e:
+        if e.args[0] == 1060:
+            print(e.args[1])
+        else:
+            print(e)
+
+    # Fill new column with values from dict
+    for old_api, new_api in tqdm(best_match_api.items()):
+        cursor.execute(
+            'UPDATE {} SET {} = "{}" WHERE substance_active = "{}"'.format(
+                table_name, col_name, new_api, old_api)
+        )
+    cursor.close()
+
+
+def main():
+    # Upload dataframe from fabrication_sites table
+    table_name = 'fabrication_sites'
+    df = upload_table_from_db(table_name)
+
+    # Get api by CIS from BDPM CIS_COMPO_bdpm.txt file
+    api_by_cis = get_api_by_cis()
+
+    best_match_api = compute_best_matches(df, api_by_cis)
+    files_explorer.write_csv(
+        best_match_api,
+        path='./create_database/data/best_match_api.csv',
+        fieldnames=['substance_active_excel', 'substance_active_bdpm']
+    )
     print('best_match_api.csv printed!')
+
+    # Add new substance_active field to table using best_match_api dict
+    add_best_match_api_to_table(best_match_api, table_name, 'substance_active_new')
+
 
 
 if __name__ == '__main__':
