@@ -109,14 +109,15 @@ def add_best_match_api_to_table(best_match_api: Dict, table_name: str, col_name:
     :return: Update table in database
     """
     connection = pymysql.connect(host=HOSTNAME, db=DBNAME, user=UNAME, password=MYSQL_PWD,
-                                 charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
+                                 charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor,
+                                 autocommit=True)
     cursor = connection.cursor()
 
     # Create new column for best match api
     try:
         # If column doesn't exist, create column
         cursor.execute(
-            'ALTER TABLE {} ADD {} TEXT NULL AFTER substance_active;'.format(table_name, col_name)
+            'ALTER TABLE {} ADD {} VARCHAR(1000) NULL AFTER substance_active;'.format(table_name, col_name)
         )
     except pymysql.Error as e:
         # If column already exists, print error
@@ -132,7 +133,7 @@ def add_best_match_api_to_table(best_match_api: Dict, table_name: str, col_name:
             'UPDATE {} SET {} = "{}" WHERE substance_active = "{}"'.format(
                 table_name, col_name, new_api, old_api)
         )
-    cursor.close()
+    connection.close()
 
 
 def main():
