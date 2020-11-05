@@ -17,11 +17,13 @@ import os
 import re
 import time
 import urllib
+from typing import Dict
 
+import numpy as np
 import pandas as pd
 import requests
 
-logger = logging.getLogger("root")
+logger = logging.getLogger('root')
 logger.setLevel(logging.DEBUG)
 # create console handler
 ch = logging.StreamHandler()
@@ -41,25 +43,24 @@ API_KEY = os.environ.get('GCP_KEY')
 BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json?'
 # Backoff time sets how many minutes to wait between google pings when your API limit is hit
 BACKOFF_TIME = 30
-# Set your output file name here.
-output_folder_path = '/Users/linerahal/Documents/GitHub/datamed/data/'
+# Set your output folder path here.
+OUTPUT_FOLDER_PATH = '../data/'
 # Return Full Google Results? If True, full JSON results from Google are included in output
 RETURN_FULL_RESULTS = False
 
 # ------------------	FUNCTION DEFINITIONS ------------------------
 
-def get_google_results(address):
+
+def get_google_results(address: str) -> Dict:
     """
     Get geocode results from Google Maps Geocoding API.
 
-    Note, that in the case of multiple google geocode reuslts, this function returns details of the FIRST result.
+    Note, that in the case of multiple google geocode results, this function returns details of the FIRST result.
 
     @param address: String address as accurate as possible. For Example "18 Grafton Street, Dublin, Ireland"
-    @param api_key: String API key if present from google.
+    @param API_KEY: String API key if present from google.
                     If supplied, requests will use your allowance from the Google API. If not, you
                     will be limited to the free usage of 2500 requests per day.
-    @param return_full_response: Boolean to indicate if you'd like to return the full response from google. This
-                    is useful if you'd like additional location details for storage or parsing later.
     """
     # Set up your Geocoding url
     address = re.sub(' +', ' ', address)  # Remove multiple spaces
@@ -110,22 +111,23 @@ def get_google_results(address):
 
 # ------------------ PROCESSING LOOP -----------------------------
 
-def get_locations(df, output_filename, nb_addresses=20):
-    # Form a list of addresses for geocoding:
-    # Make a big list of all of the addresses to be processed.
-    # addresses = data[address_column_name].tolist()
-    addresses = df.site_name.unique()
-
-    test_result = get_google_results("London, England")
+def get_locations(addresses: np.ndarray, output_filename: str):
+    """
+    Get latitude and longitude for addresses list
+    :param addresses: np.ndarray
+    :param output_filename: file for results to be saved
+    """
+    # Test if one call works
+    test_result = get_google_results('London, England')
     if (test_result['status'] != 'OK') or (test_result['formatted_address'] != 'London, UK'):
-        logger.warning("There was an error when testing the Google Geocoder.")
+        logger.warning('There was an error when testing the Google Geocoder.')
         raise ConnectionError('Problem with test results from Google Geocode '
                               '- check your API key and internet connection.')
 
     # Create a list to hold results
     results = []
     # Go through each address in turn
-    for address in addresses[:nb_addresses]:
+    for address in addresses:
         # While the address geocoding is not finished:
         geocoded = False
         while geocoded is not True:
@@ -134,33 +136,33 @@ def get_locations(df, output_filename, nb_addresses=20):
                 geocode_result = get_google_results(address)
             except Exception as e:
                 logger.exception(e)
-                logger.error("Major error with {}".format(address))
-                logger.error("Skipping!")
+                logger.error('Major error with {}'.format(address))
+                logger.error('Skipping!')
                 geocoded = True
 
             # If we're over the API limit, backoff for a while and try again later.
             if geocode_result['status'] == 'OVER_QUERY_LIMIT':
-                logger.info("Hit Query Limit! Backing off for a bit.")
+                logger.info('Hit Query Limit! Backing off for a bit.')
                 time.sleep(BACKOFF_TIME * 60)  # sleep for 30 minutes
                 geocoded = False
             else:
                 # If we're ok with API use, save the results
                 # Note that the results might be empty / non-ok - log this
                 if geocode_result['status'] != 'OK':
-                    logger.warning("Error geocoding {}: {}".format(address, geocode_result['status']))
-                logger.debug("Geocoded: {}: {}".format(address, geocode_result['status']))
+                    logger.warning('Error geocoding {}: {}'.format(address, geocode_result['status']))
+                logger.debug('Geocoded: {}: {}'.format(address, geocode_result['status']))
                 results.append(geocode_result)
                 geocoded = True
 
         # Print status every 100 addresses
         if len(results) % 100 == 0:
-            logger.info("Completed {} of {} address".format(len(results), len(addresses)))
+            logger.info('Completed {} of {} address'.format(len(results), len(addresses)))
 
-        # Every 500 addresses, save progress to file(in case of a failure so you have something!)
+        # Every 500 addresses, save progress to file (in case of a failure so you have something!)
         if len(results) % 500 == 0:
-            pd.DataFrame(results).to_csv("{}_bak".format(output_folder_path + output_filename))
+            pd.DataFrame(results).to_csv('{}_bak'.format(OUTPUT_FOLDER_PATH + output_filename))
 
     # All done
-    logger.info("Finished geocoding all addresses")
+    logger.info('Finished geocoding all addresses')
     # Write the full results to csv using the pandas library.
-    pd.DataFrame(results).to_csv(output_folder_path + output_filename, encoding='utf8')
+    pd.DataFrame(results).to_csv(OUTPUT_FOLDER_PATH + output_filename, encoding='utf8')
