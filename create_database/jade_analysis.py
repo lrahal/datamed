@@ -39,11 +39,21 @@ def convert_cis(cis_str: str) -> str:
     """
     Convert cis codes in int type if possible
     """
-    cis_tmp = cis_str.replace(' ', '').replace('cis', '').replace(':', '').replace(u'\xa0', u'').replace('.', '')[:8]
-    if cis_tmp.isdigit():
-        return cis_tmp
-    else:
+    if cis_str.isdigit() and len(cis_str) > 8:
+        # May be CIP code instead of CIS
         return cis_str
+    else:
+        pattern = re.compile('nl\s[0-9]{2}\s[0-9]{3}\scis\s[0-9]{1}\s[0-9]{3}\s[0-9]{3}\s[0-9]{1}')
+        if pattern.match(cis_str):
+            cis_str = re.sub('nl\s[0-9]{2}\s[0-9]{3}\scis\s', '', cis_str)
+
+        cis_tmp = cis_str.replace(' ', '').replace('cis', '').replace(':', '').replace(u'\xa0', u'').replace('.', '')[:8]
+        if cis_tmp.isdigit():
+            # Try to find CIS code in str
+            return cis_tmp
+        else:
+            # Else keep it like that
+            return cis_str
 
 
 def global_cleaning(df: pd.DataFrame) -> pd.DataFrame:
@@ -110,18 +120,3 @@ def build_api_fab_sites_dataframe(path: str) -> pd.DataFrame:
     df_tmp = global_cleaning(df_data)
     df_cleaned = columns_cleaning(df_tmp)
     return df_cleaned
-
-
-def add_selected_site(df: pd.DataFrame, site_name: str) -> pd.DataFrame:
-    """
-    Retrieve the first address mentioned for site name
-    Multiple addresses are separated by ';'
-    :param df: DataFame (= clean DataFrame)
-    :return: DataFrame
-    ex: site_name = 'site(s) de production  / sites de production alternatif(s)'
-    """
-    df['site_name'] = df.apply(lambda x: x[site_name].split(';')[0], axis=1)
-    return df
-
-
-
