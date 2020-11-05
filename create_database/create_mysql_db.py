@@ -49,7 +49,7 @@ def create_table(df: pd.DataFrame, table_name: str):
 
 
 def main():
-    path = '/Users/linerahal/Documents/GitHub/datamed/create_database/data/jade_final/'
+    path = './create_database/data/jade_final/'
     # Load dataframe
     print('Loading dataframe from concatenated Excel files...')
     df = build_api_fab_sites_dataframe(path)
