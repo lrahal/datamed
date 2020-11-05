@@ -27,6 +27,7 @@ def upload_table_from_db(table_name: str) -> pd.DataFrame:
     # Load dataframe from database
     print('Start uploading fabrication_sites table in dataframe...', end='\n')
     df = pd.read_sql('SELECT * FROM {}'.format(table_name), con=engine)
+    print('Finished!')
     return df
 
 
