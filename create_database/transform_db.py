@@ -41,7 +41,7 @@ def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[DefaultD
             if api == 'nan':
                 continue
             else:
-                api_corresp_dict[api] = api_by_cis[cis]
+                api_corresp_dict[(api, cis)] = api_by_cis[cis]
     return api_corresp_dict, cis_not_in_bdpm
 
 
@@ -63,7 +63,7 @@ def get_api_similarities(api_corresp_dict: DefaultDict, ndigits: int) -> Default
     for api_excel, api_bdpm in tqdm(api_corresp_dict.items()):
         for api in api_bdpm:
             # Create sentences tuple
-            api_tuple = (api_excel, api)
+            api_tuple = (api_excel[0], api)
             # Clean the words in api_tuple
             cleaned_api_tuple = tuple(map(clean_string, api_tuple))
             # Compute cosine similarity between the 2 words in tuple
@@ -71,18 +71,23 @@ def get_api_similarities(api_corresp_dict: DefaultDict, ndigits: int) -> Default
     return api_sim_dict
 
 
-def get_most_sim_api(api_sim_dict: DefaultDict) -> Dict:
+def get_most_sim_api(api_sim_dict: DefaultDict) -> List[Dict]:
     """
     Pick the api_bdpm with the highest similarity score
     :return: dict
     """
-    return {
-        api_excel: max(api_sim_dict[api_excel], key=api_sim_dict[api_excel].get, default=None)
-        for api_excel in api_sim_dict.keys()
-    }
+    return [
+        {
+            'cis': api_excel[1],
+            'excel': api_excel[0],
+            'bdpm': max(api_bdpm_dict, key=api_bdpm_dict.get, default=None),
+            'cos_sim': api_bdpm_dict[max(api_bdpm_dict, key=api_bdpm_dict.get, default=None)]
+        }
+        for api_excel, api_bdpm_dict in api_sim_dict.items()
+    ]
 
 
-def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[Dict, Set]:
+def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[List[Dict], Set]:
     # Find correspondence between Excel api and BDPM api
     # 1 -> N
     print('Finding correspondences between Excels api and BDPM api...')
@@ -103,7 +108,7 @@ def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[Dict, Set]
     return best_match_api, cis_not_in_bdpm
 
 
-def add_best_match_api_to_table(best_match_api: Dict, table_name: str, col_name: str):
+def add_best_match_api_to_table(best_match_api: List[Dict], table_name: str, col_name: str):
     """
     Add new substance_active field to table using best_match_api dict
     :return: Update table in database
@@ -119,6 +124,9 @@ def add_best_match_api_to_table(best_match_api: Dict, table_name: str, col_name:
         cursor.execute(
             'ALTER TABLE {} ADD {} VARCHAR(1000) NULL AFTER substance_active;'.format(table_name, col_name)
         )
+        cursor.execute(
+            'ALTER TABLE {} ADD {} FLOAT NULL AFTER {};'.format(table_name, 'cosine_similarity', col_name)
+        )
     except pymysql.Error as e:
         # If column already exists, print error
         if e.args[0] == 1060:
@@ -128,10 +136,15 @@ def add_best_match_api_to_table(best_match_api: Dict, table_name: str, col_name:
             print(e)
 
     # Fill new column with values from dict
-    for old_api, new_api in tqdm(best_match_api.items()):
+    for api_matching_couple in tqdm(best_match_api):
         cursor.execute(
-            'UPDATE {} SET {} = "{}" WHERE substance_active = "{}"'.format(
-                table_name, col_name, new_api, old_api)
+            'UPDATE {} SET {} = "{}", cosine_similarity = {} WHERE substance_active = "{}" AND cis = "{}"'.format(
+                table_name,
+                col_name,
+                api_matching_couple['bdpm'],
+                api_matching_couple['cos_sim'],
+                api_matching_couple['excel'],
+                api_matching_couple['cis'])
         )
     connection.close()
 
@@ -144,17 +157,15 @@ def main():
     # Get api by CIS from BDPM CIS_COMPO_bdpm.txt file
     api_by_cis = get_api_by_cis()
 
+    # Compute best match api using BDPM
     best_match_api, cis_not_in_bdpm = compute_best_matches(df, api_by_cis)
-    files_explorer.write_csv(
-        best_match_api,
-        path='./create_database/data/best_match_api.csv',
-        fieldnames=['substance_active_excel', 'substance_active_bdpm']
-    )
+    df_match = pd.DataFrame(best_match_api)
+    df_match.to_csv('./create_database/data/best_match_api.csv', index=False, sep=';')
     print('best_match_api.csv printed!')
 
-    # Add new substance_active field to table using best_match_api dict
-    add_best_match_api_to_table(best_match_api, table_name, 'substance_active_new')
-    print('substance_active_new column created!')
+    # Add new substance_active field to table using best_match_api list
+    add_best_match_api_to_table(best_match_api, table_name, 'substance_active_match')
+    print('substance_active_match column created!')
 
 
 if __name__ == '__main__':
