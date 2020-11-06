@@ -3,6 +3,7 @@ import re
 from typing import List
 
 import pandas as pd
+from tqdm import tqdm
 from utils import files_explorer
 from xlrd import XLRDError
 
@@ -39,21 +40,23 @@ def convert_cis(cis_str: str) -> str:
     """
     Convert cis codes in int type if possible
     """
+    pattern = re.compile('nl[0-9]{5}cis[0-9]{8}')
+    cis_pattern = cis_str.replace(' ', '').replace(' /', '')
+    cis_tmp = cis_str.replace(' ', '').replace('cis', '').replace(':', '').replace(u'\xa0', u'').replace('.', '')[:8]
+
     if cis_str.isdigit() and len(cis_str) > 8:
         # May be CIP code instead of CIS
         return cis_str
+    elif pattern.match(cis_pattern):
+        # Fix entries like 'nl 32 991 / cis 6 640 362 1'
+        # or 'nl 47 695 cis 6 927 922 1'
+        return re.sub('nl[0-9]{5}cis', '', cis_pattern)
+    elif cis_tmp.isdigit():
+        # Try to find CIS code in str
+        return cis_tmp
     else:
-        pattern = re.compile('nl\s[0-9]{2}\s[0-9]{3}\scis\s[0-9]{1}\s[0-9]{3}\s[0-9]{3}\s[0-9]{1}')
-        if pattern.match(cis_str):
-            cis_str = re.sub('nl\s[0-9]{2}\s[0-9]{3}\scis\s', '', cis_str)
-
-        cis_tmp = cis_str.replace(' ', '').replace('cis', '').replace(':', '').replace(u'\xa0', u'').replace('.', '')[:8]
-        if cis_tmp.isdigit():
-            # Try to find CIS code in str
-            return cis_tmp
-        else:
-            # Else keep it like that
-            return cis_str
+        # Else keep it like that
+        return cis_str
 
 
 def global_cleaning(df: pd.DataFrame) -> pd.DataFrame:
@@ -73,7 +76,7 @@ def global_cleaning(df: pd.DataFrame) -> pd.DataFrame:
 
 def columns_cleaning(df: pd.DataFrame) -> pd.DataFrame:
     # Select only 17 first columns
-    df = df.iloc[:, :len(SCHEMA)]
+    df = df.iloc[:, :len(SCHEMA) + 1]
     df = df.rename(columns=SCHEMA)
     # Correct CIS codes
     df.cis = df.cis.apply(lambda x: convert_cis(x))
@@ -113,9 +116,15 @@ def build_api_fab_sites_dataframe(path: str) -> pd.DataFrame:
     """
     # Get filenames having good structure
     filenames = list(get_filenames(path))
+
     # Create dataframe
-    df_data = pd.concat((pd.read_excel(path + f) for f in filenames),
-                        axis=0, ignore_index=True, sort=False)
+    file_list = []
+    for f in tqdm(filenames):
+        df_file = pd.read_excel(path + f)
+        df_file['filename'] = f
+        file_list.append(df_file)
+    df_data = pd.concat(file_list, axis=0, ignore_index=True, sort=False)
+
     # Clean dataframe
     df_tmp = global_cleaning(df_data)
     df_cleaned = columns_cleaning(df_tmp)
