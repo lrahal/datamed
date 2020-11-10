@@ -108,17 +108,10 @@ def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[List[Dict]
     return best_match_api, cis_not_in_bdpm
 
 
-def add_best_match_api_to_table(best_match_api: List[Dict], table_name: str, col_name: str):
+def create_columns(cursor, table_name: str, col_name: str):
     """
-    Add new substance_active field to table using best_match_api dict
-    :return: Update table in database
+    Create substance_active match and cosine_similarity columns
     """
-    connection = pymysql.connect(host=HOSTNAME, db=DBNAME, user=UNAME, password=MYSQL_PWD,
-                                 charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor,
-                                 autocommit=True)
-    cursor = connection.cursor()
-
-    # Create new column for best match api
     try:
         # If column doesn't exist, create column
         cursor.execute(
@@ -131,9 +124,33 @@ def add_best_match_api_to_table(best_match_api: List[Dict], table_name: str, col
         # If column already exists, print error
         if e.args[0] == 1060:
             print(e.args[1])
+
+            # Delete columns and then recreate them
+            print('Columns already exist: deleting them...')
+            cursor.execute(
+                'ALTER TABLE {} DROP COLUMN {}, DROP COLUMN {};'.format(table_name, col_name, 'cosine_similarity')
+            )
+
+            print('Recreate columns')
+            create_columns(cursor, table_name, col_name)
+
         # If other error, print error
         else:
             print(e)
+
+
+def add_best_match_api_to_table(best_match_api: List[Dict], table_name: str, col_name: str):
+    """
+    Add new substance_active field to table using best_match_api dict
+    :return: Update table in database
+    """
+    connection = pymysql.connect(host=HOSTNAME, db=DBNAME, user=UNAME, password=MYSQL_PWD,
+                                 charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor,
+                                 autocommit=True)
+    cursor = connection.cursor()
+
+    # Create new column for best match api
+    create_columns(cursor, table_name, col_name)
 
     # Fill new column with values from dict
     for api_matching_couple in tqdm(best_match_api):
