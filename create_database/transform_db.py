@@ -2,7 +2,7 @@
 
 import string
 from collections import defaultdict
-from typing import Tuple, List, Dict, DefaultDict, Set
+from typing import List, Dict, DefaultDict
 
 import mysql.connector
 import numpy as np
@@ -21,28 +21,41 @@ from .upload_db import upload_table_from_db, get_api_by_cis
 STOPWORDS = stopwords.words('french')
 
 
-def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[DefaultDict, Set]:
+def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> DefaultDict:
     """
     - Excel database: CIS -> api
-    - BDPM: CIS -> [api1, api2, ...] (referential)
+    - BDPM: CIS -> [api1, api2, ...] (frame of reference)
     - Make the correspondence api (Excel) -> api (BDPM) in order to put the good syntax
     in the MySQL database
-    - API = Active Pharmaceutical Ingredient (shortcut for active substance)
+    - API = Active Pharmaceutical Ingredient (shortcut for "active substance")
     :return: dict of list
     """
     cis_table = set(df.cis.unique())
     cis_bdpm = set(api_by_cis.keys())
     cis_set = cis_table.intersection(cis_bdpm)
     cis_not_in_bdpm = cis_table - cis_set   # CIS that are in Excels but not in BDPM db
+    print('{} CIS codes over {} are not referenced in the BDPM'.format(
+        len(cis_not_in_bdpm), len(df.cis.unique())), end='\n')
 
-    api_corresp_dict = defaultdict(list)  # {api_excel: [api_bdpm]}
+    # Get cis not in BDPM and correspond file
+    cis_not_in_bdpm_by_filename = [
+        {'cis': c, 'filename': f}
+        for c in cis_not_in_bdpm
+        for f in df[df.cis == c].filename.unique()
+    ]
+    # Save it into csv
+    df_cis = pd.DataFrame(cis_not_in_bdpm_by_filename)
+    df_cis.to_csv('./create_database/data/cis_not_in_bdpm.csv', sep=';', index=False)
+
+    # Get api correspondence dict: {api_excel: [api_bdpm]}
+    api_corresp_dict = defaultdict(list)
     for cis in tqdm(cis_set):
         for api in df[df.cis == cis].substance_active:
             if api == 'nan':
                 continue
             else:
                 api_corresp_dict[(api, cis)] = api_by_cis[cis]
-    return api_corresp_dict, cis_not_in_bdpm
+    return api_corresp_dict
 
 
 def clean_string(text: str) -> str:
@@ -87,16 +100,11 @@ def get_most_sim_api(api_sim_dict: DefaultDict) -> List[Dict]:
     ]
 
 
-def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[List[Dict], Set]:
+def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> List[Dict]:
     # Find correspondence between Excel api and BDPM api
     # 1 -> N
     print('Finding correspondences between Excels api and BDPM api...')
-    api_corresp_dict, cis_not_in_bdpm = get_api_correspondence(df, api_by_cis)
-    print('{} CIS codes over {} are not referenced in the BDPM'.format(
-        len(cis_not_in_bdpm), len(df.cis.unique())), end='\n')
-
-    # Save cis_not_in_bdpm list in file
-    files_explorer.write_txt_file('./create_database/data/cis_not_in_bdpm.txt', cis_not_in_bdpm)
+    api_corresp_dict = get_api_correspondence(df, api_by_cis)
 
     # Get the cosine similarity score for each couple (api_excel, api_bdpm)
     print('Computing similarity scores...', end='\n')
@@ -105,7 +113,7 @@ def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> Tuple[List[Dict]
     # Select the one with the highest score
     print('Selecting best matches...', end='\n')
     best_match_api = get_most_sim_api(api_sim_dict)
-    return best_match_api, cis_not_in_bdpm
+    return best_match_api
 
 
 def create_columns(cursor, table_name: str, col_name: str):
@@ -175,7 +183,7 @@ def main():
     api_by_cis = get_api_by_cis()
 
     # Compute best match api using BDPM
-    best_match_api, cis_not_in_bdpm = compute_best_matches(df, api_by_cis)
+    best_match_api = compute_best_matches(df, api_by_cis)
     df_match = pd.DataFrame(best_match_api)
     df_match.to_csv('./create_database/data/best_match_api.csv', index=False, sep=';')
     print('best_match_api.csv printed!')
