@@ -11,7 +11,6 @@ Addresses and data are held in memory, so this script may need to be adjusted to
 by line if you are processing millions of entries.
 """
 
-import json
 import logging
 import os
 import re
