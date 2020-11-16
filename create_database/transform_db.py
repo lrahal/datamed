@@ -4,18 +4,14 @@ import string
 from collections import defaultdict
 from typing import List, Dict, DefaultDict
 
-import mysql.connector
-import numpy as np
 import pandas as pd
 import pymysql
 import unidecode
-from mysql.connector import errorcode
 from nltk.corpus import stopwords
 from tqdm import tqdm
-from utils import files_explorer
 
 from .compute_similarity import get_similarity
-from .create_mysql_db import connect_to_engine, HOSTNAME, DBNAME, UNAME, MYSQL_PWD
+from .create_mysql_db import HOSTNAME, DBNAME, UNAME, MYSQL_PWD
 from .upload_db import upload_table_from_db, get_api_by_cis
 
 STOPWORDS = stopwords.words('french')

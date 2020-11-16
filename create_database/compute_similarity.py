@@ -9,7 +9,6 @@ class WordsSimilarity:
         self.word1 = word_tuple[0]
         self.word2 = word_tuple[1]
 
-    def word2vec(self):
         # Count the number of characters in each word
         self.char_counter_1 = Counter(self.word1)
         self.char_counter_2 = Counter(self.word2)
@@ -41,5 +40,4 @@ def get_similarity(api_tuple: Tuple, ndigits: int) -> float:
     Compute cosine similarity between a tuple of api
     """
     ws = WordsSimilarity(api_tuple)
-    ws.word2vec()
     return ws.cosine_similarity(ndigits)

@@ -2,10 +2,8 @@ import os
 from typing import Dict
 
 import pandas as pd
-import pymysql
 from sqlalchemy import create_engine
 
-from .jade_analysis import convert_cis
 
 # Credentials to database connection
 HOSTNAME = 'localhost'
