@@ -134,9 +134,6 @@ data/
 # Notebook Checkpoints
 .ipynb_checkpoints/
 
-# for Jupytext ignoring ipynb files
-*.ipynb
-
 # idea folder
 .idea
 
