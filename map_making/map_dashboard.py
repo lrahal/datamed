@@ -33,7 +33,7 @@ external_stylesheets = [
 
 
 app = dash.Dash(__name__, external_scripts=external_scripts, external_stylesheets=external_stylesheets)
-app.title = 'Active substances fabrication maps'
+app.title = 'Cartographie des sites de fabrication de médicaments'
 
 df, df_countries = get_final_dataframe()
 df_countries['text'] = df_countries['country'] + ': ' + df_countries['substance_active'].astype(str)
@@ -74,50 +74,59 @@ fig_world_map.update_layout(clickmode='event+select')
 
 columns = ['denomination_specialite', 'cis', 'substance_active', 'country']
 
-app.layout = html.Div([
+app.layout = html.Div(className='container-fluid', children=[
     html.Div([
-        html.H1('Active substance fabrication sites worldwide')]),
-    dcc.Graph(id='world-graph', figure=fig_world_map),
-    dash_table.DataTable(
-        columns=[{'name': col, 'id': col} for col in columns],
-        data=[],
-        id='click-data',
-        page_size=10,
-        style_table={'height': '300px', 'overflowY': 'auto'},
-        style_as_list_view=True,
-        style_cell={'padding': '5px', 'textAlign': 'left'},
-        style_header={
-            'backgroundColor': 'white',
-            'fontWeight': 'bold'
-        },
-    ),
+        html.H1('DASH - ANSM DATA APP')]),
+    dcc.Tabs([
+        dcc.Tab(label='Overview', children=[
+            html.Div([
+                html.H2('Cartographie des sites de fabrication de substances actives', style={'margin-top': 30})]),
+            html.P('Sélectionnez un pays pour afficher les différentes substances actives qui y sont fabriquées'),
+            dcc.Graph(id='world-graph', figure=fig_world_map),
+            dash_table.DataTable(
+                columns=[{'name': col, 'id': col} for col in columns],
+                data=[],
+                id='click-data',
+                page_size=10,
+                style_table={'height': '300px', 'overflowY': 'auto'},
+                style_as_list_view=True,
+                style_cell={'padding': '5px', 'textAlign': 'left'},
+                style_header={
+                    'backgroundColor': 'white',
+                    'fontWeight': 'bold'
+                })
+        ]),
 
-    html.Div([html.H1('Active substances having an only fabrication site')],
-             style={'textAlign': 'center', 'padding-bottom': '30'}),
-    dash_table.DataTable(
-        columns=[{'name': col, 'id': col} for col in ['substance_active', 'formatted_address', 'country']],
-        data=single_site_api_list,
-        filter_action='native',
-        sort_action='native',
-        page_size=10,
-        style_table={'height': '300px', 'overflowY': 'auto'},
-        style_as_list_view=True,
-        style_cell={'padding': '5px', 'textAlign': 'left'},
-        style_header={
-            'backgroundColor': 'white',
-            'fontWeight': 'bold'
-        },
-    ),
-
-    html.Div([html.H1('Fabrication sites for a particular active substance')],
-             style={'textAlign': 'center', 'padding-bottom': '30'}),
-    dcc.Dropdown(
-        id='api-dropdown',
-        options=[{'label': api, 'value': api} for api in sorted(df.substance_active.unique())],
-        value='abacavir'
-    ),
-    dcc.Graph(id='api-graph')
-], className='container-sm')
+        dcc.Tab(label='Détection des API à risque', children=[
+            html.Div([
+                html.H2('Substances actives fabriquées dans un unique site')],
+                style={'textAlign': 'left', 'padding-bottom': '30', 'margin-top': 30}),
+            html.P("Liste des substances actives fabriquées dans un seul site (pas d'alternative)"),
+            dash_table.DataTable(
+                    columns=[{'name': col, 'id': col} for col in ['substance_active', 'formatted_address', 'country']],
+                    data=single_site_api_list,
+                    filter_action='native',
+                    sort_action='native',
+                    page_size=15,
+                    style_table={'height': '400px', 'overflowY': 'auto'},
+                    style_as_list_view=True,
+                    style_cell={'padding': '5px', 'textAlign': 'left'},
+                    style_header={
+                        'backgroundColor': 'white',
+                        'fontWeight': 'bold'
+                    }),
+            html.Div([html.H2('Sites de fabrication par substance active', style={'margin-top': 60})],
+                     style={'textAlign': 'left', 'padding-bottom': '30'}),
+            html.P('Sélectionnez une substance active pour voir dans quels sites elle est fabriquée'),
+            dcc.Dropdown(
+                id='api-dropdown',
+                options=[{'label': api, 'value': api} for api in sorted(df.substance_active.unique())],
+                value='abacavir'
+            ),
+            dcc.Graph(id='api-graph')
+        ])
+    ])
+])
 
 
 @app.callback(Output('click-data', 'data'), Input('world-graph', 'clickData'))
