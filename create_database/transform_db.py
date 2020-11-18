@@ -47,7 +47,7 @@ def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> DefaultDict:
     api_corresp_dict = defaultdict(list)
     for cis in tqdm(cis_set):
         for api in df[df.cis == cis].substance_active:
-            if api == 'nan':
+            if not api:
                 continue
             else:
                 api_corresp_dict[(api, cis)] = api_by_cis[cis]
