@@ -1,10 +1,13 @@
+import math
 import re
 from typing import List
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from utils import files_explorer
 from xlrd import XLRDError
+
+from utils import files_explorer
 
 SCHEMA = {
     'dénomination de la spécialité': 'denomination_specialite',
@@ -32,7 +35,7 @@ def clean_column(col):
     :param col: DataFrame column
     :return: cleaned column
     """
-    return col.astype(str).str.lower().str.strip().str.replace('\n', ' ')
+    return col.astype(str).str.lower().str.strip().str.replace('\n', ' ').replace('nan', np.nan)
 
 
 def convert_cis(cis_str: str) -> str:
@@ -66,7 +69,6 @@ def global_cleaning(df: pd.DataFrame) -> pd.DataFrame:
     :return: DataFrame
     """
     # Global cleaning
-    df = df.dropna(how='all')
     df[df.columns] = df[df.columns].apply(clean_column)
     df = df.applymap(lambda x: re.sub(' +', ' ', x) if isinstance(x, str) else x)
     df.columns = df.columns.str.lower().str.strip().str.replace('\n', ' ')
@@ -77,8 +79,9 @@ def columns_cleaning(df: pd.DataFrame) -> pd.DataFrame:
     # Select only 17 first columns
     df = df.iloc[:, :len(SCHEMA) + 1]
     df = df.rename(columns=SCHEMA)
+    df = df.dropna(how='all', subset=df.columns[:-1])
     # Correct CIS codes
-    df.cis = df.cis.apply(lambda x: convert_cis(x))
+    df.cis = df.cis.apply(lambda x: convert_cis(x) if not pd.isnull(x) else math.nan)
     # Remove rows having bad information
     df = df[df.denomination_specialite != 'une ligne par dénomination et par susbtance active']
     return df
