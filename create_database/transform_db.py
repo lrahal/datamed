@@ -220,6 +220,9 @@ def main():
     add_best_match_api_to_table(best_match_api, table_name, 'substance_active_match')
     print('substance_active_match column created!')
 
+    print('Add ATC code to table')
+    join_tables('fabrication_sites', 'atc')
+
 
 if __name__ == '__main__':
     main()
