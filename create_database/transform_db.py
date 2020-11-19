@@ -2,7 +2,7 @@
 
 import string
 from collections import defaultdict
-from typing import List, Dict, DefaultDict
+from typing import List, Dict, DefaultDict, Set
 
 import pandas as pd
 import pymysql
@@ -17,6 +17,18 @@ from .upload_db import upload_table_from_db, get_api_by_cis
 STOPWORDS = stopwords.words('french')
 
 
+def get_cis_not_in_bdpm(df: pd.DataFrame, cis_not_in_bdpm: Set, path: str):
+    # Get cis not in BDPM and correspond file
+    cis_not_in_bdpm_by_filename = [
+        {'cis': c, 'filename': f}
+        for c in cis_not_in_bdpm
+        for f in df[df.cis == c].filename.unique()
+    ]
+    # Save it into csv
+    df_cis = pd.DataFrame(cis_not_in_bdpm_by_filename)
+    df_cis.to_csv(path, sep=';', index=False)
+
+
 def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> DefaultDict:
     """
     - Excel database: CIS -> api
@@ -26,22 +38,15 @@ def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> DefaultDict:
     - API = Active Pharmaceutical Ingredient (shortcut for "active substance")
     :return: dict of list
     """
-    cis_table = set(df.cis.unique())
-    cis_bdpm = set(api_by_cis.keys())
-    cis_set = cis_table.intersection(cis_bdpm)
-    cis_not_in_bdpm = cis_table - cis_set   # CIS that are in Excels but not in BDPM db
+    cis_table = set(df.cis.unique())             # CIS in fabrication_sites table
+    cis_bdpm = set(api_by_cis.keys())            # CIS in cis_compo (= BDPM)
+    cis_set = cis_table.intersection(cis_bdpm)   # CIS in both fabrication_sites and cis_compo
+    cis_not_in_bdpm = cis_table - cis_set        # CIS that are in fabrication_sites but not in cis_compo
     print('{} CIS codes over {} are not referenced in the BDPM'.format(
         len(cis_not_in_bdpm), len(df.cis.unique())), end='\n')
 
-    # Get cis not in BDPM and correspond file
-    cis_not_in_bdpm_by_filename = [
-        {'cis': c, 'filename': f}
-        for c in cis_not_in_bdpm
-        for f in df[df.cis == c].filename.unique()
-    ]
-    # Save it into csv
-    df_cis = pd.DataFrame(cis_not_in_bdpm_by_filename)
-    df_cis.to_csv('./create_database/data/cis_not_in_bdpm.csv', sep=';', index=False)
+    # Write cis_not_in_bdpm in csv
+    get_cis_not_in_bdpm(df, cis_not_in_bdpm, path='./create_database/data/cis_not_in_bdpm.csv')
 
     # Get api correspondence dict: {api_excel: [api_bdpm]}
     api_corresp_dict = defaultdict(list)
