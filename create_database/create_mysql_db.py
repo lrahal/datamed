@@ -1,8 +1,9 @@
 import os
+from typing import Dict
 
 import pandas as pd
 import pymysql
-from sqlalchemy import create_engine, exc
+from sqlalchemy import create_engine, exc, types
 
 from .jade_analysis import build_api_fab_sites_dataframe
 
@@ -38,14 +39,29 @@ def connect_to_engine():
     return engine
 
 
-def create_table(df: pd.DataFrame, table_name: str):
+def create_table(df: pd.DataFrame, table_name: str, dtype: Dict = None):
     # Connect to database
     engine = connect_to_engine()
 
     # Convert dataframe to SQL table
     print('Table {} creation...'.format(table_name))
     df.to_sql(table_name, engine, schema=None, if_exists='append', index=False,
-              index_label=None, chunksize=None, dtype=None, method=None)
+              index_label=None, chunksize=None, dtype=dtype, method=None)
+
+
+def create_atc_table():
+    """
+    Function for table 'atc' creation in rs_db
+    """
+    df = pd.read_csv('./create_database/data/ATC.csv', names=['cis', 'atc', 'v3'], delimiter=';', header=0)
+
+    dtypes_dict = {
+        'cis': types.TEXT,
+        'atc': types.TEXT,
+        'v3': types.TEXT,
+    }
+    table_name = 'atc'
+    create_table(df, table_name, dtype=dtypes_dict)
 
 
 def main():
@@ -66,7 +82,8 @@ def main():
         print('Database {} created!'.format(DBNAME))
 
     table_name = 'fabrication_sites'
-    create_table(df, table_name)
+    dtypes_dict = {col_name: types.TEXT for col_name in df.columns}
+    create_table(df, table_name, dtypes_dict)
     print('Table {} created! Youpiyé!'.format(table_name))
 
 
