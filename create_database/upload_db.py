@@ -14,8 +14,9 @@ MYSQL_PWD = os.environ.get('MYSQL_PWD')
 
 def upload_table_from_db(table_name: str) -> pd.DataFrame:
     """
-    Upload fabrication_sites table
-    :param table_name: name of the table ('fabrication_sites' in rs_db database)
+    Upload fabrication_sites or atc or cis_compo tables
+    :param table_name: name of the table
+    ('fabrication_sites' or 'cis_compo' or 'atc' in rs_db database)
     :return: dataframe
     """
     engine = create_engine('mysql+pymysql://{user}:{pw}@{host}/{db}'
@@ -23,7 +24,7 @@ def upload_table_from_db(table_name: str) -> pd.DataFrame:
                            echo=False)
 
     # Load dataframe from database
-    print('Start uploading fabrication_sites table in dataframe...', end='\n')
+    print('Start uploading {} table in dataframe...'.format(table_name), end='\n')
     df = pd.read_sql('SELECT * FROM {}'.format(table_name), con=engine)
     print('Finished!')
     return df
