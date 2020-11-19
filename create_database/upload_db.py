@@ -37,7 +37,7 @@ def clean_columns(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     return df
 
 
-def upload_bdpm() -> pd.DataFrame:
+def upload_bdpm_from_csv(path='./create_database/data/CIS_COMPO_bdpm.txt') -> pd.DataFrame:
     """
     Upload BDPM compositions database
     In http://base-donnees-publique.medicaments.gouv.fr/telechargement.php
@@ -46,8 +46,10 @@ def upload_bdpm() -> pd.DataFrame:
     # Read CIS_COMPO_bdpm.txt file and put in dataframe
     col_names = ['cis', 'elem_pharma', 'code_substance', 'substance_active',
                  'dosage', 'ref_dosage', 'nature_composant', 'num_lien', 'v']
-    df = pd.read_csv('./create_database/data/CIS_COMPO_bdpm.txt',
-                     sep='\t', encoding='latin1', names=col_names, header=None)
+    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    df = df.drop(['v'], axis=1)   # Remove v column, filled with NaN only
+    # Put substance_active field in lower case
+    df = clean_columns(df, 'substance_active')
     return df
 
 
@@ -57,9 +59,7 @@ def get_api_by_cis() -> Dict:
     :return: dict of list
     """
     # Load dataframe
-    df_bdpm = upload_bdpm()
-    # Put substance_active field in lower case
-    df_bdpm = clean_columns(df_bdpm, 'substance_active')
+    df_bdpm = upload_table_from_db('cis_compo')
     # List CIS codes
     cis_list = df_bdpm.cis.unique()
     # Create dict of list
