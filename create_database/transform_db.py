@@ -124,7 +124,7 @@ def create_columns(cursor, table_name: str, col_name: str):
     try:
         # If column doesn't exist, create column
         cursor.execute(
-            'ALTER TABLE {} ADD {} VARCHAR(1000) NULL AFTER substance_active;'.format(table_name, col_name)
+            'ALTER TABLE {} ADD {} TEXT NULL AFTER substance_active;'.format(table_name, col_name)
         )
         cursor.execute(
             'ALTER TABLE {} ADD {} FLOAT NULL AFTER {};'.format(table_name, 'cosine_similarity', col_name)
@@ -172,6 +172,33 @@ def add_best_match_api_to_table(best_match_api: List[Dict], table_name: str, col
                 api_matching_couple['excel'],
                 api_matching_couple['cis'])
         )
+    connection.close()
+
+
+def join_tables(table_name_1: str = 'fabrication_sites', table_name_2: str = 'atc'):
+    connection = pymysql.connect(host=HOSTNAME, db=DBNAME, user=UNAME, password=MYSQL_PWD,
+                                 charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor,
+                                 autocommit=True)
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute(
+            'ALTER TABLE {} ADD {} TEXT NULL AFTER {};'.format(table_name_1, 'atc', 'cis')
+        )
+    except pymysql.Error as e:
+        if e.args[0] == 1060:
+            print(e.args[1])
+            cursor.execute(
+                'ALTER TABLE {} DROP COLUMN {};'.format(table_name_1, 'atc')
+            )
+        else:
+            print(e)
+
+    cursor.execute(
+        'UPDATE {} INNER JOIN atc ON {}.cis = {}.cis SET {}.atc = {}.atc'.format(
+            table_name_1, table_name_1, table_name_2, table_name_1, table_name_2
+        )
+    )
     connection.close()
 
 
