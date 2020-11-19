@@ -54,6 +54,20 @@ def upload_bdpm_from_csv(path='./create_database/data/CIS_COMPO_bdpm.txt') -> pd
     return df
 
 
+def upload_spec_from_csv(path='./create_database/data/CIS_bdpm.txt') -> pd.DataFrame:
+    """
+    Upload BDPM compositions database
+    In http://base-donnees-publique.medicaments.gouv.fr/telechargement.php
+    :return: dataframe
+    """
+    # Read CIS_bdpm.txt file and put in dataframe
+    col_names = ['cis', 'denomination_specialite', 'forme_pharma', 'voies_administration',
+                 'statut_amm', 'type_amm', 'etat_commercialisation', 'date_amm', 'statut_bdm',
+                 'num_autorisation_euro', 'titulaires', 'surveillance_renforcee']
+    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    return df
+
+
 def get_api_by_cis() -> Dict:
     """
     Get substance_active (API) list for each CIS
