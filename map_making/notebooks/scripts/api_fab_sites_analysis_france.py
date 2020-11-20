@@ -32,6 +32,7 @@ df = clean_data(df)
 # In[3]:
 
 
+# Suppression des colonnes inutiles pour l'analyse
 df = df.drop(['latitude', 'longitude', 'accuracy', 'google_place_id', 'type', 'postcode', 'number_of_results'],
              axis=1)
 
@@ -39,44 +40,36 @@ df = df.drop(['latitude', 'longitude', 'accuracy', 'google_place_id', 'type', 'p
 # In[4]:
 
 
-len(df)
+len(df), len(df.cis.unique())
 
 
 # In[5]:
 
 
-len(df.cis.unique())
-
-
-# In[6]:
-
-
 df.head(2)
 
 
-# In[7]:
+# In[6]:
 
 
 # Keep rows having the right format (8 digits) (88% of all rows)
 df = df[~df.cis.isna()]
 df = df[df.cis.apply(lambda x: x.isdigit() and len(x) == 8)]
 
+len(df)
+
+
+# In[7]:
+
+
+# Liste des pays listés dans le dataset
+countries = sorted(df.country.unique())
+
 
 # In[8]:
 
 
-len(df)
-
-
-# In[9]:
-
-
-countries = sorted(df.country.unique())
-
-
-# In[10]:
-
-
+# Listes de pays pour chaque catégorie
 france_countries = ['France', 'French Guiana', 'Martinique', 'Réunion'] 
 europe_countries = ['Germany', 'Belgium', 'Austria', 'Bulgaria', 'Croatia', 'Denmark', 'Spain', 'Estonia',
                     'Finland', 'Greece', 'Hungary', 'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg',
@@ -92,19 +85,19 @@ union_list = list(set(europe_countries) | set(mutual_rec_countries) | set(china_
 third_countries = [c for c in countries if c not in union_list]
 
 
+# In[9]:
+
+
+len(df[df.country == 'China']) / len(df) * 100
+
+
+# In[10]:
+
+
+len(df[df.country == 'India']) / len(df) * 100
+
+
 # In[11]:
-
-
-len(df[df.country == 'China']) / len(df)
-
-
-# In[12]:
-
-
-len(df[df.country == 'India']) / len(df)
-
-
-# In[13]:
 
 
 df['france'] = df.country.isin(france_countries)
@@ -117,7 +110,7 @@ df['india'] = df.country.isin(india_countries)
 df['third'] = df.country.isin(third_countries)
 
 
-# In[14]:
+# In[12]:
 
 
 df[df.country == 'Martinique'].head(3)
@@ -125,13 +118,15 @@ df[df.country == 'Martinique'].head(3)
 
 # # Regroupement par code CIS
 
-# In[15]:
+# On représente les données par code CIS et non plus par substance active
+
+# In[13]:
 
 
 df2 = pd.DataFrame(sorted(df.cis.unique()), columns=['cis'])
 
 
-# In[16]:
+# In[14]:
 
 
 df2['france'] = df2.apply(lambda x: True in df[df.cis == x.cis].france.to_list(), axis=1)
@@ -142,13 +137,13 @@ df2['india'] = df2.apply(lambda x: True in df[df.cis == x.cis].india.to_list(), 
 df2['third'] = df2.apply(lambda x: True in df[df.cis == x.cis].third.to_list(), axis=1)
 
 
-# In[17]:
+# In[15]:
 
 
 df2[(df2.europe == True) & (df2.china == True)].head()
 
 
-# In[18]:
+# In[16]:
 
 
 df2['france_only'] = df2.apply(lambda x: not (False in df[df.cis == x.cis].france.to_list()), axis=1)
@@ -159,7 +154,7 @@ df2['india_only'] = df2.apply(lambda x: not (False in df[df.cis == x.cis].india.
 df2['third_only'] = df2.apply(lambda x: not (False in df[df.cis == x.cis].third.to_list()), axis=1)
 
 
-# In[19]:
+# In[17]:
 
 
 df2['nothing_in_france'] = df2.apply(lambda x: not (True in df[df.cis == x.cis].france.to_list()), axis=1)
@@ -170,7 +165,7 @@ df2['nothing_in_india'] = df2.apply(lambda x: not (True in df[df.cis == x.cis].i
 df2['nothing_in_third'] = df2.apply(lambda x: not (True in df[df.cis == x.cis].third.to_list()), axis=1)
 
 
-# In[20]:
+# In[18]:
 
 
 df2[df2.france_only].head()
@@ -178,14 +173,14 @@ df2[df2.france_only].head()
 
 # ## Calcul des stats
 
-# In[21]:
+# In[19]:
 
 
 def get_stat(label, df):
     print(label + ': ' + str(len(df[df[label]])) + ' (' + str(len(df[df[label]]) / len(df) * 100) + '%)')
 
 
-# In[22]:
+# In[20]:
 
 
 get_stat('france_only', df2)
@@ -203,53 +198,37 @@ get_stat('nothing_in_india', df2)
 get_stat('nothing_in_third', df2)
 
 
-# In[23]:
+# In[21]:
 
 
 df2[df2.france_only].head()
 
 
+# In[22]:
+
+
+# Vérification rapide que les calculs concordent
+len(df2[df2.france_only]) + len(df2[df2.nothing_in_france]) + len(df2[(df2.france) & (~df2.france_only)]) == len(df2)
+
+
+# In[23]:
+
+
+only_dict = {
+    'France only': len(df2[df2.france_only]),
+    'Europe only': len(df2[df2.europe_only]),
+    'Mutual Rec only': len(df2[df2.mutual_rec_only]),
+    'China only': len(df2[df2.china_only]),
+    'India only': len(df2[df2.india_only]),
+    'Third only': len(df2[df2.third_only]),
+}
+
+
 # In[24]:
 
 
-len(df2[(df2.europe) & (df2.china)]) / len(df2) * 100
-
-
-# In[25]:
-
-
-len(df2[(df2.europe) & (df2.india)]) / len(df2) * 100
-
-
-# In[26]:
-
-
-len(df2[(df2.france) & (df2.india)]) / len(df2) * 100
-
-
-# In[27]:
-
-
-1026 + 9278 + len(df2[(df2.france) & (~df2.france_only)]) == len(df2)
-
-
-# In[28]:
-
-
-count_dict = {'France only': len(df2[df2.france_only]),
-              'Europe only': len(df2[df2.europe_only]),
-              'Mutual Rec only': len(df2[df2.mutual_rec_only]),
-              'China only': len(df2[df2.china_only]),
-              'India only': len(df2[df2.india_only]),
-              'Third only': len(df2[df2.third_only]),
-             }
-
-
-# In[29]:
-
-
 fig, ax = plt.subplots(figsize=(12, 6))
-plot1 = ax.bar(range(len(count_dict)), list(count_dict.values()), align='center')
+plot1 = ax.bar(range(len(only_dict)), list(only_dict.values()), align='center')
 
 def autolabel(rects):
     """Attach a text label above each bar in *rects*, displaying its height."""
@@ -264,7 +243,43 @@ def autolabel(rects):
 
 autolabel(plot1)
 
-plt.xticks(range(len(count_dict)), list(count_dict.keys()))
+plt.xticks(range(len(only_dict)), list(only_dict.keys()))
+None
+
+
+# In[25]:
+
+
+nothing_dict = {
+    'nothing in France': len(df2[df2.nothing_in_france]),
+    'nothing in Europe': len(df2[df2.nothing_in_europe]),
+    'nothing in Mutual Rec': len(df2[df2.nothing_in_mutual_rec]),
+    'nothing in China': len(df2[df2.nothing_in_china]),
+    'nothing in India': len(df2[df2.nothing_in_india]),
+    'nothing in Third': len(df2[df2.nothing_in_third]),
+}
+
+
+# In[26]:
+
+
+fig, ax = plt.subplots(figsize=(12, 6))
+plot2 = ax.bar(range(len(nothing_dict)), list(nothing_dict.values()), align='center')
+
+def autolabel(rects):
+    """Attach a text label above each bar in *rects*, displaying its height."""
+    for rect in rects:
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+
+autolabel(plot2)
+
+plt.xticks(range(len(nothing_dict)), list(nothing_dict.keys()))
 None
 
 
@@ -292,19 +307,7 @@ None
 
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[30]:
+# In[27]:
 
 
 def get_category(x):
@@ -322,19 +325,19 @@ def get_category(x):
         return 'India only'
 
 
-# In[31]:
+# In[28]:
 
 
 x = df2.iloc[217]
 
 
-# In[32]:
+# In[29]:
 
 
 cols = [c for c in df2.columns if c != 'cis']
 
 
-# In[33]:
+# In[30]:
 
 
 def get_col_true(x, cols):
@@ -347,20 +350,20 @@ def get_col_true(x, cols):
     return col_str
 
 
-# In[34]:
+# In[31]:
 
 
 df2['category'] = df2.apply(lambda x: get_category(x), axis=1)
 df2['category'] = df2.apply(lambda x: get_col_true(x, cols) if not x.category else x.category, axis=1)
 
 
-# In[35]:
+# In[32]:
 
 
 df2.head(3)
 
 
-# In[36]:
+# In[33]:
 
 
 sns.set_style("white")
