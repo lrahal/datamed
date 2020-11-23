@@ -120,7 +120,8 @@ app.layout = html.Div(className='container-fluid', children=[
             html.P('Sélectionnez une substance active pour voir dans quels sites elle est fabriquée'),
             dcc.Dropdown(
                 id='api-dropdown',
-                options=[{'label': api, 'value': api} for api in sorted(df.substance_active.unique())],
+                options=[{'label': api, 'value': api}
+                         for api in sorted(df[~df.substance_active.isna()].substance_active.unique())],
                 value='abacavir'
             ),
             dcc.Graph(id='api-graph')
