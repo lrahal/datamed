@@ -37,7 +37,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Remove NaN active substances and NaN countries
     """
-    df = df[~df.substance_active.isna()]
     return df[~df['country'].isna()]
 
 
