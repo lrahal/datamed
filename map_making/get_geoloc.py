@@ -164,4 +164,4 @@ def get_locations(addresses: np.ndarray, output_filename: str):
     # All done
     logger.info('Finished geocoding all addresses')
     # Write the full results to csv using the pandas library.
-    pd.DataFrame(results).to_csv(OUTPUT_FOLDER_PATH + output_filename, encoding='utf8')
+    pd.DataFrame(results).to_csv(OUTPUT_FOLDER_PATH + output_filename, sep='$', encoding='utf8')
