@@ -6,6 +6,7 @@ import pymysql
 from sqlalchemy import create_engine, exc, types
 
 from .jade_analysis import build_api_fab_sites_dataframe
+from .upload_db import upload_cis_cip_from_csv
 
 # Credentials to database connection
 HOSTNAME = 'localhost'
@@ -61,6 +62,48 @@ def create_atc_table():
         'v3': types.TEXT,
     }
     table_name = 'atc'
+    create_table(df, table_name, dtype=dtypes_dict)
+
+
+def create_open_medic_table():
+    """
+    Function for table 'open_medic' creation in rs_db
+    Colonnes 'libellé' et 'bse' retirées car trop de problèmes d'encoding
+    nbc : nb consommants
+    rem : montant remboursé
+    bse : base de remboursement
+    boites : nb boîtes délivrées
+    """
+    df = pd.read_csv('./create_database/data/NB_2019_cip13.csv', names=['cip13', 'nbc', 'boites'],
+                     delimiter=';', encoding='utf-8', header=0)
+
+    dtypes_dict = {
+        'cip13': types.TEXT,
+        'nbc': types.INTEGER,
+        'boites': types.INTEGER,
+    }
+    table_name = 'open_medic'
+    create_table(df, table_name, dtype=dtypes_dict)
+
+
+def create_cis_cip_table():
+    """
+    Function for table 'cis_cip' creation in rs_db
+    """
+    df = upload_cis_cip_from_csv('./create_database/data/CIS_CIP_bdpm.txt')
+
+    dtypes_dict = {
+        'cis': types.TEXT,
+        'cip7': types.TEXT,
+        'libelle_presentation': types.TEXT,
+        'statut_admin_presentation': types.TEXT,
+        'etat_commercialisation': types.TEXT,
+        'date_declaration_commercialisation': types.DATE,
+        'cip13': types.TEXT,
+        'agrement_collectivites': types.TEXT,
+        'taux_remboursement': types.TEXT,
+    }
+    table_name = 'cis_cip'
     create_table(df, table_name, dtype=dtypes_dict)
 
 
