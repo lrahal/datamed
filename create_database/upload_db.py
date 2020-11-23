@@ -1,9 +1,9 @@
 import os
+from datetime import datetime as dt
 from typing import Dict
 
 import pandas as pd
 from sqlalchemy import create_engine
-
 
 # Credentials to database connection
 HOSTNAME = 'localhost'
@@ -65,6 +65,27 @@ def upload_spec_from_csv(path='./create_database/data/CIS_bdpm.txt') -> pd.DataF
                  'statut_amm', 'type_amm', 'etat_commercialisation', 'date_amm', 'statut_bdm',
                  'num_autorisation_euro', 'titulaires', 'surveillance_renforcee']
     df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    return df
+
+
+def upload_cis_cip_from_csv(path='./create_database/data/CIS_CIP_bdpm.txt') -> pd.DataFrame:
+    """
+    Upload BDPM compositions database
+    In http://base-donnees-publique.medicaments.gouv.fr/telechargement.php
+    Attention : 4 dernière colonnes retirées car pb d'écriture des nombres
+    ex : comment transformer 4,768,73 en 4768,73 ?
+    :return: dataframe
+    """
+    # Read CIS_CIP_bdpm.txt file and put in dataframe
+    col_names = ['cis', 'cip7', 'libelle_presentation', 'statut_admin_presentation', 'etat_commercialisation',
+                 'date_declaration_commercialisation', 'cip13', 'agrement_collectivites', 'taux_remboursement',
+                 'prix_medicament_euro', 'chelou_1', 'chelou_2', 'indications_remboursement']
+    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    # Retirer les 4 dernière colonnes
+    df = df.drop(['prix_medicament_euro', 'chelou_1', 'chelou_2', 'indications_remboursement'], axis=1)
+    # Convertir les dates en format datetime
+    df.date_declaration_commercialisation = df.date_declaration_commercialisation.apply(
+        lambda x: dt.strptime(x, '%d/%m/%Y'))
     return df
 
 
