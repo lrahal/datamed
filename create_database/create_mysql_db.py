@@ -68,7 +68,7 @@ def create_atc_table():
 def create_open_medic_table():
     """
     Function for table 'open_medic' creation in rs_db
-    Colonnes 'libellé' et 'bse' retirées car trop de problèmes d'encoding
+    Colonnes 'libellé', 'rem' et 'bse' retirées car trop de problèmes d'encoding
     nbc : nb consommants
     rem : montant remboursé
     bse : base de remboursement

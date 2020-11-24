@@ -81,7 +81,7 @@ def upload_cis_cip_from_csv(path='./create_database/data/CIS_CIP_bdpm.txt') -> p
                  'date_declaration_commercialisation', 'cip13', 'agrement_collectivites', 'taux_remboursement',
                  'prix_medicament_euro', 'chelou_1', 'chelou_2', 'indications_remboursement']
     df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
-    # Retirer les 4 dernière colonnes
+    # Retirer les 4 dernières colonnes
     df = df.drop(['prix_medicament_euro', 'chelou_1', 'chelou_2', 'indications_remboursement'], axis=1)
     # Convertir les dates en format datetime
     df.date_declaration_commercialisation = df.date_declaration_commercialisation.apply(
