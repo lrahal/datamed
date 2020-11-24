@@ -35,9 +35,9 @@ def get_data(table_name: str, path: str, site_col: str) -> pd.DataFrame:
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Remove NaN active substances and NaN countries
+    Remove NaN countries
     """
-    return df[~df['country'].isna()]
+    return df[~df.country.isna()]
 
 
 def upload_countries_loc(path: str) -> pd.DataFrame:
