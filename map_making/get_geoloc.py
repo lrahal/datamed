@@ -21,6 +21,9 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 import requests
+from sqlalchemy import types
+
+from create_database.create_mysql_db import create_table
 
 logger = logging.getLogger('root')
 logger.setLevel(logging.DEBUG)
@@ -163,5 +166,25 @@ def get_locations(addresses: np.ndarray, output_filename: str):
 
     # All done
     logger.info('Finished geocoding all addresses')
+
+    # Create dataframe and put it in table in rs_db database
+    df = pd.DataFrame(results)
+    dtypes_dict = {
+        'formatted_address': types.TEXT,
+        'latitude': types.FLOAT,
+        'longitude': types.FLOAT,
+        'accuracy': types.TEXT,
+        'google_place_id': types.TEXT,
+        'type': types.TEXT,
+        'postcode': types.INTEGER,
+        'country': types.TEXT,
+        'input_string': types.TEXT,
+        'number_of_results': types.INTEGER,
+        'status': types.TEXT,
+    }
+    print('Creating table in rs_db database...')
+    create_table(df, 'api_fab_sites_geocode', dtypes_dict)
+
     # Write the full results to csv using the pandas library.
-    pd.DataFrame(results).to_csv(OUTPUT_FOLDER_PATH + output_filename, sep='$', encoding='utf8')
+    print('Writing results in csv file')
+    df.to_csv(OUTPUT_FOLDER_PATH + output_filename, sep='$', encoding='utf8')
