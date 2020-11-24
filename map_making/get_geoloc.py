@@ -176,7 +176,7 @@ def get_locations(addresses: np.ndarray, output_filename: str):
         'accuracy': types.TEXT,
         'google_place_id': types.TEXT,
         'type': types.TEXT,
-        'postcode': types.INTEGER,
+        'postcode': types.TEXT,
         'country': types.TEXT,
         'input_string': types.TEXT,
         'number_of_results': types.INTEGER,
