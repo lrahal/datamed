@@ -187,4 +187,4 @@ def get_locations(addresses: np.ndarray, output_filename: str):
 
     # Write the full results to csv using the pandas library.
     print('Writing results in csv file')
-    df.to_csv(OUTPUT_FOLDER_PATH + output_filename, sep='$', encoding='utf8')
+    df.to_csv(OUTPUT_FOLDER_PATH + output_filename, sep='$', index=False)
