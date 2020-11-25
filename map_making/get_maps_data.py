@@ -18,8 +18,8 @@ def get_data(table_name: str, path: str, site_col: str) -> pd.DataFrame:
         lambda x: x.substance_active if pd.isnull(x.substance_active_match) else x.substance_active_match, axis=1)
 
     # Get locations of each address in df_table (from csv)
-    df_locations = pd.read_csv(path)
-    df_locations = df_locations.drop(columns=['Unnamed: 0'])
+    # df_locations = pd.read_csv(path)
+    df_locations = pd.read_excel(path.replace('csv', 'xlsx'))
     df_locations = df_locations.rename(columns={'input_string': site_col})
 
     # Merge both dataframes
@@ -53,7 +53,7 @@ def upload_countries_loc(path: str) -> pd.DataFrame:
 def get_api_by_country(df: pd.DataFrame, path: str) -> pd.DataFrame:
     """
     Get number of active substances produced in each country
-    :param path: 'map_making/data/countries_locations.csv'
+    path: 'map_making/data/countries_locations.csv'
     """
     df_grouped_by_country = df.groupby('country')
     df_grouped_by_country = df_grouped_by_country.agg({'substance_active': 'nunique'})
@@ -87,7 +87,7 @@ def get_single_site_api(df: pd.DataFrame) -> List[Dict]:
 
 def get_final_dataframe() -> Tuple[pd.DataFrame, pd.DataFrame]:
     df = get_data('fabrication_sites',
-                  'map_making/data/sites_fabrication_substance_active.csv',
+                  'map_making/data/sites_fabrication_substance_active.xlsx',
                   'sites_fabrication_substance_active')
     df = clean_data(df)
 
