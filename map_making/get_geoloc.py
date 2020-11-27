@@ -129,7 +129,7 @@ def get_locations(addresses: np.ndarray, output_filename: str):
     # Create a list to hold results
     results = []
     # Go through each address in turn
-    for address in addresses:
+    for address in addresses[6578:]:
         # While the address geocoding is not finished:
         geocoded = False
         while geocoded is not True:
@@ -183,7 +183,7 @@ def get_locations(addresses: np.ndarray, output_filename: str):
         'status': types.TEXT,
     }
     print('Creating table in rs_db database...')
-    create_table(df, 'api_fab_sites_geocode', dtypes_dict)
+    create_table(df, 'api_sites_addresses', dtypes_dict)
 
     # Write the full results to csv using the pandas library.
     print('Writing results in csv file')
