@@ -1,16 +1,12 @@
 import os
 
-# from dotenv import load_dotenv, find_dotenv
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, PrimaryKeyConstraint
-from sqlalchemy.dialects.mysql import LONGTEXT
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKeyConstraint
+from sqlalchemy.dialects.mysql import LONGTEXT, FLOAT, YEAR
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-
-# load_dotenv(find_dotenv())
 
 # load environment variables
 HOSTNAME = 'localhost'
-DBNAME = 'rs_db'
+DBNAME = 'fab_sites'
 UNAME = 'root'
 MYSQL_PWD = os.environ.get('MYSQL_PWD')
 
@@ -30,12 +26,8 @@ class Specialite(Base):
     __tablename__ = 'specialite'
     cis = Column(String(120), primary_key=True)
 
-    # Defining One to Many relationships with the relationship function on the Parent Table
-    pres = relationship('Presentation', backref='specialite', lazy=True, cascade='all, delete-orphan')
-    prod = relationship('Production', backref='specialite', lazy=True, cascade='all, delete-orphan')
 
-
-class SubtanceActive(Base):
+class SubstanceActive(Base):
     __tablename__ = 'substance_active'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -45,21 +37,22 @@ class SubtanceActive(Base):
 class Presentation(Base):
     __tablename__ = 'presentation'
     __table_args__ = (
-        PrimaryKeyConstraint('cis', 'cis'),
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
     )
 
-    cis = Column(String(8), ForeignKey('specialite.cis'))
-    cip13 = Column(String(13), nullable=False)
+    cip13 = Column(String(13), primary_key=True)
+    cis = Column(String(8), nullable=False)
 
 
 class Consommation(Base):
     __tablename__ = 'consommation'
     __table_args__ = (
-        PrimaryKeyConstraint('cip13', 'cip13'),
+        ForeignKeyConstraint(['cip13'], ['presentation.cip13']),
     )
 
-    cip13 = Column(String(13), ForeignKey('presentation.cip13'))
-    year = Column(Integer, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cip13 = Column(String(13), nullable=False)
+    year = Column(YEAR, nullable=False)
     nb_conso = Column(Integer, nullable=False)
     nb_boites = Column(Integer, nullable=False)
 
@@ -69,31 +62,31 @@ class Fabrication(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     address = Column(LONGTEXT, nullable=False)
-    year = Column(Integer, nullable=False)
-    nb_conso = Column(Integer, nullable=False)
-    nb_boites = Column(Integer, nullable=False)
+    latitude = Column(FLOAT, nullable=True)
+    longitude = Column(FLOAT, nullable=True)
+    country = Column(LONGTEXT, nullable=True)
 
 
 class Production(Base):
     __tablename__ = 'production'
     __table_args__ = (
-        PrimaryKeyConstraint('cis', 'cis'),
-        PrimaryKeyConstraint('id', 'api_id'),
-        PrimaryKeyConstraint('id', 'address_id'),
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
+        ForeignKeyConstraint(['substance_active_id'], ['substance_active.id']),
+        ForeignKeyConstraint(['fabrication_id'], ['fabrication.id']),
     )
 
-    cis = Column(String(120), ForeignKey('specialite.cis'))
-    api_id = Column(Integer, ForeignKey('substance_active.id'))
-    name = Column(String(255), nullable=False)
-    address_id = Column(Integer, ForeignKey('fabrication.id'))
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cis = Column(String(120), nullable=False)
+    substance_active_id = Column(Integer, nullable=False)
+    substance_active = Column(String(255), nullable=False)
+    fabrication_id = Column(Integer, nullable=False)
     address = Column(LONGTEXT, nullable=False)
 
 
 engine = connect_db()
 Specialite.__table__.create(bind=engine, checkfirst=True)
-SubtanceActive.__table__.create(bind=engine, checkfirst=True)
+SubstanceActive.__table__.create(bind=engine, checkfirst=True)
 Presentation.__table__.create(bind=engine, checkfirst=True)
 Consommation.__table__.create(bind=engine, checkfirst=True)
 Fabrication.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
-
