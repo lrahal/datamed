@@ -38,7 +38,21 @@ def clean_columns(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     return df
 
 
-def upload_bdpm_from_csv(path: str = './create_database/data/CIS_COMPO_bdpm.txt') -> pd.DataFrame:
+def upload_cis_from_bdpm(path: str = './create_database/data/CIS_bdpm.txt') -> pd.DataFrame:
+    """
+    Upload BDPM compositions database
+    In http://agence-prd.ansm.sante.fr/php/ecodex/telecharger/telecharger.php
+    :return: dataframe
+    """
+    # Read CIS_bdpm.txt file and put in dataframe
+    col_names = ['cis', 'denomination_specialite', 'forme_pharma', 'voies_administration',
+                 'statut_amm', 'type_amm', 'etat_commercialisation', 'date_amm', 'statut_bdm',
+                 'num_autorisation_euro', 'titulaires', 'surveillance_renforcee']
+    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    return df
+
+
+def upload_cis_compo_from_bdpm(path: str = './create_database/data/CIS_COMPO_bdpm.txt') -> pd.DataFrame:
     """
     Upload BDPM compositions database
     In http://base-donnees-publique.medicaments.gouv.fr/telechargement.php
@@ -54,21 +68,7 @@ def upload_bdpm_from_csv(path: str = './create_database/data/CIS_COMPO_bdpm.txt'
     return df
 
 
-def upload_spec_from_csv(path: str = './create_database/data/CIS_bdpm.txt') -> pd.DataFrame:
-    """
-    Upload BDPM compositions database
-    In http://base-donnees-publique.medicaments.gouv.fr/telechargement.php
-    :return: dataframe
-    """
-    # Read CIS_bdpm.txt file and put in dataframe
-    col_names = ['cis', 'denomination_specialite', 'forme_pharma', 'voies_administration',
-                 'statut_amm', 'type_amm', 'etat_commercialisation', 'date_amm', 'statut_bdm',
-                 'num_autorisation_euro', 'titulaires', 'surveillance_renforcee']
-    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
-    return df
-
-
-def upload_cis_cip_from_csv(path: str = './create_database/data/CIS_CIP_bdpm.txt') -> pd.DataFrame:
+def upload_cis_cip_from_bdpm(path: str = './create_database/data/CIS_CIP_bdpm.txt') -> pd.DataFrame:
     """
     Upload BDPM compositions database
     In http://base-donnees-publique.medicaments.gouv.fr/telechargement.php
@@ -86,6 +86,53 @@ def upload_cis_cip_from_csv(path: str = './create_database/data/CIS_CIP_bdpm.txt
     # Convertir les dates en format datetime
     df.date_declaration_commercialisation = df.date_declaration_commercialisation.apply(
         lambda x: dt.strptime(x, '%d/%m/%Y'))
+    return df
+
+
+def upload_cis_from_rsp(path: str = './create_database/data/RSP/CIS_RSP.txt') -> pd.DataFrame:
+    """
+    Upload RSP CIS table
+    In http://agence-prd.ansm.sante.fr/php/ecodex/telecharger/telecharger.php
+    :return: dataframe
+    """
+    # Read CIS_RSP.txt file and put in dataframe
+    col_names = ['cis', 'nom_spe_pharma', 'forme_pharma', 'voie_admin',
+                 'statut_amm', 'type_amm', 'etat_commercialisation', 'code_doc']
+    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    # Put substance_active field in lower case
+    df = clean_columns(df, 'nom_spe_pharma')
+    return df
+
+
+def upload_compo_from_rsp(path: str = './create_database/data/RSP/COMPO_RSP.txt') -> pd.DataFrame:
+    """
+    Upload RSP COMPO table
+    In http://agence-prd.ansm.sante.fr/php/ecodex/telecharger/telecharger.php
+    :return: dataframe
+    """
+    # Read COMPO_RSP.txt file and put in dataframe
+    col_names = ['cis', 'elem_pharma', 'code_substance', 'substance_active',
+                 'dosage', 'ref_dosage', 'nature_composant',  'num_lien', 'v']
+    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    df = df[~df.substance_active.isna()]
+    # Put substance_active field in lower case
+    df = clean_columns(df, 'substance_active')
+    return df
+
+
+def upload_cis_cip_from_rsp(path: str = './create_database/data/CIS_CIP_RSP.txt') -> pd.DataFrame:
+    """
+    Upload RSP compositions database
+    In http://agence-prd.ansm.sante.fr/php/ecodex/telecharger/telecharger.php
+    :return: dataframe
+    """
+    # Read CIS_CIP_bdpm.txt file and put in dataframe
+    col_names = ['cis', 'cip7', 'libelle_presentation', 'statut_admin_presentation',
+                 'etat_commercialisation', 'date_declaration_commercialisation', 'cip13']
+    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    # Convertir les dates en format datetime
+    df.date_declaration_commercialisation = df.date_declaration_commercialisation.apply(
+        lambda x: dt.strptime(x, '%d/%m/%Y') if x != ' ' else None)
     return df
 
 
