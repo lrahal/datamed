@@ -3,10 +3,10 @@ from typing import Dict
 
 import pandas as pd
 import pymysql
-from sqlalchemy import create_engine, exc, types
+from sqlalchemy import create_engine, types
 
 from .jade_analysis import build_api_fab_sites_dataframe
-from .upload_db import upload_cis_cip_from_csv
+from .upload_db import upload_cis_cip_from_bdpm
 
 # Credentials to database connection
 HOSTNAME = 'localhost'
@@ -28,15 +28,7 @@ def connect_to_engine():
                            .format(host=HOSTNAME, db=DBNAME, user=UNAME, pw=MYSQL_PWD),
                            echo=False)
 
-    for _ in range(2):
-        # Raise sqlalchemy error once and retry
-        # Check why running it 2 times works...
-        while True:
-            try:
-                engine.connect()  # connect to the database
-            except exc.InternalError:
-                continue
-            break
+    engine.connect()  # connect to the database
     return engine
 
 
@@ -90,7 +82,7 @@ def create_cis_cip_table():
     """
     Function for table 'cis_cip' creation in rs_db
     """
-    df = upload_cis_cip_from_csv('./create_database/data/CIS_CIP_bdpm.txt')
+    df = upload_cis_cip_from_bdpm('./create_database/data/CIS_CIP_bdpm.txt')
 
     dtypes_dict = {
         'cis': types.TEXT,
