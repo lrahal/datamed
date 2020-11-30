@@ -1,9 +1,11 @@
-from .upload_db import upload_table_from_db, upload_bdpm_from_csv, upload_cis_cip_from_csv
-import pandas as pd
-from .create_mysql_db import connect_to_engine
-import pymysql
-import sqlalchemy as db
 import os
+from typing import List, Dict
+
+import pandas as pd
+from sqlalchemy.orm import sessionmaker
+
+from .models import connect_db, Specialite, SubstanceActive, Presentation, Consommation, Fabrication, Production
+from .upload_db import (upload_table_from_db, upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm)
 
 # Credentials to database connection
 HOSTNAME = 'localhost'
@@ -12,69 +14,52 @@ UNAME = 'root'
 MYSQL_PWD = os.environ.get('MYSQL_PWD')
 
 
-def create_api_table(engine, connection, metadata, df):
+def get_api_list(df: pd.DataFrame) -> List[Dict]:
     api_list = df.substance_active_match.unique().tolist()
 
-    df_cis_compo = upload_bdpm_from_csv('./create_database/data/CIS_COMPO_bdpm.txt')
+    df_cis_compo = upload_compo_from_rsp('./create_database/data/COMPO_RSP.txt')
     api_list.extend([api for api in df_cis_compo.substance_active.unique() if api not in api_list])
     api_list = list(filter(None, api_list))
     api_list = sorted(api_list)
     values_list = [{'name': api} for api in api_list]
-
-    api_table = db.Table('substance_active', metadata,
-                         db.Column('Id', db.Integer(), primary_key=True, autoincrement=True),
-                         db.Column('name', db.String(255), nullable=False))
-
-    metadata.create_all(engine)  # Creates the table
-
-    query = db.insert(api_table)
-    ResultProxy = connection.execute(query, values_list)
+    return values_list
 
 
-def create_specialite_table(engine, connection, metadata, df):
+def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     cis_list = df.cis.unique().tolist()
 
-    df_cis_compo = upload_bdpm_from_csv('./create_database/data/CIS_COMPO_bdpm.txt')
+    df_cis_compo = upload_cis_from_rsp('./create_database/data/CIS_RSP.txt')
     cis_list.extend([str(cis) for cis in df_cis_compo.cis.unique() if str(cis) not in cis_list])
     cis_list = list(filter(None, cis_list))
     cis_list = sorted(cis_list)
     values_list = [{'cis': cis} for cis in cis_list]
-    max_len = len(max(cis_list, key=len))
-
-    cis_table = db.Table('specialite', metadata, db.Column('cis', db.String(max_len), primary_key=True))
-
-    metadata.create_all(engine)  # Creates the table
-
-    query = db.insert(cis_table)
-    ResultProxy = connection.execute(query, values_list)
+    return values_list
 
 
-def create_presentation_table(engine, connection, metadata):
-    df_cis_cip = upload_cis_cip_from_csv('./create_database/data/CIS_CIP_bdpm.txt')
-    df_records = df_cis_cip.to_dict('records')
+def get_pres_list() -> List[Dict]:
+    df = upload_cis_cip_from_bdpm('./create_database/data/CIS_CIP_bdpm.txt')
+    # df = df[~df.cip13.isna()]
+    # df = df.astype({'cip13': int})
+    df_records = df.to_dict('records')
 
-    values_list = [{str(k): str(v) for k, v in zip(('cis', 'cip13'), (d['cis'], d['cip13']))} for d in df_records]
-
-    cip_table = db.Table('presentation', metadata,
-                         db.Column('cis', db.String(8), ForeignKey('points_of_interest.poi_id')),
-                         db.Column('cip13', db.String(13), nullable=False))
-
-    metadata.create_all(engine)  # Creates the table
-
-    query = db.insert(cip_table)
-    ResultProxy = connection.execute(query, values_list)
+    values_list = [{k: str(v) for k, v in zip(('cis', 'cip13'), (d['cis'], d['cip13']))} for d in df_records]
+    return values_list
 
 
-def create_consommation_table():
-    df_om = pd.read_csv('./create_database/data/NB_2019_cip13.csv',
-                        names=['cip13', 'nbc', 'boites'], delimiter=';', header=0)
-    df_om['year'] = 2019
+def get_conso_list() -> List[Dict]:
+    df = pd.read_csv('./create_database/data/NB_2019_cip13.csv',
+                     names=['cip13', 'nb_conso', 'nb_boites'], delimiter=';', header=0)
+    df['year'] = 2019
+    df = df.astype({'cip13': str})
+    values_list = df.to_dict(orient='records')
+    return values_list
 
 
-def create_fabrication_table():
-    df_geo = upload_table_from_db('api_sites_addresses')
-    df_records = df_geo.to_dict('records')
-    geo_dict = [
+def get_fabrication_list() -> List[Dict]:
+    df = upload_table_from_db('api_sites_addresses')
+    df = df.where(pd.notnull(df), None)
+    df_records = df.to_dict('records')
+    return [
         {
             k: v for k, v in zip(('address', 'latitude', 'longitude', 'country'),
                                  (d['input_string'], d['latitude'], d['longitude'], d['country']))
@@ -83,28 +68,69 @@ def create_fabrication_table():
     ]
 
 
-def create_production_table(df):
+def get_prod_list(df: pd.DataFrame) -> List[Dict]:
     df_records = df.to_dict('records')
-    df_dict = [
+    values_list = [
         {
             k: v for k, v in zip(('cis', 'substance_active', 'address'),
                                  (d['cis'], d['substance_active'], d['sites_fabrication_substance_active']))
         }
         for d in df_records
+        if all((d['cis'], d['substance_active'], d['sites_fabrication_substance_active']))
     ]
-    df_dict = [dict(t) for t in {tuple(d.items()) for d in df_dict}]
+    return [dict(t) for t in {tuple(d.items()) for d in values_list}]
 
 
-def main():
+db = connect_db()  # establish connection
+Session = sessionmaker(bind=db)
+session = Session()
+
+
+def save_to_database_ORM(session):
     df = upload_table_from_db('fabrication_sites')
     df['substance_active_match'] = df.apply(
         lambda x: x.substance_active if not x.substance_active_match else x.substance_active_match, axis=1)
 
-    # Create SQLAlchemy engine to connect to MySQL Database
-    engine = db.create_engine('mysql+pymysql://{user}:{pw}@{host}/{db}'
-                              .format(host=HOSTNAME, db=DBNAME, user=UNAME, pw=MYSQL_PWD),
-                              echo=False)
-    connection = engine.connect()
-    metadata = db.MetaData()
+    # Création table Specialite
+    cis_list = get_cis_list(df)
+    for cis_dict in cis_list:
+        spe = Specialite(**cis_dict)
+        session.add(spe)
+        session.commit()
 
-    fab_sites = db.Table('fabrication_sites', metadata, autoload=True, autoload_with=engine)
+    # Création table SubstanceActive
+    api_list = get_api_list(df)
+    for api_dict in api_list:
+        api = SubstanceActive(**api_dict)
+        session.add(api)
+        session.commit()
+
+    # Création table Presentation
+    pres_list = get_pres_list()
+    for pres_dict in pres_list:
+        pres = Presentation(**pres_dict)
+        session.add(pres)
+        session.commit()
+
+    # Création table Consommation
+    conso_list = get_conso_list()
+    cip13_set = set(c['cip13'] for c in pres_list)
+    for conso_dict in conso_list:
+        if conso_dict['cip13'] in cip13_set:
+            conso = Consommation(**conso_dict)
+            session.add(conso)
+            session.commit()
+
+    # Création table Fabrication
+    fab_list = get_fabrication_list()
+    for fab_dict in fab_list:
+        fab = Fabrication(**fab_dict)
+        session.add(fab)
+        session.commit()
+
+    # Création table Production
+    prod_list = get_prod_list(df)
+    for prod_dict in prod_list:
+        prod = Production(**prod_dict)
+        session.add(prod)
+        session.commit()
