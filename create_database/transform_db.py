@@ -17,42 +17,42 @@ from .upload_db import upload_table_from_db, get_api_by_cis
 STOPWORDS = stopwords.words('french')
 
 
-def get_cis_not_in_bdpm(df: pd.DataFrame, cis_not_in_bdpm: Set, path: str):
-    # Get cis not in BDPM and correspond file
-    cis_not_in_bdpm_by_filename = [
+def get_cis_not_in_rsp(df: pd.DataFrame, cis_not_in_rsp: Set, path: str):
+    # Get cis not in RSP and correspond file
+    cis_not_in_rsp_by_filename = [
         {'cis': c, 'filename': f}
-        for c in cis_not_in_bdpm
+        for c in cis_not_in_rsp
         for f in df[df.cis == c].filename.unique()
     ]
     # Save it into csv
-    df_cis = pd.DataFrame(cis_not_in_bdpm_by_filename)
+    df_cis = pd.DataFrame(cis_not_in_rsp_by_filename)
     df_cis.to_csv(path, sep=';', index=False)
 
 
 def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> DefaultDict:
     """
     - Excel database: CIS -> api
-    - BDPM: CIS -> [api1, api2, ...] (frame of reference)
-    - Make the correspondence api (Excel) -> api (BDPM) in order to put the good syntax
+    - RSP: CIS -> [api1, api2, ...] (frame of reference)
+    - Make the correspondence api (Excel) -> api (RSP) in order to put the good syntax
     in the MySQL database
     - API = Active Pharmaceutical Ingredient (shortcut for "active substance")
     :return: dict of list
     """
     cis_table = set(df.cis.unique())             # CIS in fabrication_sites table
-    cis_bdpm = set(api_by_cis.keys())            # CIS in cis_compo (= BDPM)
-    cis_set = cis_table.intersection(cis_bdpm)   # CIS in both fabrication_sites and cis_compo
-    cis_not_in_bdpm = cis_table - cis_set        # CIS that are in fabrication_sites but not in cis_compo
-    print('{} CIS codes over {} are not referenced in the BDPM'.format(
-        len(cis_not_in_bdpm), len(df.cis.unique())), end='\n')
+    cis_rsp = set(api_by_cis.keys())            # CIS in COMPO.txt (= RSP)
+    cis_set = cis_table.intersection(cis_rsp)   # CIS in both fabrication_sites and COMPO.txt
+    cis_not_in_rsp = cis_table - cis_set        # CIS that are in fabrication_sites but not in COMPO.txt
+    print('{} CIS codes over {} are not referenced in the RSP'.format(
+        len(cis_not_in_rsp), len(df.cis.unique())), end='\n')
 
-    # Write cis_not_in_bdpm in csv
-    get_cis_not_in_bdpm(df, cis_not_in_bdpm, path='./create_database/data/cis_not_in_bdpm.csv')
+    # Write cis_not_in_rsp in csv
+    get_cis_not_in_rsp(df, cis_not_in_rsp, path='./create_database/data/cis_not_in_rsp.csv')
 
-    # Get api correspondence dict: {api_excel: [api_bdpm]}
+    # Get api correspondence dict: {api_excel: [api_rsp]}
     api_corresp_dict = defaultdict(list)
     for cis in tqdm(cis_set):
         for api in df[df.cis == cis].substance_active:
-            if not api:
+            if pd.isnull(api):
                 continue
             else:
                 api_corresp_dict[(api, cis)] = api_by_cis[cis]
@@ -70,12 +70,12 @@ def clean_string(text: str) -> str:
 def get_api_similarities(api_corresp_dict: DefaultDict, ndigits: int) -> DefaultDict:
     """
     Get for each api_excel, its similarity with the corresponding api
-    contained in the api_bdpm_list
+    contained in the api_rsp list
     :return:  dict of dict
     """
     api_sim_dict = defaultdict(dict)
-    for api_excel, api_bdpm in tqdm(api_corresp_dict.items()):
-        for api in api_bdpm:
+    for api_excel, api_rsp in tqdm(api_corresp_dict.items()):
+        for api in api_rsp:
             # Create sentences tuple
             api_tuple = (api_excel[0], api)
             # Clean the words in api_tuple
@@ -87,27 +87,27 @@ def get_api_similarities(api_corresp_dict: DefaultDict, ndigits: int) -> Default
 
 def get_most_sim_api(api_sim_dict: DefaultDict) -> List[Dict]:
     """
-    Pick the api_bdpm with the highest similarity score
-    :return: dict
+    Pick the api_rsp with the highest similarity score
+    :return: list of dict
     """
     return [
         {
             'cis': api_excel[1],
             'excel': api_excel[0],
-            'bdpm': max(api_bdpm_dict, key=api_bdpm_dict.get, default=None),
-            'cos_sim': api_bdpm_dict[max(api_bdpm_dict, key=api_bdpm_dict.get, default=None)]
+            'rsp': max(api_rsp_dict, key=api_rsp_dict.get, default=None),
+            'cos_sim': api_rsp_dict[max(api_rsp_dict, key=api_rsp_dict.get, default=None)]
         }
-        for api_excel, api_bdpm_dict in api_sim_dict.items()
+        for api_excel, api_rsp_dict in api_sim_dict.items()
     ]
 
 
 def compute_best_matches(df: pd.DataFrame, api_by_cis: Dict) -> List[Dict]:
-    # Find correspondence between Excel api and BDPM api
+    # Find correspondence between Excel api and RSP api
     # 1 -> N
-    print('Finding correspondences between Excels api and BDPM api...')
+    print('Finding correspondences between Excels api and RSP api...')
     api_corresp_dict = get_api_correspondence(df, api_by_cis)
 
-    # Get the cosine similarity score for each couple (api_excel, api_bdpm)
+    # Get the cosine similarity score for each couple (api_excel, api_rsp)
     print('Computing similarity scores...', end='\n')
     api_sim_dict = get_api_similarities(api_corresp_dict, ndigits=2)
 
@@ -167,7 +167,7 @@ def add_best_match_api_to_table(best_match_api: List[Dict], table_name: str, col
             'UPDATE {} SET {} = "{}", cosine_similarity = {} WHERE substance_active = "{}" AND cis = "{}"'.format(
                 table_name,
                 col_name,
-                api_matching_couple['bdpm'],
+                api_matching_couple['rsp'],
                 api_matching_couple['cos_sim'],
                 api_matching_couple['excel'],
                 api_matching_couple['cis'])
@@ -207,10 +207,10 @@ def main():
     table_name = 'fabrication_sites'
     df = upload_table_from_db(table_name)
 
-    # Get api by CIS from BDPM CIS_COMPO_bdpm.txt file
+    # Get api by CIS from RSP COMPO.txt file
     api_by_cis = get_api_by_cis()
 
-    # Compute best match api using BDPM
+    # Compute best match api using RSP
     best_match_api = compute_best_matches(df, api_by_cis)
     df_match = pd.DataFrame(best_match_api)
     df_match.to_csv('./create_database/data/best_match_api.csv', index=False, sep=';')
