@@ -120,7 +120,7 @@ def upload_compo_from_rsp(path: str = './create_database/data/RSP/COMPO_RSP.txt'
     return df
 
 
-def upload_cis_cip_from_rsp(path: str = './create_database/data/CIS_CIP_RSP.txt') -> pd.DataFrame:
+def upload_cis_cip_from_rsp(path: str = './create_database/data/RSP/CIS_CIP_RSP.txt') -> pd.DataFrame:
     """
     Upload RSP compositions database
     In http://agence-prd.ansm.sante.fr/php/ecodex/telecharger/telecharger.php
