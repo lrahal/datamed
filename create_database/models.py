@@ -24,6 +24,7 @@ Base = declarative_base()
 
 class Specialite(Base):
     __tablename__ = 'specialite'
+
     cis = Column(String(120), primary_key=True)
 
 
@@ -78,9 +79,17 @@ class Production(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     cis = Column(String(120), nullable=False)
     substance_active_id = Column(Integer, nullable=False)
-    substance_active = Column(String(255), nullable=False)
     fabrication_id = Column(Integer, nullable=False)
-    address = Column(LONGTEXT, nullable=False)
+
+
+# class Classification(Base):
+#     __tablename__ = 'atc'
+#     __table_args__ = (
+#         ForeignKeyConstraint(['cis'], ['specialite.cis']),
+#     )
+#
+#     cis = Column(String(120), primary_key=True)
+#     atc = Column(String(120), nullable=False)
 
 
 engine = connect_db()
