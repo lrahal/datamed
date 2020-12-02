@@ -63,6 +63,9 @@ def get_excels_df() -> pd.DataFrame:
 
 
 def get_api_list(df: pd.DataFrame) -> List[Dict]:
+    """
+    Table substance_active
+    """
     api_list = df.substance_active_match.unique().tolist()
 
     df_api = upload_compo_from_rsp('./create_database/data/RSP/COMPO_RSP.txt')
@@ -74,6 +77,9 @@ def get_api_list(df: pd.DataFrame) -> List[Dict]:
 
 
 def get_cis_list(df: pd.DataFrame) -> List[Dict]:
+    """
+    Table specialite, listing all possible CIS codes
+    """
     cis_list = df.cis.unique().tolist()
 
     df_cis = upload_cis_from_rsp('./create_database/data/RSP/CIS_RSP.txt')
@@ -86,6 +92,7 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
 
 def get_pres_list() -> List[Dict]:
     """
+    Table listing all possible presentations (CIP13), with corresponding CIS code
     CIS/CIP correspondence not found in RSP, but exists in BDPM
     """
     df = upload_cis_cip_from_bdpm('./create_database/data/CIS_CIP_bdpm.txt')
@@ -107,6 +114,10 @@ def get_conso_list() -> List[Dict]:
 
 
 def get_fabrication_list() -> List[Dict]:
+    """
+    Table fabrication
+    Lists for each address, the latitude, longitude and country
+    """
     df = upload_table_from_db('api_sites_addresses')
     df = df.where(pd.notnull(df), None)
     values_list = [
@@ -148,6 +159,10 @@ def get_prod_list(df: pd.DataFrame) -> List[Dict]:
 
 
 def get_atc_list() -> List[Dict]:
+    """
+    Table classification
+    Listing all CIS and their possible ATC classification
+    """
     df = pd.read_csv('./create_database/data/ATC.csv', names=['cis', 'atc', 'v3'], delimiter=';', header=0)
     df = df.drop_duplicates()
     df = df.astype({'cis': str})
