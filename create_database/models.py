@@ -82,14 +82,16 @@ class Production(Base):
     fabrication_id = Column(Integer, nullable=False)
 
 
-# class Classification(Base):
-#     __tablename__ = 'atc'
-#     __table_args__ = (
-#         ForeignKeyConstraint(['cis'], ['specialite.cis']),
-#     )
-#
-#     cis = Column(String(120), primary_key=True)
-#     atc = Column(String(120), nullable=False)
+class Classification(Base):
+    __tablename__ = 'classification'
+    __table_args__ = (
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cis = Column(String(120), nullable=False)
+    atc = Column(String(120), nullable=False)
+    v3 = Column(String(120), nullable=False)
 
 
 engine = connect_db()
@@ -99,3 +101,4 @@ Presentation.__table__.create(bind=engine, checkfirst=True)
 Consommation.__table__.create(bind=engine, checkfirst=True)
 Fabrication.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
+Classification.__table__.create(bind=engine, checkfirst=True)

@@ -5,7 +5,8 @@ import pandas as pd
 from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
-from .models import connect_db, Specialite, SubstanceActive, Presentation, Consommation, Fabrication, Production
+from .models import connect_db, Specialite, SubstanceActive, Presentation, Consommation, Fabrication, Production, \
+    Classification
 from .transform_db import compute_best_matches
 from .upload_db import upload_table_from_db, upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
 
@@ -128,7 +129,7 @@ def get_prod_list(df: pd.DataFrame) -> List[Dict]:
     df = df.rename(columns={'id': 'substance_active_id'})
 
     # Load fabrication table and join with dataframe
-    # df_fab = pd.read_sql_table('fabrication', connection)
+    df_fab = pd.read_sql_table('fabrication', connection)
     df = df.merge(df_fab, how='left', left_on='sites_fabrication_substance_active', right_on='address')
     df = df.rename(columns={'id': 'fabrication_id'})
 
@@ -146,10 +147,16 @@ def get_prod_list(df: pd.DataFrame) -> List[Dict]:
     return [dict(t) for t in {tuple(d.items()) for d in values_list}]
 
 
-# def get_atc_list() -> List[Dict]:
-#     df = pd.read_csv('./create_database/data/ATC.csv', names=['cis', 'atc', 'v3'], delimiter=';', header=0)
-#     df = df.drop_duplicates()
+def get_atc_list() -> List[Dict]:
+    df = pd.read_csv('./create_database/data/ATC.csv', names=['cis', 'atc', 'v3'], delimiter=';', header=0)
+    df = df.drop_duplicates()
+    df = df.astype({'cis': str})
 
+    # Not allow records having CIS not present in specialite table
+    df_cis = pd.read_sql_table('specialite', connection)
+    cis_list = df_cis.cis.unique()
+    df = df[df.cis.isin(cis_list)]
+    return df.to_dict(orient='records')
 
 
 db = connect_db()  # establish connection
@@ -207,4 +214,11 @@ def save_to_database_orm(session):
     for prod_dict in prod_list:
         prod = Production(**prod_dict)
         session.add(prod)
+        session.commit()
+
+    # Création table Classification
+    atc_list = get_atc_list()
+    for atc_dict in atc_list:
+        atc = Classification(**atc_dict)
+        session.add(atc)
         session.commit()
