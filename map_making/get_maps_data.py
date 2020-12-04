@@ -2,35 +2,33 @@ from typing import Tuple, List, Dict
 
 import pandas as pd
 
-from create_database.upload_db import upload_table_from_db
+from create_database.create_tables_in_db import get_excels_df
+from create_database.models import connect_db
 
 
-def get_data(table_name: str, path: str, site_col: str) -> pd.DataFrame:
+def get_data() -> pd.DataFrame:
     """
     Get dataframe listing active substances, fabrication sites, countries, etc.
-    :param table_name: should be 'fabrication_sites'
-    :param path: 'map_making/data/sites_fabrication_substance_active.csv'
-    :param site_col: 'sites_fabrication_substance_active'
     """
-    # Upload dataframe from fabrication_sites table
-    df_table = upload_table_from_db(table_name)
-    df_table.substance_active_match = df_table.apply(
-        lambda x: x.substance_active if pd.isnull(x.substance_active_match) else x.substance_active_match, axis=1)
+    engine = connect_db()  # establish connection
+    connection = engine.connect()
 
-    # Get locations of each address in df_table (from csv)
-    # df_locations = pd.read_csv(path)
-    df_locations = pd.read_excel(path.replace('csv', 'xlsx'))
-    df_locations = df_locations.rename(columns={'input_string': site_col})
+    # Dataframe of concatenated Excels
+    df = get_excels_df()
 
-    # Merge both dataframes
-    df_final = pd.merge(
-        df_table[['denomination_specialite', 'cis', 'substance_active_match', site_col]],
-        df_locations, on=site_col, how='inner'
-    )
+    # Fabrication table
+    df_fab = pd.read_sql_table('fabrication', connection)
 
-    # Rename column substance_active_match
-    df_final = df_final.rename(columns={'substance_active_match': 'substance_active'})
-    return df_final
+    # Merge dataframes and clean
+    df = df.merge(df_fab, how='left', left_on='sites_fabrication_substance_active', right_on='address')
+    df = df.drop(['dci', 'type_amm', 'sites_production', 'sites_conditionnement_primaire',
+                  'sites_conditionnement_secondaire', 'sites_importation', 'sites_controle',
+                  'sites_echantillotheque', 'sites_certification', 'substance_active',
+                  'sites_fabrication_substance_active', 'mitm', 'pgp', 'filename', 'cos_sim', 'id'], axis=1)
+    df = df.rename(columns={'substance_active_match': 'substance_active'})
+    df = df.dropna(how='all')
+    df = df.drop_duplicates()
+    return df
 
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -45,9 +43,9 @@ def upload_countries_loc(path: str) -> pd.DataFrame:
     Load countries locations csv and put it in dataframe
     :param path: 'map_making/data/countries_locations.csv'
     """
-    df_countries_loc = pd.read_csv(path)
-    df_countries_loc = df_countries_loc.drop(columns=['Unnamed: 0'])
-    return df_countries_loc
+    df = pd.read_csv(path)
+    df = df.drop(columns=['Unnamed: 0'])
+    return df
 
 
 def get_api_by_country(df: pd.DataFrame, path: str) -> pd.DataFrame:
@@ -62,7 +60,8 @@ def get_api_by_country(df: pd.DataFrame, path: str) -> pd.DataFrame:
     df_countries_loc = upload_countries_loc(path)
 
     df_countries = pd.merge(
-        df_grouped_by_country[['substance_active', 'country']], df_countries_loc, on='country', how='inner'
+        df_grouped_by_country, df_countries_loc[['latitude', 'longitude', 'country']],
+        on='country', how='left'
     )
     df_countries = df_countries[~df_countries.country.isna()]
     return df_countries
@@ -74,21 +73,19 @@ def get_single_site_api(df: pd.DataFrame) -> List[Dict]:
     produced in only one place in the world
     """
     df_grouped_by_api = df.groupby('substance_active')
-    df_grouped_by_api = df_grouped_by_api.agg({'formatted_address': 'nunique'})
+    df_grouped_by_api = df_grouped_by_api.agg({'address': 'nunique'})
     df_grouped_by_api = df_grouped_by_api.reset_index()
 
-    single_site_api = df_grouped_by_api[df_grouped_by_api.formatted_address == 1].substance_active.unique()
+    single_site_api = df_grouped_by_api[df_grouped_by_api.address == 1].substance_active.unique()
 
     single_site_api_list = df[
-        df.substance_active.isin(single_site_api)][['substance_active', 'formatted_address', 'country']
+        df.substance_active.isin(single_site_api)][['substance_active', 'address', 'country']
     ].to_dict(orient='records')
     return list({v['substance_active']: v for v in single_site_api_list}.values())
 
 
 def get_final_dataframe() -> Tuple[pd.DataFrame, pd.DataFrame]:
-    df = get_data('fabrication_sites',
-                  'map_making/data/sites_fabrication_substance_active.xlsx',
-                  'sites_fabrication_substance_active')
+    df = get_data()
     df = clean_data(df)
 
     df_countries = get_api_by_country(df, 'map_making/data/countries_locations.csv')
