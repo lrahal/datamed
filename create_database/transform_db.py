@@ -46,7 +46,8 @@ def get_api_correspondence(df: pd.DataFrame, api_by_cis: Dict) -> DefaultDict:
         len(cis_not_in_rsp), len(df.cis.unique())), end='\n')
 
     # Write cis_not_in_rsp in csv
-    get_cis_not_in_rsp(df, cis_not_in_rsp, path='./create_database/data/cis_not_in_rsp.csv')
+    get_cis_not_in_rsp(df, cis_not_in_rsp, path='/Users/ansm/Documents/GitHub/datamed/create_database/data/'
+                                                'cis_not_in_rsp.csv')
 
     # Get api correspondence dict: {api_excel: [api_rsp]}
     api_corresp_dict = defaultdict(list)
