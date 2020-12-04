@@ -14,6 +14,7 @@ sys.path.append('/Users/ansm/Documents/GitHub/datamed')
 from create_database.create_tables_in_db import get_excels_df
 from create_database.models import connect_db
 
+
 # # Load dataframe
 
 # In[2]:
@@ -227,12 +228,13 @@ connection = db.connect()
 
 
 df_conso = pd.read_sql_table('consommation', connection)
+df_conso.head(2)
 
 
 # In[26]:
 
 
-df_conso.head(2)
+len(df_conso)
 
 
 # In[27]:
@@ -251,6 +253,8 @@ df_fab_cis.head(2)
 
 
 df2 = df_fab_cis.merge(df_conso, on='cis', how='left')
+df2 = df2[df2.cis.notna()]
+df2 = df2.drop_duplicates()
 
 
 # In[30]:
@@ -297,35 +301,12 @@ df2_countries.head(2)
 # In[36]:
 
 
-# set up the chart from the df dataFrame
-fig = px.scatter_geo(df2_countries, 
-                     # longitude is taken from the df['longitude'] columns and latitude from df['latitude']
-                     lon='longitude', 
-                     lat='latitude',
-                     # style
-                     color='country',
-                     size='ventes_total',
-                     # choose the map chart's projection
-                     projection='natural earth',
-                     # columns which is in bold in the pop-up
-                     hover_name = 'country',
-                     # format of the pop-up not to display these columns' data
-                     hover_data = {'country': False, 'longitude': False, 'latitude': False}
-                    )
-fig.update_geos(fitbounds='locations', showcountries=True)
-fig.update_layout(title = 'Amount of active substances produced countries')
-fig.show()
-
-
-# In[37]:
-
-
 import folium
 import requests
 import json
 
 
-# In[38]:
+# In[37]:
 
 
 r = requests.get(
@@ -335,20 +316,20 @@ r = requests.get(
 a = json.loads(r.text)
 
 
-# In[39]:
+# In[38]:
 
 
 #with open('world-countries.json', 'w') as outfile:
 #    json.dump(a, outfile)
 
 
-# In[40]:
+# In[39]:
 
 
 c_list = [b['properties']['name'] for b in a['features']]
 
 
-# In[41]:
+# In[40]:
 
 
 for c in df2_countries.country.unique():
@@ -356,34 +337,34 @@ for c in df2_countries.country.unique():
         print(c)
 
 
-# In[42]:
+# In[41]:
 
 
 df2_countries.sort_values(by=['ventes_total'], ascending=False).drop(['latitude', 'longitude'], axis=1).head()
 df2_countries.sort_values(
     by=['ventes_total'], ascending=False).drop(
-    ['latitude', 'longitude'], axis=1).to_csv('../data/ventes_par_pays_2018.csv', sep=';', index=False)
+    ['latitude', 'longitude'], axis=1).to_csv('../data/unités_vendues_par_pays_2018.csv', sep=';', index=False)
 
 
-# In[43]:
+# In[42]:
 
 
 # [b['properties']['name'] for b in a['features']]
 
 
-# In[44]:
+# In[43]:
 
 
 df2_countries.ventes_total = df2_countries.ventes_total.apply(lambda x: x/1000000)
 
 
-# In[45]:
+# In[44]:
 
 
 df2_countries[df2_countries.country == 'United States']
 
 
-# In[46]:
+# In[45]:
 
 
 # https://github.com/python-visualization/folium/blob/master/examples/data/world-countries.json#
@@ -403,7 +384,7 @@ folium.Choropleth(
     fill_color='BuPu',
     fill_opacity=0.7,
     line_opacity=0.2,
-    legend_name='Boxes sold in France in 2018 (in millions)'
+    legend_name='Unites (en millions) d API produites (spe vendues en France - 2018)'
 ).add_to(m)
 
 folium.LayerControl().add_to(m)
@@ -411,9 +392,114 @@ folium.LayerControl().add_to(m)
 m
 
 
-# ## Repartition of API fabrication sites by particular API
+# ## En pondérant par le nombre de substances actives contenues dans uen spécialité
+
+# In[46]:
+
+
+df_pond = df2.copy()
+# df_pond = df_pond.drop_duplicates()
+
 
 # In[47]:
+
+
+df_pond.ventes_officine = df_pond.apply(lambda x: x.ventes_officine/len(df_pond[df_pond.cis == x.cis]), axis=1)
+df_pond.ventes_hopital = df_pond.apply(lambda x: x.ventes_hopital/len(df_pond[df_pond.cis == x.cis]), axis=1)
+df_pond.ventes_total = df_pond.apply(lambda x: x.ventes_total/len(df_pond[df_pond.cis == x.cis]), axis=1)
+
+
+# In[48]:
+
+
+df_pond_grouped_by_country = df_pond.groupby(['country']).agg(
+    {'ventes_officine': 'sum', 'ventes_hopital': 'sum', 'ventes_total': 'sum'}
+).reset_index() # 'substance_active': 'nunique'
+
+
+# In[49]:
+
+
+countries = df_pond_grouped_by_country.country.unique()
+
+
+# In[50]:
+
+
+df_pond_countries = pd.merge(
+    df_pond_grouped_by_country, df_countries_loc[['latitude', 'longitude', 'country']],
+    on='country', how='left'
+)
+
+
+# In[51]:
+
+
+df_pond_countries.sort_values(by=['ventes_total'], ascending=False).drop(['latitude', 'longitude'], axis=1).head()
+df_pond_countries.sort_values(
+    by=['ventes_total'], ascending=False).drop(
+    ['latitude', 'longitude'], axis=1).to_csv('../data/parts_vendues_par_pays_2018.csv', sep=';', index=False)
+
+
+# In[52]:
+
+
+df_pond_countries.ventes_total = df_pond_countries.ventes_total.apply(lambda x: x/1000000)
+
+
+# In[53]:
+
+
+df_pond_countries[df_pond_countries.country == 'United States']
+
+
+# In[54]:
+
+
+state_geo = 'world-countries.json'
+
+m = folium.Map(location=[48, 2], zoom_start=4)
+
+# Add the color for the chloropleth:
+folium.Choropleth(
+    geo_data=state_geo,
+    name='choropleth',
+    data=df_pond_countries,
+    columns=['country', 'ventes_total'],
+    key_on='feature.properties.name',
+    fill_color='BuPu',
+    fill_opacity=0.7,
+    line_opacity=0.2,
+    legend_name='Parts (millions) des API fabriquees / pays pour les spe vendues en France 2018'
+).add_to(m)
+
+folium.LayerControl().add_to(m)
+
+m
+
+
+# In[55]:
+
+
+# df2[df2.cis == '67705462']
+
+
+# In[56]:
+
+
+# df3[df3.cis == '67705462']
+
+
+# In[57]:
+
+
+# v = df3.cis.value_counts()
+# df3[df3.cis.isin(v.index[v.ge(2)])]
+
+
+# ## Repartition of API fabrication sites by particular API
+
+# In[58]:
 
 
 # set up the chart from the df dataFrame
