@@ -4,18 +4,17 @@
 # In[1]:
 
 
-import re
-import sys
 import math
+import sys
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
 
 sys.path.append('/Users/ansm/Documents/GitHub/datamed')
 
-from create_database.upload_db import upload_table_from_db
-from map_making.get_maps_data import *
+from create_database.models import connect_db
+from create_database.create_tables_in_db import get_excels_df
 
 
 # # Récupération des données avec géoloc
@@ -23,41 +22,83 @@ from map_making.get_maps_data import *
 # In[2]:
 
 
-df = get_data('fabrication_sites',
-              '../data/sites_fabrication_substance_active.csv',
-              'sites_fabrication_substance_active')
-df = clean_data(df)
+engine = connect_db()  # establish connection
+connection = engine.connect()
+
+#metadata = MetaData()
+#metadata.reflect(engine)
 
 
 # In[3]:
 
 
-len(df), len(df.cis.unique())
+#substance_active = metadata.tables['substance_active']
+#production = metadata.tables['production']
+#j = production.join(substance_active, production.c.substance_active_id == substance_active.c.id)
+#sel_st = select([production.c.cis, substance_active.c.name]).select_from(j)
+#res = connection.execute(sel_st)
+#for row in res:
+#    print(row)
 
 
 # In[4]:
 
 
-df.head(2)
+#df_prod = pd.read_sql_table('production', connection)
+#df_api = pd.read_sql_table('substance_active', connection)
+df_fab = pd.read_sql_table('fabrication', connection)
 
 
 # In[5]:
 
 
+df = df_prod.merge(df_api, how='left', left_on='substance_active_id', right_on='id')
+df = df.merge(df_fab, how='left', left_on='fabrication_id', right_on='id')
+df = df.drop(['id_x', 'id_y', 'id'], axis=1)
+
+
+# In[ ]:
+
+
+df = get_excels_df()
+df = df.merge(df_fab, how='left', left_on='sites_fabrication_substance_active', right_on='address')
+df = df.drop(['denomination_specialite', 'dci', 'type_amm', 'titulaire_amm', 'sites_production',
+              'sites_conditionnement_primaire', 'sites_conditionnement_secondaire', 'sites_importation',
+              'sites_controle', 'sites_echantillotheque', 'sites_certification', 'substance_active',
+              'sites_fabrication_substance_active', 'mitm', 'pgp', 'filename', 'cos_sim', 'id'], axis=1)
+df = df.rename(columns={'substance_active_match': 'substance_active'})
+df = df.dropna(how='all')
+df = df.drop_duplicates()
+
+
+# In[ ]:
+
+
+df.head()
+
+
+# In[ ]:
+
+
+len(df), len(df.cis.unique())
+
+
+# In[ ]:
+
+
 # Keep rows having the right format (8 digits) (88% of all rows)
-df = df[~df.cis.isna()]
-df = df[df.cis.apply(lambda x: x.isdigit() and len(x) == 8)]
+df = df[~df.country.isna()]
+#df = df[~df.cis.isna()]
+#df = df[df.cis.apply(lambda x: x.isdigit() and len(x) == 8)]
 
-len(df)
 
-
-# In[6]:
+# In[ ]:
 
 
 countries = sorted(df.country.unique())
 
 
-# In[7]:
+# In[ ]:
 
 
 europe_countries = ['Germany', 'Belgium', 'Austria', 'Bulgaria', 'Croatia', 'Denmark', 'Spain', 'Estonia', 'Finland',
@@ -72,7 +113,7 @@ oecd_countries = ['Germany', 'Australia', 'Austria', 'Belgium', 'Canada', 'Chile
 third_countries = [c for c in countries if c not in europe_countries]
 
 
-# In[8]:
+# In[ ]:
 
 
 df['europe'] = df.country.isin(europe_countries)
@@ -82,13 +123,13 @@ df['third'] = df.country.isin(third_countries)
 
 # # Regroupement par code CIS
 
-# In[9]:
+# In[ ]:
 
 
-df2 = pd.DataFrame(sorted(df.cis.unique()), columns=['cis'])
+df2 = pd.DataFrame(sorted(df.cis.dropna().unique()), columns=['cis'])
 
 
-# In[10]:
+# In[ ]:
 
 
 df2['europe'] = df2.apply(lambda x: True in df[df.cis == x.cis].europe.to_list(), axis=1)
@@ -96,13 +137,13 @@ df2['oecd'] = df2.apply(lambda x: True in df[df.cis == x.cis].oecd.to_list(), ax
 df2['third'] = df2.apply(lambda x: True in df[df.cis == x.cis].third.to_list(), axis=1)
 
 
-# In[11]:
+# In[ ]:
 
 
 df[df.cis == '69974276']
 
 
-# In[12]:
+# In[ ]:
 
 
 df2['europe_only'] = df2.apply(lambda x: x.europe and not x.third, axis=1)
@@ -110,25 +151,19 @@ df2['third_only'] = df2.apply(lambda x: x.third and not x.europe, axis=1)
 df2['mix'] = df2.apply(lambda x: x.europe and x.third, axis=1)
 
 
-# In[13]:
+# In[ ]:
 
 
 df2.head()
 
 
-# In[14]:
+# In[ ]:
 
 
-len(df2[df2.europe_only]) + len(df2[df2.third_only]) + len(df2[df2.mix]), len(df.cis.unique())
+len(df2[df2.europe_only]) + len(df2[df2.third_only]) + len(df2[df2.mix]), len(df.cis.dropna().unique())
 
 
-# In[15]:
-
-
-df2[(df2.europe == False) & (df2.third == False)]
-
-
-# In[16]:
+# In[ ]:
 
 
 def get_category(x):
@@ -140,13 +175,13 @@ def get_category(x):
         return 'Europe & Third'
 
 
-# In[17]:
+# In[ ]:
 
 
 df2['category'] = df2.apply(lambda x: get_category(x), axis=1)
 
 
-# In[18]:
+# In[ ]:
 
 
 df2.head()
@@ -154,7 +189,7 @@ df2.head()
 
 # # Graphiques
 
-# In[19]:
+# In[ ]:
 
 
 sns.set_style("white")
@@ -168,38 +203,32 @@ ax = sns.countplot(x='category',
                    edgecolor=sns.color_palette('dark', 3))
 
 
-# In[20]:
+# In[ ]:
 
 
 corresp_dict = {
-    '45': str(len(df2[df2.europe_only])) + ' (' + str(round(len(df2[df2.europe_only])/len(df2) * 100, 2)) +'%)',
+    '46': str(len(df2[df2.europe_only])) + ' (' + str(round(len(df2[df2.europe_only])/len(df2) * 100, 2)) +'%)',
     '47': str(len(df2[df2.third_only])) + ' (' + str(round(len(df2[df2.third_only])/len(df2) * 100, 2)) +'%)',
     '6': str(len(df2[df2.mix])) + ' (' + str(round(len(df2[df2.mix])/len(df2) * 100, 2)) +'%)'
 }
 
 
-# In[21]:
+# In[ ]:
 
 
 plt.figure(figsize=(15, 10))
 df2['category'].value_counts(normalize=True).plot(kind='pie', autopct=lambda x: corresp_dict[str(math.floor(x))])
 
 
-# In[22]:
-
-
-df2
-
-
 # # Export dans un csv
 
-# In[23]:
+# In[ ]:
 
 
 df_spe = upload_table_from_db('cis_specialite')
 
 
-# In[24]:
+# In[ ]:
 
 
 # Merge both dataframes
@@ -209,7 +238,7 @@ df_final = pd.merge(
 )
 
 
-# In[25]:
+# In[ ]:
 
 
 df_final.to_csv('../data/api_fab_sites_repartition.csv', index=False, sep=';')
