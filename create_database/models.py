@@ -48,14 +48,14 @@ class Presentation(Base):
 class Consommation(Base):
     __tablename__ = 'consommation'
     __table_args__ = (
-        ForeignKeyConstraint(['cip13'], ['presentation.cip13']),
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
     )
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    cip13 = Column(String(13), nullable=False)
+    cis = Column(String(120), primary_key=True)
     year = Column(YEAR, nullable=False)
-    nb_conso = Column(Integer, nullable=False)
-    nb_boites = Column(Integer, nullable=False)
+    ventes_officine = Column(Integer, nullable=False)
+    ventes_hopital = Column(Integer, nullable=False)
+    ventes_total = Column(Integer, nullable=False)
 
 
 class Fabrication(Base):
