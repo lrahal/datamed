@@ -23,7 +23,7 @@ def get_api_by_cis() -> Dict:
     :return: dict of list
     """
     # Load dataframe
-    df = upload_compo_from_rsp('./create_database/data/RSP/COMPO_RSP.txt')
+    df = upload_compo_from_rsp('/Users/ansm/Documents/GitHub/datamed/create_database/data/RSP/COMPO_RSP.txt')
     # List CIS codes
     cis_list = df.cis.unique()
     return {
@@ -38,7 +38,7 @@ def get_excels_df() -> pd.DataFrame:
     Compute cosine similarity
     :return:
     """
-    path = './create_database/data/jade_final/'
+    path = '/Users/ansm/Documents/GitHub/datamed/create_database/data/jade_final/'
     # Load dataframe
     print('Loading dataframe from concatenated Excel files...')
     df = build_api_fab_sites_dataframe(path)
@@ -49,14 +49,14 @@ def get_excels_df() -> pd.DataFrame:
     # Compute best match api using RSP
     best_match_list = compute_best_matches(df, api_by_cis)
     df_match = pd.DataFrame(best_match_list)
-    df_match.to_csv('./create_database/data/best_match_api.csv', index=False, sep=';')
+    df_match.to_csv('/Users/ansm/Documents/GitHub/datamed/create_database/data/best_match_api.csv', index=False, sep=';')
     print('best_match_api.csv printed!')
 
     best_match_dict = {(m['cis'], m['excel']): {'api_rsp': m['rsp'], 'cos_sim': m['cos_sim']} for m in best_match_list}
     df['substance_active_match'] = df.apply(
         lambda x: best_match_dict[(x.cis, x.substance_active)]['api_rsp']
         if (x.cis, x.substance_active) in best_match_dict else x.substance_active, axis=1)
-    df['cos_sim'] = df['substance_active_match'] = df.apply(
+    df['cos_sim'] = df.apply(
         lambda x: best_match_dict[(x.cis, x.substance_active)]['cos_sim']
         if (x.cis, x.substance_active) in best_match_dict else None, axis=1)
     return df
@@ -66,28 +66,24 @@ def get_api_list(df: pd.DataFrame) -> List[Dict]:
     """
     Table substance_active
     """
-    api_list = df.substance_active_match.unique().tolist()
+    api_list = df.substance_active_match.dropna().unique().tolist()
 
-    df_api = upload_compo_from_rsp('./create_database/data/RSP/COMPO_RSP.txt')
+    df_api = upload_compo_from_rsp('/Users/ansm/Documents/GitHub/datamed/create_database/data/RSP/COMPO_RSP.txt')
     api_list.extend([api for api in df_api.substance_active.unique() if api not in api_list])
-    api_list = list(filter(None, api_list))
     api_list = sorted(api_list)
-    values_list = [{'name': api} for api in api_list]
-    return values_list
+    return [{'name': api} for api in api_list]
 
 
 def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     """
     Table specialite, listing all possible CIS codes
     """
-    cis_list = df.cis.unique().tolist()
+    cis_list = df.cis.dropna().unique().tolist()
 
     df_cis = upload_cis_from_rsp('./create_database/data/RSP/CIS_RSP.txt')
-    cis_list.extend([str(cis) for cis in df_cis.cis.unique() if str(cis) not in cis_list])
-    cis_list = list(filter(None, cis_list))
+    cis_list.extend([str(cis) for cis in df_cis.cis.dropna().unique() if str(cis) not in cis_list])
     cis_list = sorted(cis_list)
-    values_list = [{'cis': cis} for cis in cis_list]
-    return values_list
+    return [{'cis': cis} for cis in cis_list]
 
 
 def get_pres_list() -> List[Dict]:
@@ -100,17 +96,17 @@ def get_pres_list() -> List[Dict]:
     # df = df.astype({'cip13': int})
     records = df.to_dict('records')
 
-    values_list = [{k: str(v) for k, v in zip(('cis', 'cip13'), (r['cis'], r['cip13']))} for r in records]
-    return values_list
+    return [{k: str(v) for k, v in zip(('cis', 'cip13'), (r['cis'], r['cip13']))} for r in records]
 
 
 def get_conso_list() -> List[Dict]:
-    df = pd.read_csv('./create_database/data/NB_2019_cip13.csv',
-                     names=['cip13', 'nb_conso', 'nb_boites'], delimiter=';', header=0)
-    df['year'] = 2019
-    df = df.astype({'cip13': str})
-    values_list = df.to_dict(orient='records')
-    return values_list
+    df = pd.read_excel('./create_database/data/donnees_ventes_2018.xlsx')
+    df_grouped = df.groupby(['cis', 'year']).agg(
+        {'ventes_officine': 'sum', 'ventes_hopital': 'sum', 'ventes_total': 'sum'}
+    )
+    df_grouped = df_grouped.reset_index()
+    df_grouped = df_grouped.astype({'cis': str})
+    return df_grouped.to_dict(orient='records')
 
 
 def get_fabrication_list() -> List[Dict]:
@@ -181,11 +177,11 @@ session = Session()
 
 
 def save_to_database_orm(session):
-    # df = get_excels_df()
+    df = get_excels_df()
 
-    df = upload_table_from_db('fabrication_sites')
-    df['substance_active_match'] = df.apply(
-        lambda x: x.substance_active if not x.substance_active_match else x.substance_active_match, axis=1)
+    # df = upload_table_from_db('fabrication_sites')
+    # df['substance_active_match'] = df.apply(
+    #     lambda x: x.substance_active if not x.substance_active_match else x.substance_active_match, axis=1)
 
     # Création table Specialite
     cis_list = get_cis_list(df)
@@ -210,9 +206,9 @@ def save_to_database_orm(session):
 
     # Création table Consommation
     conso_list = get_conso_list()
-    cip13_set = set(c['cip13'] for c in pres_list)
+    cis_set = set(c['cis'] for c in cis_list)
     for conso_dict in conso_list:
-        if conso_dict['cip13'] in cip13_set:
+        if conso_dict['cis'] in cis_set:
             conso = Consommation(**conso_dict)
             session.add(conso)
             session.commit()
