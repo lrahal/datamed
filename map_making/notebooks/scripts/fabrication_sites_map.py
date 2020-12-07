@@ -24,8 +24,8 @@ from create_database.models import connect_db
 df = get_excels_df()
 df = df.drop(['dci', 'type_amm', 'sites_production', 'sites_conditionnement_primaire',
               'sites_conditionnement_secondaire', 'sites_importation', 'sites_controle',
-              'sites_echantillotheque', 'sites_certification', 'substance_active', 'mitm',
-              'pgp', 'filename', 'cos_sim'], axis=1)
+              'sites_echantillotheque', 'sites_certification', 'substance_active', 'pgp',
+              'filename', 'cos_sim'], axis=1)
 df = df.rename(columns={'substance_active_match': 'substance_active'})
 df = df.dropna(how='all')
 df = df.drop_duplicates()
@@ -85,7 +85,7 @@ df_fab.head(1)
 
 
 df_fab_cis = pd.merge(
-    df[['cis', 'substance_active', 'sites_fabrication_substance_active']], df_fab,
+    df[['cis', 'substance_active', 'sites_fabrication_substance_active', 'mitm']], df_fab,
     left_on='sites_fabrication_substance_active', right_on='address', how='outer')
 
 df_fab_cis = df_fab_cis.drop(['id', 'sites_fabrication_substance_active'], axis=1)
@@ -355,7 +355,7 @@ df2_countries.sort_values(
 # In[43]:
 
 
-df2_countries.ventes_total = df2_countries.ventes_total.apply(lambda x: x/1000000)
+df2_countries['ventes_total_millions'] = df2_countries.ventes_total.apply(lambda x: x/1000000)
 
 
 # In[44]:
@@ -379,7 +379,7 @@ folium.Choropleth(
     geo_data=state_geo,
     name='choropleth',
     data=df2_countries,
-    columns=['country', 'ventes_total'],
+    columns=['country', 'ventes_total_millions'],
     key_on='feature.properties.name',
     fill_color='BuPu',
     fill_opacity=0.7,
@@ -392,7 +392,7 @@ folium.LayerControl().add_to(m)
 m
 
 
-# ## En pondérant par le nombre de substances actives contenues dans uen spécialité
+# ## En pondérant par le nombre de substances actives contenues dans une spécialité
 
 # In[46]:
 
@@ -444,7 +444,7 @@ df_pond_countries.sort_values(
 # In[52]:
 
 
-df_pond_countries.ventes_total = df_pond_countries.ventes_total.apply(lambda x: x/1000000)
+df_pond_countries['ventes_total_millions'] = df_pond_countries.ventes_total.apply(lambda x: x/1000000)
 
 
 # In[53]:
@@ -465,7 +465,7 @@ folium.Choropleth(
     geo_data=state_geo,
     name='choropleth',
     data=df_pond_countries,
-    columns=['country', 'ventes_total'],
+    columns=['country', 'ventes_total_millions'],
     key_on='feature.properties.name',
     fill_color='BuPu',
     fill_opacity=0.7,
@@ -478,19 +478,95 @@ folium.LayerControl().add_to(m)
 m
 
 
+# ## MITM only
+
 # In[55]:
 
 
-# df2[df2.cis == '67705462']
+df_pond_mitm = df_pond[df_pond.mitm == 'oui']
 
 
 # In[56]:
 
 
-# df3[df3.cis == '67705462']
+df_pond_mitm_grouped_by_country = df_pond_mitm.groupby(['country']).agg(
+    {'ventes_officine': 'sum', 'ventes_hopital': 'sum', 'ventes_total': 'sum'}
+).reset_index()
 
 
 # In[57]:
+
+
+countries_mitm = df_pond_mitm_grouped_by_country.country.dropna().unique()
+
+
+# In[58]:
+
+
+df_pond_mitm_countries = pd.merge(
+    df_pond_mitm_grouped_by_country, df_countries_loc[['latitude', 'longitude', 'country']],
+    on='country', how='left'
+)
+
+
+# In[59]:
+
+
+df_pond_mitm_countries.sort_values(
+    by=['ventes_total'], ascending=False).drop(['latitude', 'longitude'], axis=1).head(7)
+
+
+# In[60]:
+
+
+df_pond_mitm_countries.sort_values(by=['ventes_total'], ascending=False).drop(
+    ['latitude', 'longitude'], axis=1).to_csv('../data/parts_mitm_vendues_par_pays_2018.csv', sep=';', index=False)
+
+
+# In[61]:
+
+
+df_pond_mitm_countries['ventes_total_millions'] = df_pond_mitm_countries.ventes_total.apply(lambda x: x/1000000)
+
+
+# In[62]:
+
+
+state_geo = 'world-countries.json'
+
+m = folium.Map(location=[48, 2], zoom_start=4)
+
+# Add the color for the chloropleth:
+folium.Choropleth(
+    geo_data=state_geo,
+    name='choropleth',
+    data=df_pond_mitm_countries,
+    columns=['country', 'ventes_total_millions'],
+    key_on='feature.properties.name',
+    fill_color='BuPu',
+    fill_opacity=0.7,
+    line_opacity=0.2,
+    legend_name='Parts (millions) des API fabriquees / pays pour les spe MITM vendues en France 2018'
+).add_to(m)
+
+folium.LayerControl().add_to(m)
+
+m
+
+
+# In[63]:
+
+
+# df2[df2.cis == '67705462']
+
+
+# In[64]:
+
+
+# df3[df3.cis == '67705462']
+
+
+# In[65]:
 
 
 # v = df3.cis.value_counts()
@@ -499,7 +575,7 @@ m
 
 # ## Repartition of API fabrication sites by particular API
 
-# In[58]:
+# In[66]:
 
 
 # set up the chart from the df dataFrame
