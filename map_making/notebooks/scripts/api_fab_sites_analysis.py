@@ -44,20 +44,10 @@ connection = engine.connect()
 # In[4]:
 
 
-#df_prod = pd.read_sql_table('production', connection)
-#df_api = pd.read_sql_table('substance_active', connection)
 df_fab = pd.read_sql_table('fabrication', connection)
 
 
 # In[5]:
-
-
-df = df_prod.merge(df_api, how='left', left_on='substance_active_id', right_on='id')
-df = df.merge(df_fab, how='left', left_on='fabrication_id', right_on='id')
-df = df.drop(['id_x', 'id_y', 'id'], axis=1)
-
-
-# In[ ]:
 
 
 df = get_excels_df()
@@ -71,19 +61,19 @@ df = df.dropna(how='all')
 df = df.drop_duplicates()
 
 
-# In[ ]:
+# In[6]:
 
 
 df.head()
 
 
-# In[ ]:
+# In[7]:
 
 
 len(df), len(df.cis.unique())
 
 
-# In[ ]:
+# In[8]:
 
 
 # Keep rows having the right format (8 digits) (88% of all rows)
@@ -92,13 +82,13 @@ df = df[~df.country.isna()]
 #df = df[df.cis.apply(lambda x: x.isdigit() and len(x) == 8)]
 
 
-# In[ ]:
+# In[9]:
 
 
 countries = sorted(df.country.unique())
 
 
-# In[ ]:
+# In[10]:
 
 
 europe_countries = ['Germany', 'Belgium', 'Austria', 'Bulgaria', 'Croatia', 'Denmark', 'Spain', 'Estonia', 'Finland',
@@ -113,7 +103,7 @@ oecd_countries = ['Germany', 'Australia', 'Austria', 'Belgium', 'Canada', 'Chile
 third_countries = [c for c in countries if c not in europe_countries]
 
 
-# In[ ]:
+# In[11]:
 
 
 df['europe'] = df.country.isin(europe_countries)
@@ -123,13 +113,13 @@ df['third'] = df.country.isin(third_countries)
 
 # # Regroupement par code CIS
 
-# In[ ]:
+# In[12]:
 
 
 df2 = pd.DataFrame(sorted(df.cis.dropna().unique()), columns=['cis'])
 
 
-# In[ ]:
+# In[13]:
 
 
 df2['europe'] = df2.apply(lambda x: True in df[df.cis == x.cis].europe.to_list(), axis=1)
@@ -137,13 +127,13 @@ df2['oecd'] = df2.apply(lambda x: True in df[df.cis == x.cis].oecd.to_list(), ax
 df2['third'] = df2.apply(lambda x: True in df[df.cis == x.cis].third.to_list(), axis=1)
 
 
-# In[ ]:
+# In[14]:
 
 
 df[df.cis == '69974276']
 
 
-# In[ ]:
+# In[15]:
 
 
 df2['europe_only'] = df2.apply(lambda x: x.europe and not x.third, axis=1)
@@ -151,19 +141,19 @@ df2['third_only'] = df2.apply(lambda x: x.third and not x.europe, axis=1)
 df2['mix'] = df2.apply(lambda x: x.europe and x.third, axis=1)
 
 
-# In[ ]:
+# In[16]:
 
 
 df2.head()
 
 
-# In[ ]:
+# In[17]:
 
 
 len(df2[df2.europe_only]) + len(df2[df2.third_only]) + len(df2[df2.mix]), len(df.cis.dropna().unique())
 
 
-# In[ ]:
+# In[18]:
 
 
 def get_category(x):
@@ -175,13 +165,13 @@ def get_category(x):
         return 'Europe & Third'
 
 
-# In[ ]:
+# In[19]:
 
 
 df2['category'] = df2.apply(lambda x: get_category(x), axis=1)
 
 
-# In[ ]:
+# In[20]:
 
 
 df2.head()
@@ -189,7 +179,7 @@ df2.head()
 
 # # Graphiques
 
-# In[ ]:
+# In[21]:
 
 
 sns.set_style("white")
@@ -203,7 +193,7 @@ ax = sns.countplot(x='category',
                    edgecolor=sns.color_palette('dark', 3))
 
 
-# In[ ]:
+# In[22]:
 
 
 corresp_dict = {
@@ -213,11 +203,65 @@ corresp_dict = {
 }
 
 
-# In[ ]:
+# In[23]:
 
 
 plt.figure(figsize=(15, 10))
 df2['category'].value_counts(normalize=True).plot(kind='pie', autopct=lambda x: corresp_dict[str(math.floor(x))])
+
+
+# # Proportions des pays fabriquants d'API
+
+# In[24]:
+
+
+df_repartition = df_fab.copy()
+
+
+# In[25]:
+
+
+df_repartition.country = df_fab.country.apply(lambda x: 'Europe' if x in europe_countries else x)
+
+
+# In[26]:
+
+
+dfx = df_repartition.groupby('country').count().reset_index()
+
+
+# In[28]:
+
+
+dfx['fracs'] = dfx.apply(lambda x: x.id / len(df_repartition) * 100, axis=1)
+
+
+# In[29]:
+
+
+dfx = dfx[dfx.fracs > 1.5]
+
+
+# In[30]:
+
+
+dfx.country.unique()
+
+
+# In[31]:
+
+
+# Some data
+labels = dfx.country.tolist()
+fracs = dfx.fracs.tolist()
+
+# Make figure and axes
+fig, axs = plt.subplots(figsize=(15, 10))
+
+# A standard pie plot
+axs.pie(fracs, labels=labels, autopct='%1.1f%%', shadow=True)
+
+plt.show()
 
 
 # # Export dans un csv
