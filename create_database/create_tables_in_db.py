@@ -59,6 +59,10 @@ def get_excels_df() -> pd.DataFrame:
     df['cos_sim'] = df.apply(
         lambda x: best_match_dict[(x.cis, x.substance_active)]['cos_sim']
         if (x.cis, x.substance_active) in best_match_dict else None, axis=1)
+    df = df.drop(['substance_active'], axis=1)
+    df = df.rename(columns={'substance_active_match': 'substance_active'})
+    df = df.dropna(subset=['cis', 'substance_active', 'sites_fabrication_substance_active'])
+    df = df.drop_duplicates(subset=['cis', 'substance_active', 'sites_fabrication_substance_active'])
     return df
 
 
@@ -66,7 +70,7 @@ def get_api_list(df: pd.DataFrame) -> List[Dict]:
     """
     Table substance_active
     """
-    api_list = df.substance_active_match.dropna().unique().tolist()
+    api_list = df.substance_active.dropna().unique().tolist()
 
     df_api = upload_compo_from_rsp('/Users/ansm/Documents/GitHub/datamed/create_database/data/RSP/COMPO_RSP.txt')
     api_list.extend([api for api in df_api.substance_active.unique() if api not in api_list])
@@ -78,12 +82,16 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     """
     Table specialite, listing all possible CIS codes
     """
-    cis_list = df.cis.dropna().unique().tolist()
-
     df_cis = upload_cis_from_rsp('./create_database/data/RSP/CIS_RSP.txt')
-    cis_list.extend([str(cis) for cis in df_cis.cis.dropna().unique() if str(cis) not in cis_list])
-    cis_list = sorted(cis_list)
-    return [{'cis': cis} for cis in cis_list]
+    df_cis = df_cis.astype({'cis': 'str'})
+    records = df_cis.to_dict('records')
+    cis_list = df_cis.cis.dropna().unique().tolist()
+    values_list = [
+        {k: str(v) for k, v in zip(('cis', 'name'), (r['cis'], r['nom_spe_pharma']))}
+        for r in records
+    ]
+    values_list.extend([{'cis': str(cis), 'name': ''} for cis in df.cis.dropna().unique() if str(cis) not in cis_list])
+    return values_list
 
 
 def get_pres_list() -> List[Dict]:
@@ -96,7 +104,12 @@ def get_pres_list() -> List[Dict]:
     # df = df.astype({'cip13': int})
     records = df.to_dict('records')
 
-    return [{k: str(v) for k, v in zip(('cis', 'cip13'), (r['cis'], r['cip13']))} for r in records]
+    return [
+        {k: str(v) for k, v in zip(('cis', 'cip13', 'libelle'),
+                                   (r['cis'], r['cip13'], r['libelle_presentation']))
+         }
+        for r in records
+    ]
 
 
 def get_conso_list() -> List[Dict]:
@@ -143,15 +156,23 @@ def get_prod_list(df: pd.DataFrame) -> List[Dict]:
     # Replace NaN values with None
     df = df.where(df.notnull(), None)
 
-    values_list = [
+    return [
         {
-            k: v for k, v in zip(('cis', 'substance_active_id', 'fabrication_id'),
-                                 (row['cis'], int(row['substance_active_id']), int(row['fabrication_id'])))
+            k: v for k, v in zip(('cis', 'substance_active_id', 'fabrication_id', 'substance_active',
+                                  'sites_fabrication_substance_active', 'denomination_specialite', 'dci', 'type_amm',
+                                  'titulaire_amm', 'sites_production', 'sites_conditionnement_primaire',
+                                  'sites_conditionnement_secondaire', 'sites_importation', 'sites_controle',
+                                  'sites_echantillotheque', 'sites_certification', 'mitm', 'pgp', 'filename'),
+                                 (row['cis'], int(row['substance_active_id']), int(row['fabrication_id']),
+                                  row['substance_active'], row['sites_fabrication_substance_active'],
+                                  row['denomination_specialite'], row['dci'], row['type_amm'], row['titulaire_amm'],
+                                  row['sites_production'], row['sites_conditionnement_primaire'],
+                                  row['sites_conditionnement_secondaire'], row['sites_importation'],
+                                  row['sites_controle'], row['sites_echantillotheque'], row['sites_certification'],
+                                  row['mitm'], row['pgp'], row['filename']))
         }
         for index, row in df.iterrows()
-        if all((row['cis'], row['substance_active_id'], row['fabrication_id']))
     ]
-    return [dict(t) for t in {tuple(d.items()) for d in values_list}]
 
 
 def get_atc_list() -> List[Dict]:
@@ -178,10 +199,6 @@ session = Session()
 
 def save_to_database_orm(session):
     df = get_excels_df()
-
-    # df = upload_table_from_db('fabrication_sites')
-    # df['substance_active_match'] = df.apply(
-    #     lambda x: x.substance_active if not x.substance_active_match else x.substance_active_match, axis=1)
 
     # Création table Specialite
     cis_list = get_cis_list(df)
