@@ -38,7 +38,7 @@ def clean_columns(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     return df
 
 
-def upload_cis_from_bdpm(path: str = './create_database/data/CIS_bdpm.txt') -> pd.DataFrame:
+def upload_cis_from_bdpm(path: str = './create_database/data/BDPM/CIS_bdpm.txt') -> pd.DataFrame:
     """
     Upload BDPM compositions database
     In http://agence-prd.ansm.sante.fr/php/ecodex/telecharger/telecharger.php
@@ -52,7 +52,7 @@ def upload_cis_from_bdpm(path: str = './create_database/data/CIS_bdpm.txt') -> p
     return df
 
 
-def upload_cis_compo_from_bdpm(path: str = './create_database/data/CIS_COMPO_bdpm.txt') -> pd.DataFrame:
+def upload_cis_compo_from_bdpm(path: str = './create_database/data/BDPM/CIS_COMPO_bdpm.txt') -> pd.DataFrame:
     """
     Upload BDPM compositions database
     In http://base-donnees-publique.medicaments.gouv.fr/telechargement.php
@@ -68,7 +68,7 @@ def upload_cis_compo_from_bdpm(path: str = './create_database/data/CIS_COMPO_bdp
     return df
 
 
-def upload_cis_cip_from_bdpm(path: str = './create_database/data/CIS_CIP_bdpm.txt') -> pd.DataFrame:
+def upload_cis_cip_from_bdpm(path: str = './create_database/data/BDPM/CIS_CIP_bdpm.txt') -> pd.DataFrame:
     """
     Upload BDPM compositions database
     In http://base-donnees-publique.medicaments.gouv.fr/telechargement.php

@@ -82,7 +82,7 @@ def create_cis_cip_table():
     """
     Function for table 'cis_cip' creation in rs_db
     """
-    df = upload_cis_cip_from_bdpm('./create_database/data/CIS_CIP_bdpm.txt')
+    df = upload_cis_cip_from_bdpm('./create_database/data/BDPM/CIS_CIP_bdpm.txt')
 
     dtypes_dict = {
         'cis': types.TEXT,

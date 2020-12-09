@@ -102,7 +102,7 @@ def get_pres_list() -> List[Dict]:
     From BDPM
     (In RSP, some CIP13 are linked to multiple CIS, ex: 3400936432826 -> 60197246 & 69553494)
     """
-    df = upload_cis_cip_from_bdpm('./create_database/data/CIS_CIP_bdpm.txt')
+    df = upload_cis_cip_from_bdpm('./create_database/data/BDPM/CIS_CIP_bdpm.txt')
     records = df.to_dict('records')
 
     return [
