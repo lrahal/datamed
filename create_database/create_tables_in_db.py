@@ -70,12 +70,14 @@ def get_api_list(df: pd.DataFrame) -> List[Dict]:
     """
     Table substance_active
     """
-    api_list = df.substance_active.dropna().unique().tolist()
-
     df_api = upload_compo_from_rsp('/Users/ansm/Documents/GitHub/datamed/create_database/data/RSP/COMPO_RSP.txt')
-    api_list.extend([api for api in df_api.substance_active.unique() if api not in api_list])
-    api_list = sorted(api_list)
-    return [{'name': api} for api in api_list]
+
+    api_list = [{'name': r['substance_active'], 'code': r['code_substance']} for idx, r in df_api.iterrows()]
+
+    api_not_in_list = [api for api in df.substance_active.unique() if api not in df_api.substance_active.unique()]
+    api_list.extend([{'name': api, 'code': None} for api in api_not_in_list])
+    api_list = [dict(t) for t in {tuple(d.items()) for d in api_list}]
+    return sorted(api_list, key=lambda k: k['name'])
 
 
 def get_cis_list(df: pd.DataFrame) -> List[Dict]:
@@ -90,18 +92,17 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
         {k: str(v) for k, v in zip(('cis', 'name'), (r['cis'], r['nom_spe_pharma']))}
         for r in records
     ]
-    values_list.extend([{'cis': str(cis), 'name': ''} for cis in df.cis.dropna().unique() if str(cis) not in cis_list])
+    values_list.extend([{'cis': str(cis), 'name': None} for cis in df.cis.dropna().unique() if str(cis) not in cis_list])
     return values_list
 
 
 def get_pres_list() -> List[Dict]:
     """
     Table listing all possible presentations (CIP13), with corresponding CIS code
-    CIS/CIP correspondence not found in RSP, but exists in BDPM
+    From BDPM
+    (In RSP, some CIP13 are linked to multiple CIS, ex: 3400936432826 -> 60197246 & 69553494)
     """
     df = upload_cis_cip_from_bdpm('./create_database/data/CIS_CIP_bdpm.txt')
-    # df = df[~df.cip13.isna()]
-    # df = df.astype({'cip13': int})
     records = df.to_dict('records')
 
     return [
