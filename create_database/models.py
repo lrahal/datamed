@@ -26,6 +26,7 @@ class Specialite(Base):
     __tablename__ = 'specialite'
 
     cis = Column(String(120), primary_key=True)
+    name = Column(LONGTEXT, nullable=True)
 
 
 class SubstanceActive(Base):
@@ -42,6 +43,7 @@ class Presentation(Base):
     )
 
     cip13 = Column(String(13), primary_key=True)
+    libelle = Column(LONGTEXT, nullable=True)
     cis = Column(String(8), nullable=False)
 
 
@@ -80,6 +82,22 @@ class Production(Base):
     cis = Column(String(120), nullable=False)
     substance_active_id = Column(Integer, nullable=False)
     fabrication_id = Column(Integer, nullable=False)
+    substance_active = Column(String(255), nullable=False)
+    sites_fabrication_substance_active = Column(LONGTEXT, nullable=False)
+    denomination_specialite = Column(LONGTEXT, nullable=True)
+    dci = Column(LONGTEXT, nullable=True)
+    type_amm = Column(LONGTEXT, nullable=True)
+    titulaire_amm = Column(LONGTEXT, nullable=True)
+    sites_production = Column(LONGTEXT, nullable=True)
+    sites_conditionnement_primaire = Column(LONGTEXT, nullable=True)
+    sites_conditionnement_secondaire = Column(LONGTEXT, nullable=True)
+    sites_importation = Column(LONGTEXT, nullable=True)
+    sites_controle = Column(LONGTEXT, nullable=True)
+    sites_echantillotheque = Column(LONGTEXT, nullable=True)
+    sites_certification = Column(LONGTEXT, nullable=True)
+    mitm = Column(LONGTEXT, nullable=True)
+    pgp = Column(LONGTEXT, nullable=True)
+    filename = Column(LONGTEXT, nullable=False)
 
 
 class Classification(Base):
