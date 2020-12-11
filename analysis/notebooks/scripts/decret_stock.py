@@ -7,15 +7,13 @@
 # In[1]:
 
 
-import sys
 import math
+import sys
+
+import numpy as np
 import pandas as pd
 
 sys.path.append('/Users/ansm/Documents/GitHub/datamed')
-
-from create_database.models import connect_db
-from create_database.upload_db import upload_compo_from_rsp, upload_cis_from_rsp
-
 
 # # Base ruptures
 
@@ -82,22 +80,12 @@ df_nb_spe.head()
 # Ajouter la classe ATC3 pour chaque spécialité
 df = df.merge(df_atc.drop_duplicates(), on='specialite', how='left')
 df['atc3'] = df.apply(lambda x: x.atc[:5] if pd.isnull(x.atc3) and x.atc else x.atc3, axis=1)
-
-
-# In[9]:
-
-
-for i in range(len(df)):
-    x = df.iloc[i]
-    if pd.isnull(x.atc3) and x.atc:
-        a = x.atc[:5]
-    else:
-        a = x.atc3
+df['atc3'] = df['atc3'].str.upper()
 
 
 # # Calculer durée rupture
 
-# In[10]:
+# In[9]:
 
 
 def compute_jours(x):
@@ -107,34 +95,53 @@ def compute_jours(x):
         jours_ville = 0
     if math.isnan(jours_hopital):
         jours_hopital = 0
-    return jours_ville, jours_hopital
+    return max(0, jours_ville), max(0, jours_hopital)
 
 
-# In[11]:
+# In[10]:
 
 
 df['jours_ville'] = df.apply(lambda x: compute_jours(x)[0], axis=1)
 df['jours_hopital'] = df.apply(lambda x: compute_jours(x)[1], axis=1)
 
 
+# In[11]:
+
+
+df.head(1)
+
+
 # In[12]:
 
 
-#sum(df[df.duree_ville.isin(
-#    ['≤ 1 semaine', 'Entre 1 semaine et 1 mois', '1 à 3 mois', '≥ 3 mois'])].jours_rs) / len(
-#    df[df.duree_ville.isin(['≤ 1 semaine', 'Entre 1 semaine et 1 mois', '1 à 3 mois', '≥ 3 mois'])])
+def get_duree(x):
+    """
+    Pour chaque signalement, calculer la duree totale de la rupture
+    """
+    if x.jours_ville and x.jours_hopital:
+        return x.jours_ville + x.jours_hopital
+    elif x.jours_ville and not x.jours_hopital:
+        return x.jours_ville
+    elif not x.jours_ville and x.jours_hopital:
+        return x.jours_hopital
+    else:
+        return np.NaN
 
 
 # In[13]:
 
 
-df[df.duree_ville == '≥ 3 mois'].head()
+# Durée moyenne des ruptures pour duree_ville ≥ 3 mois
+mean_3_months = df[df.duree_ville == '≥ 3 mois'].apply(lambda x: get_duree(x), axis=1).replace(0, np.NaN).mean()
+mean_3_months
 
 
 # In[14]:
 
 
-len(df[df.duree_ville == 'Indéterminée'])
+# Durée moyenne des ruptures sur tout le dataset
+mean_all = df.apply(lambda x: get_duree(x), axis=1).replace(0, np.NaN).mean()
+mean_all
 
 
 # In[15]:
@@ -144,8 +151,8 @@ duree_dict = {
     '≤ 1 semaine': 7,
     'Entre 1 semaine et 1 mois': 21,
     '1 à 3 mois': 70,
-    '≥ 3 mois': 178,
-    'Indéterminée': 74,
+    '≥ 3 mois': mean_3_months,
+    'Indéterminée': mean_all,
 }
 
 
@@ -180,18 +187,40 @@ df['nb_jours_rs'] = df.apply(lambda x: compute_duree_rs(x), axis=1)
 # In[18]:
 
 
-df[df.atc3 == 'A01AB']
+# x = df[(df.specialite.str.startswith('buccolam')) & (df.laboratoire == 'shire france')].iloc[0]
 
+
+# # Retirer les ruptures de moins de 6 jours
 
 # In[19]:
 
 
-# x = df[(df.specialite.str.startswith('buccolam')) & (df.laboratoire == 'shire france')].iloc[0]
+len(df)
+
+
+# In[20]:
+
+
+df6 = df[df.nb_jours_rs <= 6]
+
+
+# In[21]:
+
+
+len(df6)
+
+
+# # Caper les ruptures supérieures à 4 mois à 4 mois
+
+# In[22]:
+
+
+df.nb_jours_rs = df.nb_jours_rs.apply(lambda x: 122 if x > 122 else x)
 
 
 # # Regrouper par classe ATC3
 
-# In[20]:
+# In[23]:
 
 
 df_grouped = df.groupby('atc3').agg({'nb_jours_rs': 'sum'}).reset_index()
@@ -199,35 +228,73 @@ df_grouped = df_grouped.merge(df_nb_spe, on='atc3', how='left')
 df_grouped = df_grouped.rename(columns={'specialite': 'nb_specialites'})
 
 
-# In[21]:
+# In[24]:
 
 
-df_grouped.head()
+df_grouped.head(3)
 
 
 # # Calcul d'une métrique
 
 # ## 1) Diviser le nombre de jours de rupture par le nombre de spécialités dans la classe ATC
 
-# In[22]:
+# In[25]:
 
 
 df_grouped['metrique_1'] = df_grouped.apply(lambda x: x.nb_jours_rs / x.nb_specialites, axis=1)
 
 
-# In[24]:
+# In[26]:
 
 
 df_grouped = df_grouped.sort_values(by=['metrique_1'], ascending=False)
 
 
-# In[26]:
+# In[27]:
 
 
-df_grouped.to_csv('../data/metrique_1.csv', index=False, sep=';')
+# atc3_list = df_grouped[df_grouped.nb_specialites.isna()].atc3.unique()
+
+
+# In[28]:
+
+
+# df[df.atc3.isin(atc3_list)]    #.to_csv('../data/ruptures_atc3_nan.csv', index=False, sep=';')
+
+
+# In[34]:
+
+
+# df_grouped[df_grouped.nb_specialites.isna()]     #.to_csv('../data/atc3_nan.csv', index=False, sep=';')
+
+
+# In[30]:
+
+
+len(df_grouped)
 
 
 # ## 2) Diviser le nombre de jours de rupture par le nombre de spécialités dans la classe ATC
+
+# In[31]:
+
+
+df_grouped['metrique_2'] = df_grouped.apply(lambda x: math.log(x.nb_jours_rs) / (x.nb_specialites) ** 2, axis=1)
+
+
+# In[32]:
+
+
+df_grouped = df_grouped.sort_values(by=['metrique_2'], ascending=False)
+
+
+# # Sauvegarder dans csv
+
+# In[33]:
+
+
+df_grouped.to_csv('../data/metriques.csv', index=False, sep=';')
+
 
 # In[ ]:
 
