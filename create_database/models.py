@@ -112,7 +112,6 @@ class Classification(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     cis = Column(String(120), nullable=False)
     atc = Column(String(120), nullable=False)
-    v3 = Column(String(120), nullable=False)
 
 
 class Ruptures(Base):

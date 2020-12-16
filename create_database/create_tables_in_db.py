@@ -182,7 +182,7 @@ def get_atc_list() -> List[Dict]:
     Table classification
     Listing all CIS and their possible ATC classification
     """
-    df = pd.read_csv('./create_database/data/ATC.csv', names=['cis', 'atc', 'v3'], delimiter=';', header=0)
+    df = pd.read_excel('./create_database/data/ATC_new.xlsx', names=['cis', 'atc'], header=0)
     df = df.drop_duplicates()
     df = df.astype({'cis': str})
 
