@@ -5,8 +5,8 @@ import pandas as pd
 from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
-from .models import connect_db, Specialite, SubstanceActive, Presentation, Consommation, Fabrication, Production, \
-    Classification
+from .models import (connect_db, Specialite, SubstanceActive, Presentation, Consommation, Fabrication, Production,
+                     Classification, Ruptures, Ventes)
 from .transform_db import compute_best_matches
 from .upload_db import upload_table_from_db, upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
 
@@ -89,7 +89,8 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     records = df_cis.to_dict('records')
     cis_list = df_cis.cis.dropna().unique().tolist()
     values_list = [
-        {k: str(v) for k, v in zip(('cis', 'name'), (r['cis'], r['nom_spe_pharma']))}
+        {k: str(v) for k, v in zip(('cis', 'name', 'type_amm', 'etat_commercialisation'),
+                                   (r['cis'], r['nom_spe_pharma'], r['type_amm'], r['etat_commercialisation']))}
         for r in records
     ]
     values_list.extend([{'cis': str(cis), 'name': None} for cis in df.cis.dropna().unique() if str(cis) not in cis_list])
@@ -192,6 +193,80 @@ def get_atc_list() -> List[Dict]:
     return df.to_dict(orient='records')
 
 
+def get_ruptures() -> List[Dict]:
+    """
+    Table ruptures
+    """
+    df = pd.read_excel('analysis/data/decret_stock/décret stock.xlsx', header=0, sheet_name='Raw')
+
+    # Cleaning
+    df = df[['ID_Signal', 'Signalement', 'Date Signalement', 'Laboratoire', 'Spécialité', 'Rupture', 'ATC', 'DCI',
+             'Date_Signal_Debut_RS', 'Durée_Ville', 'Durée_Hôpital', 'DatePrevi_Ville', 'DatePrevi_Hôpital',
+             'Volumes_Ventes_Ville', 'Volumes_Ventes_Hopital']]
+    df = df.rename(columns={'ID_Signal': 'id_signal', 'Signalement': 'signalement',
+                            'Date Signalement': 'date_signalement', 'Laboratoire': 'laboratoire',
+                            'Spécialité': 'specialite', 'Rupture': 'rupture', 'ATC': 'atc', 'DCI': 'dci',
+                            'Date_Signal_Debut_RS': 'date_signal_debut_rs', 'Durée_Ville': 'duree_ville',
+                            'Durée_Hôpital': 'duree_hopital', 'DatePrevi_Ville': 'date_previ_ville',
+                            'DatePrevi_Hôpital': 'date_previ_hopital', 'Volumes_Ventes_Ville': 'volumes_ventes_ville',
+                            'Volumes_Ventes_Hopital': 'volumes_ventes_hopital'})
+    df.dci = df.dci.str.lower()
+    df.laboratoire = df.laboratoire.str.lower()
+    df.specialite = df.specialite.str.lower()
+    df.rupture = df.rupture.str.lower()
+    df.date_signalement = pd.to_datetime(df.date_signalement).apply(lambda x: x.date())
+    df.date_signal_debut_rs = pd.to_datetime(df.date_signal_debut_rs).apply(lambda x: x.date())
+    df.date_previ_ville = pd.to_datetime(df.date_previ_ville).apply(lambda x: x.date())
+    df.date_previ_hopital = pd.to_datetime(df.date_previ_hopital).apply(lambda x: x.date())
+    df = df.where(pd.notnull(df), None)
+    df.volumes_ventes_ville = df.volumes_ventes_ville.apply(lambda x: get_volumes(x))
+    df.volumes_ventes_hopital = df.volumes_ventes_hopital.apply(lambda x: get_volumes(x))
+    df.volumes_ventes_ville = df.volumes_ventes_ville.where(pd.notnull(df.volumes_ventes_ville), 0)
+    df.volumes_ventes_hopital = df.volumes_ventes_hopital.where(pd.notnull(df.volumes_ventes_hopital), 0)
+    df = df.astype({'volumes_ventes_ville': int, 'volumes_ventes_hopital': int})
+    df = df.drop_duplicates()
+    return df.to_dict(orient='records')
+
+
+def get_volumes(x):
+    if isinstance(x, str):
+        x = x.replace(' ', '')
+        try:
+            x = int(x)
+        except ValueError:
+            x = 0
+    return x
+
+
+def get_ventes() -> List[Dict]:
+    """
+    Table ventes
+    From OCTAVE database
+    """
+    df_2018 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2018_ATC.xlsx')
+    df_2018['Nom Labo'] = None
+    df_2019 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2019_ATC.xlsx')
+    df = pd.concat([df_2018, df_2019])
+
+    # Cleaning
+    df = df.rename(columns={'Année': 'annee', 'code dossier': 'code_dossier', 'code CIS': 'cis',
+                            'Identifiant OCTAVE': 'octave_id', 'Code CIP': 'cip13',
+                            'Nom spécialité': 'denomination_specialite', 'Présentation': 'libelle',
+                            'ClasseATC': 'atc', 'Régime Remb.': 'regime_remb', 'Unités officine': 'unites_officine',
+                            'Unités hôpital': 'unites_hopital', 'Nom Labo': 'laboratoire'})
+    df = df[['octave_id', 'annee', 'code_dossier', 'laboratoire', 'cis', 'denomination_specialite',
+             'cip13', 'libelle', 'atc', 'regime_remb', 'unites_officine', 'unites_hopital']]
+
+    df.cis = df.cis.map(str)
+    df.cip13 = df.cip13.map(str)
+    df.laboratoire = df.laboratoire.str.lower()
+    df.denomination_specialite = df.denomination_specialite.str.lower()
+
+    df = df.where(pd.notnull(df), None)
+    df = df.drop_duplicates()
+    return df.to_dict(orient='records')
+
+
 db = connect_db()  # establish connection
 connection = db.connect()
 Session = sessionmaker(bind=db)
@@ -250,4 +325,18 @@ def save_to_database_orm(session):
     for atc_dict in atc_list:
         atc = Classification(**atc_dict)
         session.add(atc)
+        session.commit()
+
+    # Création table Ruptures
+    ruptures_list = get_ruptures()
+    for ruptures_dict in ruptures_list:
+        ruptures = Ruptures(**ruptures_dict)
+        session.add(ruptures)
+        session.commit()
+
+    # Création table Ventes
+    ventes_list = get_ventes()
+    for ventes_dict in ventes_list:
+        ventes = Ventes(**ventes_dict)
+        session.add(ventes)
         session.commit()
