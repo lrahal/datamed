@@ -91,49 +91,43 @@ df_cis.head()
 
 
 df = df.merge(df_cis[['cis', 'specialite']].dropna(), on='specialite', how='left')
-# df2[df2.cis.isna()].specialite.apply(lambda x: x.replace('®', ' ').replace('\n', ''))
 
-
-# # ATC
 
 # In[10]:
 
 
-#df_atc = pd.read_excel('../data/decret_stock/décret stock.xlsx', sheet_name='ATC', names=['specialite', 'atc3'])
-#df_atc['specialite'] = df_atc['specialite'].str.lower()
-
-#df_atc = pd.read_excel('../data/decret_stock/décret stock.xlsx', sheet_name='ATC', names=['specialite', 'atc'])
-#df_atc['specialite'] = df_atc['specialite'].str.lower()
+len(df[df.cis.notna()]) / len(df) * 100
 
 
 # In[11]:
 
 
-# Le count ne garde pas les NaN
-df_v = pd.read_sql_table('ventes', connection)
-# df_v['atc'] = df_v.atc.apply(lambda x: x[:7])
-df_nb_spe = df_v.groupby('atc').agg({'cis': 'nunique'}).reset_index()
-df_nb_spe = df_nb_spe.rename(columns={'cis': 'specialite'})
+len(df[df.cis.isna()])
 
-# df_nb_spe = df_atc.groupby('atc').count().reset_index()
 
+# # Ventes
 
 # In[12]:
 
 
-df_nb_spe.head()
+# Le count ne garde pas les NaN
+df_v = pd.read_sql_table('ventes', connection)
+df_v['ventes_total'] = df_v['unites_officine'] + df_v['unites_hopital']
+
+df_v.head(1)
 
 
 # In[13]:
 
 
-# Ajouter la classe ATC3 pour chaque spécialité
-#df = df.merge(df_atc.drop_duplicates().dropna(), on='specialite', how='left')
-#df['atc3'] = df.apply(lambda x: x.atc[:5] if pd.isnull(x.atc3) and x.atc else x.atc3, axis=1)
-#df['atc3'] = df['atc3'].str.upper()
+# Compter nb spécialités par classe ATC
+df_nb_spe = df_v.groupby('atc').agg({'cis': 'nunique'}).reset_index()
+df_nb_spe = df_nb_spe.rename(columns={'cis': 'specialite'})
+
+df_nb_spe.head()
 
 
-# # Relier avec les données de vente
+# # Ventes par ATC, CIS, etc.
 
 # In[14]:
 
@@ -145,55 +139,26 @@ df['annee'] = df.date_signalement.apply(lambda x: x.year)
 # In[15]:
 
 
-#df_v = pd.read_sql_table('ventes', connection)
-#df_v['atc'] = df_v.atc.apply(lambda x: x[:7])
+df_v2 = df_v.groupby(['annee', 'atc']).agg({'ventes_total': 'sum'}).reset_index()
+ventes_par_atc = df_v2.to_dict(orient='records')
+ventes_par_atc = {2018: {ventes_dict['atc']: ventes_dict['ventes_total']
+                         for ventes_dict in ventes_par_atc if ventes_dict['annee'] == 2018},
+                  2019: {ventes_dict['atc']: ventes_dict['ventes_total']
+                         for ventes_dict in ventes_par_atc if ventes_dict['annee'] == 2018},
+                  2020: {ventes_dict['atc']: ventes_dict['ventes_total'] 
+                         for ventes_dict in ventes_par_atc if ventes_dict['annee'] == 2019}}
 
-df_v_grouped = df_v.groupby(['annee', 'atc', 'cis']).agg(
-    {'unites_officine': 'sum', 'unites_hopital': 'sum'}).reset_index()
-df_v_grouped['ventes'] = df_v.unites_officine + df_v.unites_hopital
+df_v3 = df_v.groupby(['annee', 'cis']).agg({'ventes_total': 'sum'}).reset_index()
+ventes_par_cis = df_v3.to_dict(orient='records')
+ventes_par_cis = {2018: {ventes_dict['cis']: ventes_dict['ventes_total']
+                         for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2018},
+                  2019: {ventes_dict['cis']: ventes_dict['ventes_total']
+                         for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2018},
+                  2020: {ventes_dict['cis']: ventes_dict['ventes_total'] 
+                         for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2019}}
 
 
 # In[16]:
-
-
-# df_v = pd.read_sql_table('ventes', connection)
-# df_v['atc'] = df_v.atc.apply(lambda x: x[:7])
-# nb_spe_par_atc = df_v.groupby('atc').agg({'cis': 'nunique'}).reset_index().to_dict(orient='records')
-
-
-# In[17]:
-
-
-df_v2 = df_v.groupby(['annee', 'atc']).agg({'unites_officine': 'sum', 'unites_hopital': 'sum'}).reset_index()
-df_v2['ventes'] = df_v2.unites_officine + df_v2.unites_hopital
-ventes_par_atc = df_v2.to_dict(orient='records')
-
-ventes_par_atc = {2018: {ventes_dict['atc']: ventes_dict['ventes']
-                          for ventes_dict in ventes_par_atc if ventes_dict['annee'] == 2018},
-                  2019: {ventes_dict['atc']: ventes_dict['ventes']
-                          for ventes_dict in ventes_par_atc if ventes_dict['annee'] == 2018},
-                  2020: {ventes_dict['atc']: ventes_dict['ventes'] 
-                          for ventes_dict in ventes_par_atc if ventes_dict['annee'] == 2019}}
-
-df_v3 = df_v.groupby(['annee', 'cis']).agg({'unites_officine': 'sum', 'unites_hopital': 'sum'}).reset_index()
-df_v3['ventes'] = df_v3.unites_officine + df_v3.unites_hopital
-ventes_par_cis = df_v3.to_dict(orient='records')
-
-ventes_par_cis = {2018: {ventes_dict['cis']: ventes_dict['ventes']
-                          for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2018},
-                  2019: {ventes_dict['cis']: ventes_dict['ventes']
-                          for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2018},
-                  2020: {ventes_dict['cis']: ventes_dict['ventes'] 
-                          for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2019}}
-
-
-# In[18]:
-
-
-df.head(1)
-
-
-# In[19]:
 
 
 df['ventes_cis'] = df.apply(
@@ -203,7 +168,7 @@ df['ventes_atc'] = df.apply(
     lambda x: ventes_par_atc[x.annee][x.atc] if x.atc in ventes_par_atc[x.annee] else None, axis=1)
 
 
-# In[20]:
+# In[17]:
 
 
 df = df[['id_signal', 'date_signalement', 'annee', 'atc', 'cis', 'laboratoire',
@@ -215,7 +180,7 @@ df.head(2)
 
 # # Calculer durée rupture
 
-# In[21]:
+# In[18]:
 
 
 def compute_jours(x):
@@ -236,7 +201,7 @@ df['jours_hopital'] = df.apply(lambda x: compute_jours(x)[1], axis=1)
 df.head(1)
 
 
-# In[22]:
+# In[19]:
 
 
 def get_duree(x):
@@ -261,7 +226,7 @@ mean_all = df.apply(lambda x: get_duree(x), axis=1).replace(0, np.NaN).mean()
 print('Mean 3 months: {} days - Mean all: {} days'.format(round(mean_3_months, 2), round(mean_all, 2)))
 
 
-# In[23]:
+# In[20]:
 
 
 duree_dict = {
@@ -273,7 +238,7 @@ duree_dict = {
 }
 
 
-# In[24]:
+# In[21]:
 
 
 def compute_duree_rs(x):
@@ -297,7 +262,7 @@ def compute_duree_rs(x):
 df['nb_jours_rs'] = df.apply(lambda x: compute_duree_rs(x), axis=1)
 
 
-# In[25]:
+# In[22]:
 
 
 len(df)
@@ -305,13 +270,13 @@ len(df)
 
 # # Retirer les ruptures de moins de 6 jours
 
-# In[26]:
+# In[23]:
 
 
-print('{}% of RS reportings last less than 6 days'.format(round(len(df[df.nb_jours_rs <= 6]) / len(df) * 100, 2)))
+print('{}% of RS reportings last less than 6 days'.format(round(len(df[df.nb_jours_rs <= 14]) / len(df) * 100, 2)))
 
 
-# In[27]:
+# In[24]:
 
 
 df = df[df.nb_jours_rs > 14]
@@ -319,7 +284,7 @@ df = df[df.nb_jours_rs > 14]
 
 # # Caper les ruptures supérieures à 4 mois à 4 mois
 
-# In[28]:
+# In[25]:
 
 
 df.nb_jours_rs = df.nb_jours_rs.apply(lambda x: 122 if x > 122 else x)
@@ -327,7 +292,7 @@ df.nb_jours_rs = df.nb_jours_rs.apply(lambda x: 122 if x > 122 else x)
 
 # # Regrouper par classe atc
 
-# In[29]:
+# In[26]:
 
 
 df_grouped = df.groupby('atc').agg({'nb_jours_rs': 'sum', 'ventes_atc': 'mean'}).reset_index()
@@ -339,7 +304,7 @@ df_grouped.head(3)
 
 # # Récupérer les noms des classes ATC
 
-# In[30]:
+# In[27]:
 
 
 # df_names = pd.read_excel('../data/decret_stock/décret stock.xlsx', sheet_name='BILAN', header=0)
@@ -352,32 +317,32 @@ df_grouped.head(3)
 
 # ## 1) Diviser le nombre de jours de rupture par le nombre de spécialités dans la classe ATC
 
-# In[31]:
+# In[28]:
 
 
 # df_grouped['metrique_1'] = df_grouped.apply(lambda x: round(x.nb_jours_rs / x.nb_specialites, 6), axis=1)
 
 
-# In[32]:
+# In[29]:
 
 
 # df_grouped = df_grouped.sort_values(by=['metrique_1'], ascending=False)
 
 
-# In[33]:
+# In[30]:
 
 
 # atc3_list = df_grouped[df_grouped.nb_specialites.isna()].atc3.unique()
 # df[df.atc3.isin(atc3_list)]    #.to_csv('../data/ruptures_atc3_nan.csv', index=False, sep=';')
 
 
-# In[34]:
+# In[31]:
 
 
 # df_grouped[df_grouped.nb_specialites.isna()]     #.to_csv('../data/atc3_nan.csv', index=False, sep=';')
 
 
-# In[35]:
+# In[32]:
 
 
 len(df_grouped)
@@ -385,7 +350,7 @@ len(df_grouped)
 
 # ## 2) Pondérer par les ventes
 
-# In[36]:
+# In[33]:
 
 
 # Grouper par année et spécialité
@@ -399,18 +364,10 @@ df2['ventes_exist'] = df2.ventes_cis.apply(lambda x: 0 if pd.isnull(x) else 1)
 df2.head()
 
 
-# In[37]:
+# In[34]:
 
 
-df_v['ventes_total'] = df_v['unites_officine'] + df_v['unites_hopital']
-df_v.head(2)
-
-
-# In[38]:
-
-
-df_v['ventes_total'] = df_v['unites_officine'] + df_v['unites_hopital']
-
+# Trouver, par classe ATC, la spécialité qui a les plus grands chiffres de vente sur 2018-2019
 df3 = df_v.groupby(['atc', 'denomination_specialite']).agg({'ventes_total': 'sum'}).reset_index()
 
 records = df3.to_dict(orient='records')
@@ -421,20 +378,7 @@ for atc in df3.atc.unique():
 max_ventes_dict = {k: max(v, key=v.get) for k, v in rec_dict.items()}
 
 
-# In[39]:
-
-
-#df3 = df_v.groupby(['atc3', 'specialite']).agg({'ventes_cis': 'sum'}).reset_index()
-
-#records = df3.to_dict(orient='records')
-#rec_dict = defaultdict(dict)
-#for atc in df3.atc3.unique():
-#    rec_dict[atc] = {d['specialite']: d['ventes_cis'] for d in records if d['atc3'] == atc}
-    
-#max_ventes_dict = {k: max(v, key=v.get) for k, v in rec_dict.items()}
-
-
-# In[40]:
+# In[35]:
 
 
 # Grouper par année et par classe ATC
@@ -452,7 +396,7 @@ df_grouped['ventes_cis_inconnus'] = df_grouped.apply(
 df_grouped.head()
 
 
-# In[41]:
+# In[36]:
 
 
 df.ventes_cis = df.apply(
@@ -464,13 +408,7 @@ df['nb_specialites_atc'] = df.apply(
     if x.atc in df_grouped.atc.unique() else None, axis=1)
 
 
-# In[42]:
-
-
-# df[df.atc3 == 'B02AB']
-
-
-# In[43]:
+# In[37]:
 
 
 def compute_score(atc, df):
@@ -502,7 +440,7 @@ df_score = df_score[
 df_score.head(10)
 
 
-# In[44]:
+# In[38]:
 
 
 len(df[df.atc.apply(lambda x: len(x) != 7 if x else True)])
@@ -510,15 +448,15 @@ len(df[df.atc.apply(lambda x: len(x) != 7 if x else True)])
 
 # # Sauvegarder dans csv
 
-# In[45]:
+# In[39]:
 
 
-df_score.to_csv('../data/decret_stock/classes_atc_score_pondéré_niveau_atc_5.csv', index=False, sep=';')
+# df_score.to_csv('../data/decret_stock/classes_atc_score_pondéré_niveau_atc_5.csv', index=False, sep=';')
 
 
 # # Nombre de ruptures ayant l'ATC complet
 
-# In[46]:
+# In[40]:
 
 
 len(df[df.atc.apply(lambda x: len(x) == 7 if x and isinstance(x, str) else False)]) / len(df) * 100
