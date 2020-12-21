@@ -114,16 +114,6 @@ def get_pres_list() -> List[Dict]:
     ]
 
 
-def get_conso_list() -> List[Dict]:
-    df = pd.read_excel('./create_database/data/donnees_ventes_2018.xlsx')
-    df_grouped = df.groupby(['cis', 'year']).agg(
-        {'ventes_officine': 'sum', 'ventes_hopital': 'sum', 'ventes_total': 'sum'}
-    )
-    df_grouped = df_grouped.reset_index()
-    df_grouped = df_grouped.astype({'cis': str})
-    return df_grouped.to_dict(orient='records')
-
-
 def get_fabrication_list() -> List[Dict]:
     """
     Table fabrication
@@ -193,6 +183,16 @@ def get_atc_list() -> List[Dict]:
     return df.to_dict(orient='records')
 
 
+def get_volumes(x):
+    if isinstance(x, str):
+        x = x.replace(' ', '')
+        try:
+            x = int(x)
+        except ValueError:
+            x = 0
+    return x
+
+
 def get_ruptures() -> List[Dict]:
     """
     Table ruptures
@@ -229,16 +229,6 @@ def get_ruptures() -> List[Dict]:
     df = df.astype({'volumes_ventes_ville': int, 'volumes_ventes_hopital': int})
     df = df.drop_duplicates()
     return df.to_dict(orient='records')
-
-
-def get_volumes(x):
-    if isinstance(x, str):
-        x = x.replace(' ', '')
-        try:
-            x = int(x)
-        except ValueError:
-            x = 0
-    return x
 
 
 def get_ventes() -> List[Dict]:
