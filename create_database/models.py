@@ -50,19 +50,6 @@ class Presentation(Base):
     cis = Column(String(8), nullable=False)
 
 
-class Consommation(Base):
-    __tablename__ = 'consommation'
-    __table_args__ = (
-        ForeignKeyConstraint(['cis'], ['specialite.cis']),
-    )
-
-    cis = Column(String(120), primary_key=True)
-    year = Column(YEAR, nullable=False)
-    ventes_officine = Column(Integer, nullable=False)
-    ventes_hopital = Column(Integer, nullable=False)
-    ventes_total = Column(Integer, nullable=False)
-
-
 class Fabrication(Base):
     __tablename__ = 'fabrication'
 
@@ -123,6 +110,8 @@ class Ruptures(Base):
     date_signalement = Column(DATE, nullable=True)
     laboratoire = Column(LONGTEXT, nullable=True)
     specialite = Column(LONGTEXT, nullable=True)
+    voie = Column(LONGTEXT, nullable=True)
+    voie_4_classes = Column(LONGTEXT, nullable=True)
     rupture = Column(LONGTEXT, nullable=True)
     atc = Column(String(10), nullable=True)
     dci = Column(LONGTEXT, nullable=True)
@@ -137,6 +126,9 @@ class Ruptures(Base):
 
 class Ventes(Base):
     __tablename__ = 'ventes'
+    __table_args__ = (
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
+    )
 
     octave_id = Column(Integer, primary_key=True)
     annee = Column(YEAR, nullable=False)
@@ -156,7 +148,6 @@ engine = connect_db()
 Specialite.__table__.create(bind=engine, checkfirst=True)
 SubstanceActive.__table__.create(bind=engine, checkfirst=True)
 Presentation.__table__.create(bind=engine, checkfirst=True)
-Consommation.__table__.create(bind=engine, checkfirst=True)
 Fabrication.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
 Classification.__table__.create(bind=engine, checkfirst=True)

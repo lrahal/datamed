@@ -5,7 +5,7 @@ import pandas as pd
 from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
-from .models import (connect_db, Specialite, SubstanceActive, Presentation, Consommation, Fabrication, Production,
+from .models import (connect_db, Specialite, SubstanceActive, Presentation, Fabrication, Production,
                      Classification, Ruptures, Ventes)
 from .transform_db import compute_best_matches
 from .upload_db import upload_table_from_db, upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
@@ -197,15 +197,16 @@ def get_ruptures() -> List[Dict]:
     """
     Table ruptures
     """
-    df = pd.read_excel('analysis/data/decret_stock/décret stock.xlsx', header=0, sheet_name='Raw')
+    df = pd.read_excel('analysis/data/decret_stock/DRAFT décret stock VOIE.xlsx', header=0, sheet_name='Raw')
 
     # Cleaning
-    df = df[['ID_Signal', 'Signalement', 'Date Signalement', 'Laboratoire', 'Spécialité', 'Rupture', 'ATC', 'DCI',
-             'Date_Signal_Debut_RS', 'Durée_Ville', 'Durée_Hôpital', 'DatePrevi_Ville', 'DatePrevi_Hôpital',
-             'Volumes_Ventes_Ville', 'Volumes_Ventes_Hopital']]
+    df = df[['ID_Signal', 'Signalement', 'Date Signalement', 'Laboratoire', 'Spécialité', 'VOIE',
+             'VOIE 4 CLASSES', 'Rupture', 'ATC', 'DCI', 'Date_Signal_Debut_RS', 'Durée_Ville', 'Durée_Hôpital',
+             'DatePrevi_Ville', 'DatePrevi_Hôpital', 'Volumes_Ventes_Ville', 'Volumes_Ventes_Hopital']]
     df = df.rename(columns={'ID_Signal': 'id_signal', 'Signalement': 'signalement',
                             'Date Signalement': 'date_signalement', 'Laboratoire': 'laboratoire',
-                            'Spécialité': 'specialite', 'Rupture': 'rupture', 'ATC': 'atc', 'DCI': 'dci',
+                            'Spécialité': 'specialite', 'VOIE': 'voie', 'VOIE 4 CLASSES': 'voie_4_classes',
+                            'Rupture': 'rupture', 'ATC': 'atc', 'DCI': 'dci',
                             'Date_Signal_Debut_RS': 'date_signal_debut_rs', 'Durée_Ville': 'duree_ville',
                             'Durée_Hôpital': 'duree_hopital', 'DatePrevi_Ville': 'date_previ_ville',
                             'DatePrevi_Hôpital': 'date_previ_hopital', 'Volumes_Ventes_Ville': 'volumes_ventes_ville',
@@ -213,6 +214,8 @@ def get_ruptures() -> List[Dict]:
     df.dci = df.dci.str.lower()
     df.laboratoire = df.laboratoire.str.lower()
     df.specialite = df.specialite.str.lower()
+    df.voie = df.voie.str.lower()
+    df.voie_4_classes = df.voie_4_classes.str.lower()
     df.rupture = df.rupture.str.lower()
     df.date_signalement = pd.to_datetime(df.date_signalement).apply(lambda x: x.date())
     df.date_signal_debut_rs = pd.to_datetime(df.date_signal_debut_rs).apply(lambda x: x.date())
@@ -297,15 +300,6 @@ def save_to_database_orm(session):
         session.add(pres)
         session.commit()
 
-    # Création table Consommation
-    conso_list = get_conso_list()
-    cis_set = set(c['cis'] for c in cis_list)
-    for conso_dict in conso_list:
-        if conso_dict['cis'] in cis_set:
-            conso = Consommation(**conso_dict)
-            session.add(conso)
-            session.commit()
-
     # Création table Fabrication
     fab_list = get_fabrication_list()
     for fab_dict in fab_list:
@@ -336,6 +330,16 @@ def save_to_database_orm(session):
 
     # Création table Ventes
     ventes_list = get_ventes()
+
+    # On ajoute à la table specialite les CIS qui n'y sont pas
+    all_cis = [c['cis'] for c in cis_list]
+    ventes_cis_dict = {v['cis']: v['denomination_specialite'] for v in ventes_list if v['cis'] not in all_cis}
+    for cis, denom in ventes_cis_dict.items():
+        cis_dict = {'cis': cis, 'name': denom, 'type_amm': None, 'etat_commercialisation': None}
+        spe = Specialite(**cis_dict)
+        session.add(spe)
+        session.commit()
+
     for ventes_dict in ventes_list:
         ventes = Ventes(**ventes_dict)
         session.add(ventes)
