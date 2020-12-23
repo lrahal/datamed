@@ -136,6 +136,8 @@ class Ventes(Base):
     laboratoire = Column(LONGTEXT, nullable=True)
     cis = Column(String(120), nullable=False)
     denomination_specialite = Column(LONGTEXT, nullable=False)
+    voie = Column(LONGTEXT, nullable=False)
+    voie_4_classes = Column(LONGTEXT, nullable=False)
     cip13 = Column(String(13), nullable=False)
     libelle = Column(LONGTEXT, nullable=True)
     atc = Column(String(120), nullable=False)
