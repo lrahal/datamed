@@ -5,8 +5,8 @@ import pandas as pd
 from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
-from .models import (connect_db, Specialite, SubstanceActive, Presentation, Fabrication, Production,
-                     Classification, Ruptures, Ventes)
+from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstance,
+                     Presentation, Production, Classification, Ruptures, Ventes)
 from .transform_db import compute_best_matches
 from .upload_db import upload_table_from_db, upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
 
@@ -78,6 +78,21 @@ def get_api_list(df: pd.DataFrame) -> List[Dict]:
     api_list.extend([{'name': api, 'code': None} for api in api_not_in_list])
     api_list = [dict(t) for t in {tuple(d.items()) for d in api_list}]
     return sorted(api_list, key=lambda k: k['name'])
+
+
+def get_cis_api_list() -> List[Dict]:
+    """
+    Table specialite_substance
+    """
+    df = upload_compo_from_rsp('/Users/ansm/Documents/GitHub/datamed/create_database/data/RSP/COMPO_RSP.txt')
+    df_api = pd.read_sql_table('substance_active', connection)
+    df = df.merge(df_api, left_on=['code_substance', 'substance_active'], right_on=['code', 'name'], how='left')
+    df = df[['cis', 'elem_pharma', 'id', 'dosage', 'ref_dosage', 'nature_composant', 'num_lien']]
+    df = df.rename(columns={'id': 'substance_active_id'})
+    df.cis = df.cis.map(str)
+    df = df.where(pd.notnull(df), None)
+    cis_api_list = df.to_dict(orient='records')
+    return sorted(cis_api_list, key=lambda k: k['cis'])
 
 
 def get_cis_list(df: pd.DataFrame) -> List[Dict]:
@@ -236,22 +251,29 @@ def get_ventes() -> List[Dict]:
     Table ventes
     From OCTAVE database
     """
-    df_2018 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2018_ATC.xlsx')
+    df_2018 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2018_ATC_voie.xlsx')
     df_2018['Nom Labo'] = None
-    df_2019 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2019_ATC.xlsx')
+    df_2019 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2019_ATC_voie.xlsx')
     df = pd.concat([df_2018, df_2019])
 
     # Cleaning
     df = df.rename(columns={'Année': 'annee', 'code dossier': 'code_dossier', 'code CIS': 'cis',
                             'Identifiant OCTAVE': 'octave_id', 'Code CIP': 'cip13',
-                            'Nom spécialité': 'denomination_specialite', 'Présentation': 'libelle',
-                            'ClasseATC': 'atc', 'Régime Remb.': 'regime_remb', 'Unités officine': 'unites_officine',
+                            'Nom spécialité': 'denomination_specialite', 'VOIE 4 classes': 'voie_4_classes',
+                            'VOIE': 'voie', 'Présentation': 'libelle', 'ClasseATC': 'atc',
+                            'Régime Remb.': 'regime_remb', 'Unités officine': 'unites_officine',
                             'Unités hôpital': 'unites_hopital', 'Nom Labo': 'laboratoire'})
-    df = df[['octave_id', 'annee', 'code_dossier', 'laboratoire', 'cis', 'denomination_specialite',
-             'cip13', 'libelle', 'atc', 'regime_remb', 'unites_officine', 'unites_hopital']]
+    df = df[['octave_id', 'annee', 'code_dossier', 'laboratoire', 'cis', 'denomination_specialite', 'voie_4_classes',
+             'voie', 'cip13', 'libelle', 'atc', 'regime_remb', 'unites_officine', 'unites_hopital']]
 
+    df.octave_id = df.octave_id.map(int)
+    df.annee = df.annee.map(int)
+    df.cis = df.cis.map(int)
     df.cis = df.cis.map(str)
+    df.cip13 = df.cip13.map(int)
     df.cip13 = df.cip13.map(str)
+    df.voie = df.voie.str.lower()
+    df.voie_4_classes = df.voie_4_classes.str.lower()
     df.laboratoire = df.laboratoire.str.lower()
     df.denomination_specialite = df.denomination_specialite.str.lower()
 
@@ -283,18 +305,18 @@ def save_to_database_orm(session):
         session.add(api)
         session.commit()
 
+    # Création table SpecialiteSubstance
+    cis_api_list = get_cis_api_list()
+    for cis_api_dict in cis_api_list:
+        cis_api = SpecialiteSubstance(**cis_api_dict)
+        session.add(cis_api)
+        session.commit()
+
     # Création table Presentation
     pres_list = get_pres_list()
     for pres_dict in pres_list:
         pres = Presentation(**pres_dict)
         session.add(pres)
-        session.commit()
-
-    # Création table Fabrication
-    fab_list = get_fabrication_list()
-    for fab_dict in fab_list:
-        fab = Fabrication(**fab_dict)
-        session.add(fab)
         session.commit()
 
     # Création table Production

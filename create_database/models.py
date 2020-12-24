@@ -39,6 +39,23 @@ class SubstanceActive(Base):
     code = Column(Integer, nullable=True)
 
 
+class SpecialiteSubstance(Base):
+    __tablename__ = 'specialite_substance'
+    __table_args__ = (
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
+        ForeignKeyConstraint(['substance_active_id'], ['substance_active.id']),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cis = Column(String(120), nullable=False)
+    elem_pharma = Column(LONGTEXT, nullable=False)
+    substance_active_id = Column(Integer, nullable=False)
+    dosage = Column(LONGTEXT, nullable=True)
+    ref_dosage = Column(LONGTEXT, nullable=True)
+    nature_composant = Column(LONGTEXT, nullable=False)
+    num_lien = Column(Integer, nullable=False)
+
+
 class Presentation(Base):
     __tablename__ = 'presentation'
     __table_args__ = (
@@ -96,8 +113,7 @@ class Classification(Base):
         ForeignKeyConstraint(['cis'], ['specialite.cis']),
     )
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    cis = Column(String(120), nullable=False)
+    cis = Column(String(120), primary_key=True)
     atc = Column(String(120), nullable=False)
 
 
@@ -149,8 +165,8 @@ class Ventes(Base):
 engine = connect_db()
 Specialite.__table__.create(bind=engine, checkfirst=True)
 SubstanceActive.__table__.create(bind=engine, checkfirst=True)
+SpecialiteSubstance.__table__.create(bind=engine, checkfirst=True)
 Presentation.__table__.create(bind=engine, checkfirst=True)
-Fabrication.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
 Classification.__table__.create(bind=engine, checkfirst=True)
 Ruptures.__table__.create(bind=engine, checkfirst=True)
