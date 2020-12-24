@@ -1,4 +1,3 @@
-import os
 from typing import List, Dict
 
 import pandas as pd
@@ -9,12 +8,6 @@ from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstanc
                      Presentation, Production, Classification, Ruptures, Ventes)
 from .transform_db import compute_best_matches
 from .upload_db import upload_table_from_db, upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
-
-# Credentials to database connection
-HOSTNAME = 'localhost'
-DBNAME = 'rs_db'
-UNAME = 'root'
-MYSQL_PWD = os.environ.get('MYSQL_PWD')
 
 
 def get_api_by_cis() -> Dict:
@@ -282,9 +275,9 @@ def get_ventes() -> List[Dict]:
     return df.to_dict(orient='records')
 
 
-db = connect_db()  # establish connection
-connection = db.connect()
-Session = sessionmaker(bind=db)
+engine = connect_db()  # establish connection
+connection = engine.connect()
+Session = sessionmaker(bind=engine)
 session = Session()
 
 

@@ -13,10 +13,9 @@ MYSQL_PWD = os.environ.get('MYSQL_PWD')
 
 def connect_db():
     # create db create_engine
-    db = create_engine('mysql+pymysql://{user}:{pw}@{host}/{db}'
-                       .format(host=HOSTNAME, db=DBNAME, user=UNAME, pw=MYSQL_PWD),
-                       echo=False)
-    return db
+    return create_engine('mysql+pymysql://{user}:{pw}@{host}/{db}'
+                         .format(host=HOSTNAME, db=DBNAME, user=UNAME, pw=MYSQL_PWD),
+                         echo=False)
 
 
 Base = declarative_base()
