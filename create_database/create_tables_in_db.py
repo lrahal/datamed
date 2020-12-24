@@ -5,9 +5,9 @@ from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
 from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstance,
-                     Presentation, Production, Classification, Ruptures, Ventes)
+                     Presentation, Production, Ruptures, Ventes)
 from .transform_db import compute_best_matches
-from .upload_db import upload_table_from_db, upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
+from .upload_db import upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
 
 
 def get_api_by_cis() -> Dict:
@@ -93,15 +93,30 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     Table specialite, listing all possible CIS codes
     """
     df_cis = upload_cis_from_rsp('./create_database/data/RSP/CIS_RSP.txt')
+
+    # Add atc class to df_cis dataframe
+    df_atc = pd.read_excel('./create_database/data/ATC_new.xlsx', names=['cis', 'atc'], header=0)
+    df_atc = df_atc.drop_duplicates()
+
+    df_cis = df_cis.merge(df_atc, on='cis', how='left')
     df_cis = df_cis.astype({'cis': 'str'})
+    df_atc = df_atc.astype({'cis': 'str'})
+    df_cis = df_cis.where(pd.notnull(df_cis), None)
+
+    cis_list = df_cis.cis.unique().tolist()
+    cis_to_check = df.cis.unique().tolist() + df_atc.cis.unique().tolist()
+    cis_not_in_list = [c for c in cis_to_check if c not in cis_list]
+
     records = df_cis.to_dict('records')
-    cis_list = df_cis.cis.dropna().unique().tolist()
-    values_list = [
-        {k: str(v) for k, v in zip(('cis', 'name', 'type_amm', 'etat_commercialisation'),
-                                   (r['cis'], r['nom_spe_pharma'], r['type_amm'], r['etat_commercialisation']))}
+
+    values_list = [{
+        k: str(v) for k, v in zip(('cis', 'name', 'atc', 'type_amm', 'etat_commercialisation'),
+                                  (r['cis'], r['nom_spe_pharma'], r['atc'], r['type_amm'], r['etat_commercialisation']))
+    }
         for r in records
     ]
-    values_list.extend([{'cis': str(cis), 'name': None} for cis in df.cis.dropna().unique() if str(cis) not in cis_list])
+    values_list.extend([{'cis': cis, 'name': None} for cis in cis_not_in_list])
+
     return values_list
 
 
@@ -120,23 +135,6 @@ def get_pres_list() -> List[Dict]:
          }
         for r in records
     ]
-
-
-def get_fabrication_list() -> List[Dict]:
-    """
-    Table fabrication
-    Lists for each address, the latitude, longitude and country
-    """
-    df = upload_table_from_db('api_sites_addresses')
-    df = df.where(pd.notnull(df), None)
-    values_list = [
-        {
-            k: v for k, v in zip(('address', 'latitude', 'longitude', 'country'),
-                                 (row['input_string'], row['latitude'], row['longitude'], row['country']))
-        }
-        for index, row in df.iterrows()
-    ]
-    return [dict(t) for t in {tuple(d.items()) for d in values_list}]
 
 
 def get_prod_list(df: pd.DataFrame) -> List[Dict]:
@@ -173,22 +171,6 @@ def get_prod_list(df: pd.DataFrame) -> List[Dict]:
         }
         for index, row in df.iterrows()
     ]
-
-
-def get_atc_list() -> List[Dict]:
-    """
-    Table classification
-    Listing all CIS and their possible ATC classification
-    """
-    df = pd.read_excel('./create_database/data/ATC_new.xlsx', names=['cis', 'atc'], header=0)
-    df = df.drop_duplicates()
-    df = df.astype({'cis': str})
-
-    # Not allow records having CIS not present in specialite table
-    df_cis = pd.read_sql_table('specialite', connection)
-    cis_list = df_cis.cis.unique()
-    df = df[df.cis.isin(cis_list)]
-    return df.to_dict(orient='records')
 
 
 def get_volumes(x):
@@ -317,13 +299,6 @@ def save_to_database_orm(session):
     for prod_dict in prod_list:
         prod = Production(**prod_dict)
         session.add(prod)
-        session.commit()
-
-    # Création table Classification
-    atc_list = get_atc_list()
-    for atc_dict in atc_list:
-        atc = Classification(**atc_dict)
-        session.add(atc)
         session.commit()
 
     # Création table Ruptures

@@ -26,6 +26,7 @@ class Specialite(Base):
 
     cis = Column(String(120), primary_key=True)
     name = Column(LONGTEXT, nullable=True)
+    atc = Column(String(120), nullable=True)
     type_amm = Column(LONGTEXT, nullable=True)
     etat_commercialisation = Column(LONGTEXT, nullable=True)
 
@@ -106,16 +107,6 @@ class Production(Base):
     filename = Column(LONGTEXT, nullable=False)
 
 
-class Classification(Base):
-    __tablename__ = 'classification'
-    __table_args__ = (
-        ForeignKeyConstraint(['cis'], ['specialite.cis']),
-    )
-
-    cis = Column(String(120), primary_key=True)
-    atc = Column(String(120), nullable=False)
-
-
 class Ruptures(Base):
     __tablename__ = 'ruptures'
     __table_args__ = ()
@@ -167,6 +158,5 @@ SubstanceActive.__table__.create(bind=engine, checkfirst=True)
 SpecialiteSubstance.__table__.create(bind=engine, checkfirst=True)
 Presentation.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
-Classification.__table__.create(bind=engine, checkfirst=True)
 Ruptures.__table__.create(bind=engine, checkfirst=True)
 Ventes.__table__.create(bind=engine, checkfirst=True)
