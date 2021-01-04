@@ -95,12 +95,13 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     df_cis = upload_cis_from_rsp('./create_database/data/RSP/CIS_RSP.txt')
 
     # Add atc class to df_cis dataframe
-    df_atc = pd.read_excel('./create_database/data/ATC_new.xlsx', names=['cis', 'atc'], header=0)
+    df_atc = pd.read_excel('./create_database/data/CIS-ATC_2021-01-04.xlsx', names=['cis', 'atc', 'nom_atc'], header=0)
     df_atc = df_atc.drop_duplicates()
 
     df_cis = df_cis.merge(df_atc, on='cis', how='left')
     df_cis = df_cis.astype({'cis': 'str'})
     df_atc = df_atc.astype({'cis': 'str'})
+    df_atc.nom_atc = df_atc.nom_atc.str.lower()
     df_cis = df_cis.where(pd.notnull(df_cis), None)
 
     cis_list = df_cis.cis.unique().tolist()
@@ -110,13 +111,15 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     records = df_cis.to_dict('records')
 
     values_list = [{
-        k: str(v) for k, v in zip(('cis', 'name', 'atc', 'type_amm', 'etat_commercialisation'),
-                                  (r['cis'], r['nom_spe_pharma'], r['atc'], r['type_amm'], r['etat_commercialisation']))
+        k: str(v) if v else None
+        for k, v in zip(
+            ('cis', 'name', 'atc',  'nom_atc', 'type_amm', 'etat_commercialisation'),
+            (r['cis'], r['nom_spe_pharma'], r['atc'], r['nom_atc'], r['type_amm'], r['etat_commercialisation'])
+        )
     }
         for r in records
     ]
     values_list.extend([{'cis': cis, 'name': None} for cis in cis_not_in_list])
-
     return values_list
 
 

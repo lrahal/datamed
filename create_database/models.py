@@ -27,6 +27,7 @@ class Specialite(Base):
     cis = Column(String(120), primary_key=True)
     name = Column(LONGTEXT, nullable=True)
     atc = Column(String(120), nullable=True)
+    nom_atc = Column(LONGTEXT, nullable=True)
     type_amm = Column(LONGTEXT, nullable=True)
     etat_commercialisation = Column(LONGTEXT, nullable=True)
 
