@@ -57,10 +57,14 @@ if typ_med == 'Substance':
   data = bnpv_open_medic1418_sa_codex[bnpv_open_medic1418_sa_codex.SUBSTANCE_CODEX_UNIQUE == med]
   data_soclong = bnpv_eff_soclong_sa_codex_open[bnpv_eff_soclong_sa_codex_open.SUBSTANCE_CODEX_UNIQUE == med]
   data_notif = bnpv_notif_sa_codex_open[bnpv_notif_sa_codex_open.SUBSTANCE_CODEX_UNIQUE == med]
+  data_soclong = data_soclong.rename(columns={'SUBSTANCE_CODEX_UNIQUE': 'MEDICAMENT'})
+  data_notif = data_notif.rename(columns={'SUBSTANCE_CODEX_UNIQUE': 'MEDICAMENT'})
 else:
   data = bnpv_open_medic1418_prod_codex[bnpv_open_medic1418_prod_codex.PRODUIT_CODEX == med]
   data_soclong = bnpv_eff_soclong_prod_codex_open[bnpv_eff_soclong_prod_codex_open.PRODUIT_CODEX == med]
   data_notif = bnpv_notif_prod_codex_open[bnpv_notif_prod_codex_open.PRODUIT_CODEX == med]
+  data_soclong = data_soclong.rename(columns={'PRODUIT_CODEX': 'MEDICAMENT'})
+  data_notif = data_notif.rename(columns={'PRODUIT_CODEX': 'MEDICAMENT'})
 #if (typ_med == "Substance"){
 #data < - bnpv_open_medic1418_sa_codex[bnpv_open_medic1418_sa_codex$SUBSTANCE_CODEX_UNIQUE == med, ]
 #data_soclong < - bnpv_eff_soclong_sa_codex_open[bnpv_eff_soclong_sa_codex_open$SUBSTANCE_CODEX_UNIQUE == med, ]
@@ -72,8 +76,6 @@ else:
 #}
 
 # 4.3 Sélection des données en fonction des paramètres utilisateur (Filtres population)
-data_soclong = data_soclong.rename(columns={'SUBSTANCE_CODEX_UNIQUE': 'MEDICAMENT'})
-data_notif = data_notif.rename(columns={'SUBSTANCE_CODEX_UNIQUE': 'MEDICAMENT'})
 #names(data_soclong)[2] < - "MEDICAMENT"
 #names(data_notif)[3] < - "MEDICAMENT"
 
@@ -92,8 +94,8 @@ strat_dict = {
 }
 
 data = data[data.SEXE == strat_data_dict[strat]]
-data_soclong = data_soclong[data_soclong.SEXE == data_dict[strat]]
-data_notif = data_notif[data_notif.SEXE == data_dict[strat]]
+data_soclong = data_soclong[data_soclong.SEXE == strat_dict[strat]]
+data_notif = data_notif[data_notif.SEXE == strat_dict[strat]]
 #if (strat == "Ensemble") {
 #data < - data
 #data_soclong < - data_soclong
@@ -161,15 +163,16 @@ strat < - input$select_strat
 # Données HLT
 if typ_med == 'Substance':
   data_hlt = bnpv_eff_hlt_sa_codex_open[bnpv_eff_hlt_sa_codex_open.SUBSTANCE_CODEX_UNIQUE == med]
+  data_hlt = data_hlt.rename(columns={'SUBSTANCE_CODEX_UNIQUE': 'MEDICAMENT'})
 else:
   data_hlt = bnpv_eff_hlt_prod_codex_open[bnpv_eff_hlt_prod_codex_open.PRODUIT_CODEX == med]
+  data_hlt = data_hlt.rename(columns={'PRODUIT_CODEX': 'MEDICAMENT'})
 #if (typ_med == "Substance"){
 #data_hlt < - bnpv_eff_hlt_sa_codex_open[bnpv_eff_hlt_sa_codex_open$SUBSTANCE_CODEX_UNIQUE == med, ]
 #} else {
 #data_hlt < - bnpv_eff_hlt_prod_codex_open[bnpv_eff_hlt_prod_codex_open$PRODUIT_CODEX == med, ]
 #}
 
-data_hlt = data_hlt.rename(columns={'SUBSTANCE_CODEX_UNIQUE': 'MEDICAMENT'})
 #names(data_hlt)[2] < - "MEDICAMENT"
 
 data_hlt = data_hlt[data_hlt.SEXE == strat_dict[strat]]
