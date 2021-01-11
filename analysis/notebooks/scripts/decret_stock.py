@@ -116,34 +116,73 @@ df_ventes['ventes_total'] = df_ventes['unites_officine'] + df_ventes['unites_hop
 df_ventes.head(1)
 
 
-# # Grouper par ...
+# # MITM oui/non
 
 # In[11]:
 
 
-group = 'atc_voie'
+df_mitm = pd.read_sql_table('production', connection)
+df_mitm = df_mitm[['cis', 'mitm']]
+df_mitm = df_mitm[df_mitm.mitm == 'oui']
+df_mitm = df_mitm.dropna()
+df_mitm = df_mitm.drop_duplicates()
+df_mitm.head(1)
 
 
 # In[12]:
 
 
+mitm_dict = df_mitm.to_dict(orient='records')
+
+
+# In[13]:
+
+
+df_ventes = df_ventes.merge(df_mitm, on='cis', how='left')
+
+
+# # Grouper par ...
+
+# In[15]:
+
+
+group = 'atc_voie'
+
+
+# In[16]:
+
+
+df_mitm_by_group = df_ventes.groupby([group, 'cis']).agg({'mitm': 'nunique'}).reset_index().groupby(group).sum().reset_index()
+
+
+# In[17]:
+
+
 # Compter nb spécialités par classe ATC
 df_nb_spe = df_ventes.groupby(group).agg({'cis': 'nunique'}).reset_index()
 df_nb_spe = df_nb_spe.rename(columns={'cis': 'nb_specialites_groupe'})
+df_nb_spe = df_nb_spe.merge(df_mitm_by_group, on=group, how='left')
+df_nb_spe['pourcentage_mitm'] = df_nb_spe.apply(lambda x: x.mitm / x.nb_specialites_groupe * 100 if x.mitm else 0, axis=1)
 
 df_nb_spe.head()
 
 
+# In[18]:
+
+
+df_ventes[df_ventes.atc_voie == ('B01AX07', 'iv')]
+
+
 # # Ventes par ATC, CIS, etc.
 
-# In[13]:
+# In[19]:
 
 
 # Récupérer l'année du signalement
 df['annee'] = df.date_signalement.apply(lambda x: x.year)
 
 
-# In[14]:
+# In[20]:
 
 
 df_ventes_groupe = df_ventes.groupby(['annee', group]).agg({'ventes_total': 'sum'}).reset_index()
@@ -165,7 +204,7 @@ ventes_par_cis = {2018: {ventes_dict['cis']: ventes_dict['ventes_total']
                          for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2019}}
 
 
-# In[15]:
+# In[21]:
 
 
 df = df[['id_signal', 'date_signalement', 'annee', 'atc', 'atc_voie', 'laboratoire', 'specialite',
@@ -176,7 +215,7 @@ df.head(2)
 
 # # Calculer durée rupture
 
-# In[16]:
+# In[22]:
 
 
 def compute_jours(x):
@@ -191,7 +230,7 @@ df['jours_ville'] = df.apply(lambda x: compute_jours(x)[0], axis=1)
 df['jours_hopital'] = df.apply(lambda x: compute_jours(x)[1], axis=1)
 
 
-# In[17]:
+# In[23]:
 
 
 def get_duree(x):
@@ -209,7 +248,7 @@ mean_all = df.apply(lambda x: get_duree(x), axis=1).replace(0, np.NaN).mean()
 print('Mean 3 months: {} days - Mean all: {} days'.format(round(mean_3_months, 2), round(mean_all, 2)))
 
 
-# In[18]:
+# In[24]:
 
 
 duree_dict = {
@@ -231,7 +270,7 @@ def compute_duree_rs(x):
 df['nb_jours_rs'] = df.apply(lambda x: compute_duree_rs(x), axis=1)
 
 
-# In[19]:
+# In[25]:
 
 
 len(df)
@@ -239,13 +278,13 @@ len(df)
 
 # # Retirer les ruptures de moins de 6 jours
 
-# In[20]:
+# In[26]:
 
 
 print('{}% of RS reportings last less than 2 weeks'.format(round(len(df[df.nb_jours_rs <= 14]) / len(df) * 100, 2)))
 
 
-# In[21]:
+# In[27]:
 
 
 df = df[df.nb_jours_rs > 14]
@@ -253,7 +292,7 @@ df = df[df.nb_jours_rs > 14]
 
 # # Caper les ruptures supérieures à 4 mois à 4 mois
 
-# In[22]:
+# In[28]:
 
 
 df.nb_jours_rs = df.nb_jours_rs.apply(lambda x: 122 if x > 122 else x)
@@ -261,7 +300,7 @@ df.nb_jours_rs = df.nb_jours_rs.apply(lambda x: 122 if x > 122 else x)
 
 # # Calcul d'une métrique
 
-# In[23]:
+# In[29]:
 
 
 len(df)
@@ -269,7 +308,7 @@ len(df)
 
 # ## 1) Pondérer par les ventes
 
-# In[24]:
+# In[30]:
 
 
 # Trouver, par classe ATC, la spécialité qui a les plus grands chiffres de vente sur 2018-2019
@@ -289,7 +328,7 @@ def get_spe_max_ventes(df_spe_max_ventes):
 max_ventes_dict = get_spe_max_ventes(df_spe_max_ventes)
 
 
-# In[25]:
+# In[31]:
 
 
 # Grouper par année et spécialité
@@ -304,7 +343,7 @@ df_ventes_spe['ventes_exist'] = df_ventes_spe.ventes_cis.apply(lambda x: 0 if pd
 df_ventes_spe.head()
 
 
-# In[26]:
+# In[32]:
 
 
 # Grouper par année et par classe ATC
@@ -325,7 +364,7 @@ df_ventes_annee_groupe['ventes_cis_inconnus'] = df_ventes_annee_groupe.apply(
 df_ventes_annee_groupe.head()
 
 
-# In[27]:
+# In[33]:
 
 
 # Ventes des cis de la classe ATC qui n'apparaissent pas dans les ruptures
@@ -336,7 +375,7 @@ ventes_cis_inconnus_dict = {(r['annee'], r[group]): r['ventes_cis_inconnus'] for
 nb_spe_par_groupe = {r[group]: r['nb_specialites_groupe'] for r in records}
 
 
-# In[28]:
+# In[34]:
 
 
 # Ajouter à la colonne ventes_cis les ventes estimées sur les cis inconnus
@@ -349,7 +388,7 @@ df_ventes_spe['ventes_groupe'] = df_ventes_spe.apply(lambda x: ventes_par_groupe
 df_ventes_spe.head(2)
 
 
-# In[29]:
+# In[35]:
 
 
 def compute_score(g, df):
@@ -371,19 +410,19 @@ df_score['specialite_plus_vendue'] = df_score[group].apply(
     lambda x: max_ventes_dict[x] if x in max_ventes_dict else None)
 
 df_score = df_score[
-    [group, 'ventes_groupe', 'specialite_plus_vendue', 'nb_jours_rs', 'nb_specialites_groupe', 'score']
+    [group, 'ventes_groupe', 'specialite_plus_vendue', 'nb_jours_rs', 'nb_specialites_groupe', 'mitm', 'pourcentage_mitm', 'score']
 ].sort_values(by=['score'], ascending=False)
 
 df_score.head(10)
 
 
-# In[30]:
+# In[36]:
 
 
 # df_score[df_score.atc == 'A06AH01']
 
 
-# In[31]:
+# In[37]:
 
 
 # len(df[df.atc.apply(lambda x: len(x) != 7 if x else True)])
@@ -391,18 +430,60 @@ df_score.head(10)
 
 # # Sauvegarder dans csv
 
-# In[32]:
+# In[47]:
 
 
-# df_score.to_csv('../data/decret_stock/classes_atc_score_pondéré_niveau_atc5_voie.csv', index=False, sep=';')
+# df_score.to_csv('../data/decret_stock/classes_atc_score_pondéré_niveau_atc5_voie_mitm.csv', index=False, sep=';')
 
 
 # # Nombre de ruptures ayant l'ATC complet
 
-# In[33]:
+# In[39]:
 
 
 # len(df[df.atc.apply(lambda x: len(x) == 7 if x and isinstance(x, str) else False)]) / len(df) * 100
+
+
+# In[40]:
+
+
+df_ventes[df_ventes.atc_voie == ('N05CD08', 'orale')]
+
+
+# In[41]:
+
+
+df_ventes[df_ventes.denomination_specialite == 'fibrogammin 62,5 ul/ml, poudre et solvant pour solution injectable/perfusion']
+
+
+# In[42]:
+
+
+df[df.specialite == 'fibrogammin 62,5 ul/ml, poudre et solvant pour solution injectable/perfusion']
+
+
+# In[43]:
+
+
+df[df.atc_voie == ('B02BD07', 'iv')].iloc[0].specialite
+
+
+# In[44]:
+
+
+df_ventes_spe[df_ventes_spe.atc_voie == ('B02BD07', 'iv')]
+
+
+# In[45]:
+
+
+df_ventes[df_ventes.cis == '66885235']
+
+
+# In[46]:
+
+
+df_score[df_score.atc_voie == ('C03DA02', 'iv')]
 
 
 # In[ ]:
