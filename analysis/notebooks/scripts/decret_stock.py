@@ -7,12 +7,11 @@
 # In[1]:
 
 
-import math
 import sys
+from collections import defaultdict
 
 import numpy as np
 import pandas as pd
-from collections import defaultdict
 
 sys.path.append('/Users/ansm/Documents/GitHub/datamed')
 
@@ -97,10 +96,7 @@ df_cis_2 = df_cis_2[~df_cis_2.cis.isin(df_cis_1.cis.unique())]
 df_cis = pd.concat([df_cis_1, df_cis_2])
 df_cis = df_cis[~df_cis.specialite.isna()]
 
-# Ne garder que les cis qui sont une bijection cis <-> specialité
-# df_cis = df_cis[df_cis.apply(lambda x: len(df_cis[df_cis.specialite == x.specialite].cis.unique()) == 1, axis=1)]
-
-df_cis.head()
+df_cis.head(1)
 
 
 # # Ventes
@@ -132,57 +128,45 @@ df_mitm.head(1)
 # In[12]:
 
 
-mitm_dict = df_mitm.to_dict(orient='records')
-
-
-# In[13]:
-
-
 df_ventes = df_ventes.merge(df_mitm, on='cis', how='left')
 
 
 # # Grouper par ...
 
-# In[15]:
+# In[13]:
 
 
 group = 'atc_voie'
 
 
-# In[16]:
+# In[14]:
 
 
 df_mitm_by_group = df_ventes.groupby([group, 'cis']).agg({'mitm': 'nunique'}).reset_index().groupby(group).sum().reset_index()
 
 
-# In[17]:
+# In[15]:
 
 
 # Compter nb spécialités par classe ATC
 df_nb_spe = df_ventes.groupby(group).agg({'cis': 'nunique'}).reset_index()
 df_nb_spe = df_nb_spe.rename(columns={'cis': 'nb_specialites_groupe'})
 df_nb_spe = df_nb_spe.merge(df_mitm_by_group, on=group, how='left')
-df_nb_spe['pourcentage_mitm'] = df_nb_spe.apply(lambda x: x.mitm / x.nb_specialites_groupe * 100 if x.mitm else 0, axis=1)
+df_nb_spe['pourcentage_mitm'] = df_nb_spe.apply(lambda x: x.mitm / x.nb_specialites_groupe * 100, axis=1)
 
-df_nb_spe.head()
-
-
-# In[18]:
-
-
-df_ventes[df_ventes.atc_voie == ('B01AX07', 'iv')]
+df_nb_spe.head(3)
 
 
 # # Ventes par ATC, CIS, etc.
 
-# In[19]:
+# In[16]:
 
 
 # Récupérer l'année du signalement
 df['annee'] = df.date_signalement.apply(lambda x: x.year)
 
 
-# In[20]:
+# In[17]:
 
 
 df_ventes_groupe = df_ventes.groupby(['annee', group]).agg({'ventes_total': 'sum'}).reset_index()
@@ -204,7 +188,7 @@ ventes_par_cis = {2018: {ventes_dict['cis']: ventes_dict['ventes_total']
                          for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2019}}
 
 
-# In[21]:
+# In[18]:
 
 
 df = df[['id_signal', 'date_signalement', 'annee', 'atc', 'atc_voie', 'laboratoire', 'specialite',
@@ -215,7 +199,7 @@ df.head(2)
 
 # # Calculer durée rupture
 
-# In[22]:
+# In[19]:
 
 
 def compute_jours(x):
@@ -230,7 +214,7 @@ df['jours_ville'] = df.apply(lambda x: compute_jours(x)[0], axis=1)
 df['jours_hopital'] = df.apply(lambda x: compute_jours(x)[1], axis=1)
 
 
-# In[23]:
+# In[20]:
 
 
 def get_duree(x):
@@ -248,7 +232,7 @@ mean_all = df.apply(lambda x: get_duree(x), axis=1).replace(0, np.NaN).mean()
 print('Mean 3 months: {} days - Mean all: {} days'.format(round(mean_3_months, 2), round(mean_all, 2)))
 
 
-# In[24]:
+# In[21]:
 
 
 duree_dict = {
@@ -270,7 +254,7 @@ def compute_duree_rs(x):
 df['nb_jours_rs'] = df.apply(lambda x: compute_duree_rs(x), axis=1)
 
 
-# In[25]:
+# In[22]:
 
 
 len(df)
@@ -278,13 +262,13 @@ len(df)
 
 # # Retirer les ruptures de moins de 6 jours
 
-# In[26]:
+# In[23]:
 
 
 print('{}% of RS reportings last less than 2 weeks'.format(round(len(df[df.nb_jours_rs <= 14]) / len(df) * 100, 2)))
 
 
-# In[27]:
+# In[24]:
 
 
 df = df[df.nb_jours_rs > 14]
@@ -292,7 +276,7 @@ df = df[df.nb_jours_rs > 14]
 
 # # Caper les ruptures supérieures à 4 mois à 4 mois
 
-# In[28]:
+# In[25]:
 
 
 df.nb_jours_rs = df.nb_jours_rs.apply(lambda x: 122 if x > 122 else x)
@@ -300,7 +284,7 @@ df.nb_jours_rs = df.nb_jours_rs.apply(lambda x: 122 if x > 122 else x)
 
 # # Calcul d'une métrique
 
-# In[29]:
+# In[26]:
 
 
 len(df)
@@ -308,7 +292,7 @@ len(df)
 
 # ## 1) Pondérer par les ventes
 
-# In[30]:
+# In[27]:
 
 
 # Trouver, par classe ATC, la spécialité qui a les plus grands chiffres de vente sur 2018-2019
@@ -328,7 +312,7 @@ def get_spe_max_ventes(df_spe_max_ventes):
 max_ventes_dict = get_spe_max_ventes(df_spe_max_ventes)
 
 
-# In[31]:
+# In[28]:
 
 
 # Grouper par année et spécialité
@@ -340,10 +324,10 @@ df_ventes_spe['ventes_cis'] = df_ventes_spe.apply(lambda x: ventes_par_cis[x.ann
 # Savoir pour combien de CIS on a les chiffres de vente
 df_ventes_spe['ventes_exist'] = df_ventes_spe.ventes_cis.apply(lambda x: 0 if pd.isnull(x) else 1)
 
-df_ventes_spe.head()
+df_ventes_spe.head(3)
 
 
-# In[32]:
+# In[29]:
 
 
 # Grouper par année et par classe ATC
@@ -361,10 +345,10 @@ df_ventes_annee_groupe['ventes_cis_inconnus'] = df_ventes_annee_groupe.apply(
     lambda x: (x.ventes_groupe - x.ventes_cis) / (x.nb_specialites_groupe - x.ventes_exist)
     if (x.nb_specialites_groupe - x.ventes_exist) else 0, axis=1)
 
-df_ventes_annee_groupe.head()
+df_ventes_annee_groupe.head(3)
 
 
-# In[33]:
+# In[30]:
 
 
 # Ventes des cis de la classe ATC qui n'apparaissent pas dans les ruptures
@@ -375,7 +359,7 @@ ventes_cis_inconnus_dict = {(r['annee'], r[group]): r['ventes_cis_inconnus'] for
 nb_spe_par_groupe = {r[group]: r['nb_specialites_groupe'] for r in records}
 
 
-# In[34]:
+# In[31]:
 
 
 # Ajouter à la colonne ventes_cis les ventes estimées sur les cis inconnus
@@ -388,7 +372,7 @@ df_ventes_spe['ventes_groupe'] = df_ventes_spe.apply(lambda x: ventes_par_groupe
 df_ventes_spe.head(2)
 
 
-# In[35]:
+# In[32]:
 
 
 def compute_score(g, df):
@@ -416,13 +400,13 @@ df_score = df_score[
 df_score.head(10)
 
 
-# In[36]:
+# In[33]:
 
 
 # df_score[df_score.atc == 'A06AH01']
 
 
-# In[37]:
+# In[34]:
 
 
 # len(df[df.atc.apply(lambda x: len(x) != 7 if x else True)])
@@ -430,7 +414,7 @@ df_score.head(10)
 
 # # Sauvegarder dans csv
 
-# In[47]:
+# In[35]:
 
 
 # df_score.to_csv('../data/decret_stock/classes_atc_score_pondéré_niveau_atc5_voie_mitm.csv', index=False, sep=';')
@@ -438,49 +422,49 @@ df_score.head(10)
 
 # # Nombre de ruptures ayant l'ATC complet
 
-# In[39]:
+# In[36]:
 
 
 # len(df[df.atc.apply(lambda x: len(x) == 7 if x and isinstance(x, str) else False)]) / len(df) * 100
 
 
-# In[40]:
+# In[37]:
 
 
 df_ventes[df_ventes.atc_voie == ('N05CD08', 'orale')]
 
 
-# In[41]:
+# In[38]:
 
 
 df_ventes[df_ventes.denomination_specialite == 'fibrogammin 62,5 ul/ml, poudre et solvant pour solution injectable/perfusion']
 
 
-# In[42]:
+# In[39]:
 
 
 df[df.specialite == 'fibrogammin 62,5 ul/ml, poudre et solvant pour solution injectable/perfusion']
 
 
-# In[43]:
+# In[40]:
 
 
 df[df.atc_voie == ('B02BD07', 'iv')].iloc[0].specialite
 
 
-# In[44]:
+# In[41]:
 
 
 df_ventes_spe[df_ventes_spe.atc_voie == ('B02BD07', 'iv')]
 
 
-# In[45]:
+# In[42]:
 
 
 df_ventes[df_ventes.cis == '66885235']
 
 
-# In[46]:
+# In[43]:
 
 
 df_score[df_score.atc_voie == ('C03DA02', 'iv')]
