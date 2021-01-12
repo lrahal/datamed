@@ -81,21 +81,25 @@ else:
 
 # Un dict pour la dataframe data
 strat_data_dict = {
-  'Hommes': 'Hommes',
-  'Femmes': 'Femmes',
-  'Enfants (0-19 ans)': '0-19 ans',
-  'Adultes (20-59 ans)': '20-59 ans',
-  'Séniors (60 ans et plus)': '60 ans et plus',
+  'Hommes': {'value': 'Hommes', 'field': 'SEXE'},
+  'Femmes': {'value': 'Femmes', 'field': 'SEXE'},
+  'Enfants (0-19 ans)': {'value': '0-19 ans', 'field': 'AGE'},
+  'Adultes (20-59 ans)': {'value': '20-59 ans', 'field': 'AGE'},
+  'Séniors (60 ans et plus)': {'value': '60 ans et plus', 'field': 'AGE'},
 }
 
 # Un dict pour les dataframes data_soclong et data_notif
 strat_dict = {
-  'Hommes': 'M', 'Femmes': 'F', 'Enfants (0-19 ans)': 0, 'Adultes (20-59 ans)': 20, 'Séniors (60 ans et plus)': 60,
+  'Hommes': {'value': 'M', 'field': 'SEXE'},
+  'Femmes': {'value': 'F', 'field': 'SEXE'},
+  'Enfants (0-19 ans)': {'value': 0, 'field': 'AGE'},
+  'Adultes (20-59 ans)': {'value': 20, 'field': 'AGE'},
+  'Séniors (60 ans et plus)': {'value': 60, 'field': 'AGE'},
 }
 
-data = data[data.SEXE == strat_data_dict[strat]]
-data_soclong = data_soclong[data_soclong.SEXE == strat_dict[strat]]
-data_notif = data_notif[data_notif.SEXE == strat_dict[strat]]
+data = data[data[strat_data_dict[strat]['field']] == strat_data_dict[strat]['value']]
+data_soclong = data_soclong[data_soclong[strat_dict[strat]['field']] == strat_dict[strat]['value']]
+data_notif = data_notif[data_notif[strat_dict[strat]['field']] == strat_dict[strat]['value']]
 #if (strat == "Ensemble") {
 #data < - data
 #data_soclong < - data_soclong
@@ -148,13 +152,40 @@ data_soclong = data_soclong.sort_values(by=['pour_cas_soclong'], ascending=False
 
 # Consolidation notif
 data_notif = data_notif.groupby(['MEDICAMENT', 'TYP_NOTIF']).agg({'n_decla': 'sum'}).reset_index()
+data_notif.TYP_NOTIF = data_notif.n_decla.apply(lambda x: 'Notificateur(s) < 10 cas' if x < 10 else x)
+data_notif = data_notif.groupby(['MEDICAMENT', 'TYP_NOTIF']).agg({'n_decla': 'sum'}).reset_index()
 #data_notif < - data_notif % > %
 #group_by(MEDICAMENT, TYP_NOTIF) % > %
 #summarise(n_decla=sum(n_decla))
 
+# Affichage camemberts âge/sexe des cas/patients
+data_sexe = data.groupby('SEXE').agg({'n_cas': 'sum', 'n_conso': 'sum'}).reset_index()
+#data < - data % > %
+#group_by(SEXE) % > %
+#summarise(n_cas=sum(n_cas))
+
+#data < - data % > %
+#group_by(SEXE) % > %
+#summarise(n_conso=sum(n_conso))
+
+data_age = data.groupby('AGE').agg({'n_cas': 'sum', 'n_conso': 'sum'}).reset_index()
+#data < - data % > %
+#group_by(AGE) % > %
+#summarise(n_cas=sum(n_cas))
+
+#data < - data % > %
+#group_by(AGE) % > %
+#summarise(n_conso=sum(n_conso))
+
+# Histogramme cas/patients par année
+data_annee = data.groupby('ANNEE').agg({'n_cas': 'sum', 'n_conso': 'sum'}).reset_index()
+#data_annee < - data % > %
+#group_by(ANNEE) % > %
+#summarise(n_cas=sum(n_cas), n_conso=sum(n_conso))
+
 
 # 4.4 Affichage fenêtre avec détail HLT par SOC_LONG
-# Paramètres (mêmes que précédemment -> mais à redefinr pour l'observeEvent)
+# Paramètres (mêmes que précédemment -> mais à redefinir pour l'observeEvent)
 med < - input$select_med
 typ_med = list_prod_sa[list_prod_sa.MEDICAMENT == med].TYP_MEDICAMENT.values[0]
 #typ_med < - list_prod_sa$TYP_MEDICAMENT[list_prod_sa$MEDICAMENT == med]
@@ -175,7 +206,7 @@ else:
 
 #names(data_hlt)[2] < - "MEDICAMENT"
 
-data_hlt = data_hlt[data_hlt.SEXE == strat_dict[strat]]
+data_hlt = data_hlt[data_hlt[strat_dict[strat]['field']] == strat_dict[strat_dict[strat]['value']]]
 #if (strat == "Ensemble") {
 #data_hlt < - data_hlt
 #} else if (strat == "Hommes") {
@@ -213,3 +244,107 @@ for i in range(1, len(data_soclong_select)):
 #effets_hlt < - paste(effets_hlt, data_soclong_select$EFFET_HLT[i], sep = "<br>")
 #}
 #}
+
+
+# Générer données json
+
+corresp_prod_subs = corresp_spe_prod_subs.drop_duplicates(subset=['PRODUIT_CODEX', 'SUBSTANCE_CODEX_UNIQUE'])
+corresp_prod_subs = corresp_prod_subs[['PRODUIT_CODEX', 'SUBSTANCE_CODEX_UNIQUE']].sort_values(by=['PRODUIT_CODEX'])
+corresp_prod_subs = corresp_prod_subs.dropna()
+
+list_prod = pd.DataFrame(bnpv_open_medic1418_prod_codex.PRODUIT_CODEX.unique(), columns=['MEDICAMENT'])
+list_prod['TYP_MEDICAMENT'] = 'Produit'
+
+list_sa = pd.DataFrame(bnpv_open_medic1418_sa_codex.SUBSTANCE_CODEX_UNIQUE.unique(), columns=['MEDICAMENT'])
+list_sa['TYP_MEDICAMENT'] = 'Substance'
+
+frames = [list_prod, list_sa]
+list_prod_sa = pd.concat(frames)
+list_prod_sa = list_prod_sa.sort_values(by=['MEDICAMENT'])
+
+# Un dict pour la dataframe data
+strat_data_dict = {
+  'Hommes': {'value': 'Hommes', 'field': 'SEXE'},
+  'Femmes': {'value': 'Femmes', 'field': 'SEXE'},
+  'Enfants (0-19 ans)': {'value': '0-19 ans', 'field': 'AGE'},
+  'Adultes (20-59 ans)': {'value': '20-59 ans', 'field': 'AGE'},
+  'Séniors (60 ans et plus)': {'value': '60 ans et plus', 'field': 'AGE'},
+}
+
+# Un dict pour les dataframes data_soclong et data_notif
+strat_dict = {
+  'Hommes': {'value': 'M', 'field': 'SEXE'},
+  'Femmes': {'value': 'F', 'field': 'SEXE'},
+  'Enfants (0-19 ans)': {'value': 0, 'field': 'AGE'},
+  'Adultes (20-59 ans)': {'value': 20, 'field': 'AGE'},
+  'Séniors (60 ans et plus)': {'value': 60, 'field': 'AGE'},
+}
+
+typ_med_dict = {'Substance': 'SUBSTANCE_CODEX_UNIQUE', 'Produit': 'PRODUIT_CODEX'}
+
+# typ_med = 'Substance'
+typ_med = 'Substance'
+data = bnpv_open_medic1418_sa_codex
+data_soclong = bnpv_eff_soclong_sa_codex_open
+data_notif = bnpv_notif_sa_codex_open
+data_hlt = bnpv_eff_hlt_sa_codex_open
+
+data['strat'] = ''
+data_soclong['strat'] = ''
+data_notif['strat'] = ''
+data_hlt['strat'] = ''
+
+data = data.rename(columns={typ_med_dict[typ_med]: 'MEDICAMENT'})
+data_soclong = data_soclong.rename(columns={typ_med_dict[typ_med]: 'MEDICAMENT'})
+data_notif = data_notif.rename(columns={typ_med_dict[typ_med]: 'MEDICAMENT'})
+data_hlt = data_hlt.rename(columns={typ_med_dict[typ_med]: 'MEDICAMENT'})
+
+data_sexe = data.groupby(['MEDICAMENT', 'SEXE']).agg({'n_cas': 'sum', 'n_conso': 'sum'}).reset_index()
+data_age = data.groupby(['MEDICAMENT', 'AGE']).agg({'n_cas': 'sum', 'n_conso': 'sum'}).reset_index()
+data_annee = data.groupby(['MEDICAMENT', 'ANNEE']).agg({'n_cas': 'sum', 'n_conso': 'sum'}).reset_index()
+
+frames_data = []
+frames_data_soclong = []
+frames_data_notif = []
+frames_data_hlt = []
+
+for strat in strat_data_dict.keys():
+  data_tmp = data[data[strat_data_dict[strat]['field']] == strat_data_dict[strat]['value']]
+  data_soclong_tmp = data_soclong[data_soclong[strat_dict[strat]['field']] == strat_dict[strat]['value']]
+  data_notif_tmp = data_notif[data_notif[strat_dict[strat]['field']] == strat_dict[strat]['value']]
+  data_hlt_tmp = data_hlt[data_hlt[strat_dict[strat]['field']] == strat_dict[strat]['value']]
+
+  temp = data_soclong_tmp.groupby(['MEDICAMENT', 'AGE', 'SEXE', 'SOC_LONG']).agg({'n_decla_eff': 'sum'}).reset_index()
+  temp2 = data_soclong_tmp.drop_duplicates(subset=['MEDICAMENT', 'AGE', 'SEXE', 'n_cas']).groupby('MEDICAMENT').agg(
+    {'n_cas': 'sum'}).reset_index()
+
+  data_soclong_tmp = temp.merge(temp2, on='MEDICAMENT', how='left')
+  data_soclong_tmp['pour_cas_soclong'] = (data_soclong_tmp.n_decla_eff / data_soclong_tmp.n_cas) * 100
+  data_soclong_tmp = data_soclong_tmp[data_soclong_tmp.n_decla_eff > 9]
+  data_soclong_tmp = data_soclong_tmp.sort_values(by=['pour_cas_soclong'], ascending=False)
+
+  data_notif_tmp = data_notif_tmp.groupby(['MEDICAMENT', 'AGE', 'SEXE', 'TYP_NOTIF']).agg({'n_decla': 'sum'}).reset_index()
+  data_notif_tmp.TYP_NOTIF = data_notif_tmp.n_decla.apply(lambda x: 'Notificateur(s) < 10 cas' if x < 10 else x)
+  data_notif_tmp = data_notif_tmp.groupby(['MEDICAMENT', 'AGE', 'SEXE', 'TYP_NOTIF']).agg({'n_decla': 'sum'}).reset_index()
+
+  data_hlt_tmp = data_hlt_tmp.groupby(
+    ['MEDICAMENT', 'AGE', 'SEXE', 'EFFET_HLT', 'SOC_LONG']).agg({'n_decla_eff_hlt': 'sum'}).reset_index()
+
+  frames_data.append(data_tmp)
+  frames_data_soclong.append(data_soclong_tmp)
+  frames_data_notif.append(data_notif_tmp)
+  frames_data_hlt.append(data_hlt_tmp)
+
+
+data_final = pd.concat(frames_data)
+data_soclong_final = pd.concat(frames_data_soclong)
+data_notif_final = pd.concat(frames_data_notif)
+data_hlt_final = pd.concat(frames_data_hlt)
+
+data_final.to_json('/Users/ansm/Documents/GitHub/datamed/ordei/data/sa_data.json', orient='records')
+data_final.to_json('/Users/ansm/Documents/GitHub/datamed/ordei/data/sa_data_soclong.json', orient='records')
+data_final.to_json('/Users/ansm/Documents/GitHub/datamed/ordei/data/sa_data_notif.json', orient='records')
+data_final.to_json('/Users/ansm/Documents/GitHub/datamed/ordei/data/sa_data_hlt.json', orient='records')
+data_age.to_json('/Users/ansm/Documents/GitHub/datamed/ordei/data/sa_data_age.json', orient='records')
+data_sexe.to_json('/Users/ansm/Documents/GitHub/datamed/ordei/data/sa_data_sexe.json', orient='records')
+data_annee.to_json('/Users/ansm/Documents/GitHub/datamed/ordei/data/sa_data_annee.json', orient='records')
