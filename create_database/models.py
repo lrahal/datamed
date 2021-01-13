@@ -153,6 +153,16 @@ class Ventes(Base):
     unites_hopital = Column(Integer, nullable=False)
 
 
+class Produits(Base):
+    __tablename__ = 'produits'
+    __table_args__ = (
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
+    )
+
+    cis = Column(String(120), primary_key=True)
+    produit = Column(LONGTEXT, nullable=False)
+
+
 engine = connect_db()
 Specialite.__table__.create(bind=engine, checkfirst=True)
 SubstanceActive.__table__.create(bind=engine, checkfirst=True)
@@ -161,3 +171,4 @@ Presentation.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
 Ruptures.__table__.create(bind=engine, checkfirst=True)
 Ventes.__table__.create(bind=engine, checkfirst=True)
+Produits.__table__.create(bind=engine, checkfirst=True)

@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
 from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstance,
-                     Presentation, Production, Ruptures, Ventes)
+                     Presentation, Production, Ruptures, Ventes, Produits)
 from .transform_db import compute_best_matches
 from .upload_db import upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
 
@@ -260,6 +260,17 @@ def get_ventes() -> List[Dict]:
     return df.to_dict(orient='records')
 
 
+def get_produits() -> List[Dict]:
+    df = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/produit_specialite.xlsx')
+    df = df.drop_duplicates()
+    df.cis = df.cis.map(str)
+
+    # Mauvais CIS : '62575470', '68722112' et '61788063'
+    bad_cis = ['62575470', '68722112', '61788063']
+    df = df[~df.cis.isin(bad_cis)]
+    return df.to_dict(orient='records')
+
+
 engine = connect_db()  # establish connection
 connection = engine.connect()
 Session = sessionmaker(bind=engine)
@@ -326,4 +337,21 @@ def save_to_database_orm(session):
     for ventes_dict in ventes_list:
         ventes = Ventes(**ventes_dict)
         session.add(ventes)
+        session.commit()
+
+    # Création table Produit
+    produits_list = get_produits()
+
+    # On ajoute à la table specialite les CIS qui n'y sont pas
+    all_cis = [c['cis'] for c in cis_list]
+    produits_cis_list = [v['cis'] for v in produits_list if v['cis'] not in all_cis]
+    for cis in produits_cis_list:
+        cis_dict = {'cis': cis, 'name': None, 'type_amm': None, 'etat_commercialisation': None}
+        spe = Specialite(**cis_dict)
+        session.add(spe)
+        session.commit()
+
+    for produits_dict in produits_list:
+        produits = Produits(**produits_dict)
+        session.add(produits)
         session.commit()
