@@ -1,20 +1,13 @@
-import os
 from typing import List, Dict
 
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
-from .models import connect_db, Specialite, SubstanceActive, Presentation, Consommation, Fabrication, Production, \
-    Classification
+from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstance,
+                     Presentation, Production, Ruptures, Ventes)
 from .transform_db import compute_best_matches
-from .upload_db import upload_table_from_db, upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
-
-# Credentials to database connection
-HOSTNAME = 'localhost'
-DBNAME = 'rs_db'
-UNAME = 'root'
-MYSQL_PWD = os.environ.get('MYSQL_PWD')
+from .upload_db import upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
 
 
 def get_api_by_cis() -> Dict:
@@ -80,19 +73,53 @@ def get_api_list(df: pd.DataFrame) -> List[Dict]:
     return sorted(api_list, key=lambda k: k['name'])
 
 
+def get_cis_api_list() -> List[Dict]:
+    """
+    Table specialite_substance
+    """
+    df = upload_compo_from_rsp('/Users/ansm/Documents/GitHub/datamed/create_database/data/RSP/COMPO_RSP.txt')
+    df_api = pd.read_sql_table('substance_active', connection)
+    df = df.merge(df_api, left_on=['code_substance', 'substance_active'], right_on=['code', 'name'], how='left')
+    df = df[['cis', 'elem_pharma', 'id', 'dosage', 'ref_dosage', 'nature_composant', 'num_lien']]
+    df = df.rename(columns={'id': 'substance_active_id'})
+    df.cis = df.cis.map(str)
+    df = df.where(pd.notnull(df), None)
+    cis_api_list = df.to_dict(orient='records')
+    return sorted(cis_api_list, key=lambda k: k['cis'])
+
+
 def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     """
     Table specialite, listing all possible CIS codes
     """
     df_cis = upload_cis_from_rsp('./create_database/data/RSP/CIS_RSP.txt')
+
+    # Add atc class to df_cis dataframe
+    df_atc = pd.read_excel('./create_database/data/CIS-ATC_2021-01-04.xlsx', names=['cis', 'atc', 'nom_atc'], header=0)
+    df_atc = df_atc.drop_duplicates()
+
+    df_cis = df_cis.merge(df_atc, on='cis', how='left')
     df_cis = df_cis.astype({'cis': 'str'})
+    df_atc = df_atc.astype({'cis': 'str'})
+    df_atc.nom_atc = df_atc.nom_atc.str.lower()
+    df_cis = df_cis.where(pd.notnull(df_cis), None)
+
+    cis_list = df_cis.cis.unique().tolist()
+    cis_to_check = df.cis.unique().tolist() + df_atc.cis.unique().tolist()
+    cis_not_in_list = [c for c in cis_to_check if c not in cis_list]
+
     records = df_cis.to_dict('records')
-    cis_list = df_cis.cis.dropna().unique().tolist()
-    values_list = [
-        {k: str(v) for k, v in zip(('cis', 'name'), (r['cis'], r['nom_spe_pharma']))}
+
+    values_list = [{
+        k: str(v) if v else None
+        for k, v in zip(
+            ('cis', 'name', 'atc',  'nom_atc', 'type_amm', 'etat_commercialisation'),
+            (r['cis'], r['nom_spe_pharma'], r['atc'], r['nom_atc'], r['type_amm'], r['etat_commercialisation'])
+        )
+    }
         for r in records
     ]
-    values_list.extend([{'cis': str(cis), 'name': None} for cis in df.cis.dropna().unique() if str(cis) not in cis_list])
+    values_list.extend([{'cis': cis, 'name': None} for cis in cis_not_in_list])
     return values_list
 
 
@@ -111,33 +138,6 @@ def get_pres_list() -> List[Dict]:
          }
         for r in records
     ]
-
-
-def get_conso_list() -> List[Dict]:
-    df = pd.read_excel('./create_database/data/donnees_ventes_2018.xlsx')
-    df_grouped = df.groupby(['cis', 'year']).agg(
-        {'ventes_officine': 'sum', 'ventes_hopital': 'sum', 'ventes_total': 'sum'}
-    )
-    df_grouped = df_grouped.reset_index()
-    df_grouped = df_grouped.astype({'cis': str})
-    return df_grouped.to_dict(orient='records')
-
-
-def get_fabrication_list() -> List[Dict]:
-    """
-    Table fabrication
-    Lists for each address, the latitude, longitude and country
-    """
-    df = upload_table_from_db('api_sites_addresses')
-    df = df.where(pd.notnull(df), None)
-    values_list = [
-        {
-            k: v for k, v in zip(('address', 'latitude', 'longitude', 'country'),
-                                 (row['input_string'], row['latitude'], row['longitude'], row['country']))
-        }
-        for index, row in df.iterrows()
-    ]
-    return [dict(t) for t in {tuple(d.items()) for d in values_list}]
 
 
 def get_prod_list(df: pd.DataFrame) -> List[Dict]:
@@ -176,25 +176,93 @@ def get_prod_list(df: pd.DataFrame) -> List[Dict]:
     ]
 
 
-def get_atc_list() -> List[Dict]:
-    """
-    Table classification
-    Listing all CIS and their possible ATC classification
-    """
-    df = pd.read_csv('./create_database/data/ATC.csv', names=['cis', 'atc', 'v3'], delimiter=';', header=0)
-    df = df.drop_duplicates()
-    df = df.astype({'cis': str})
+def get_volumes(x):
+    if isinstance(x, str):
+        x = x.replace(' ', '')
+        try:
+            x = int(x)
+        except ValueError:
+            x = 0
+    return x
 
-    # Not allow records having CIS not present in specialite table
-    df_cis = pd.read_sql_table('specialite', connection)
-    cis_list = df_cis.cis.unique()
-    df = df[df.cis.isin(cis_list)]
+
+def get_ruptures() -> List[Dict]:
+    """
+    Table ruptures
+    """
+    df = pd.read_excel('analysis/data/decret_stock/DRAFT décret stock VOIE.xlsx', header=0, sheet_name='Raw')
+
+    # Cleaning
+    df = df[['ID_Signal', 'Signalement', 'Date Signalement', 'Laboratoire', 'Spécialité', 'VOIE',
+             'VOIE 4 CLASSES', 'Rupture', 'ATC', 'DCI', 'Date_Signal_Debut_RS', 'Durée_Ville', 'Durée_Hôpital',
+             'DatePrevi_Ville', 'DatePrevi_Hôpital', 'Volumes_Ventes_Ville', 'Volumes_Ventes_Hopital']]
+    df = df.rename(columns={'ID_Signal': 'id_signal', 'Signalement': 'signalement',
+                            'Date Signalement': 'date_signalement', 'Laboratoire': 'laboratoire',
+                            'Spécialité': 'specialite', 'VOIE': 'voie', 'VOIE 4 CLASSES': 'voie_4_classes',
+                            'Rupture': 'rupture', 'ATC': 'atc', 'DCI': 'dci',
+                            'Date_Signal_Debut_RS': 'date_signal_debut_rs', 'Durée_Ville': 'duree_ville',
+                            'Durée_Hôpital': 'duree_hopital', 'DatePrevi_Ville': 'date_previ_ville',
+                            'DatePrevi_Hôpital': 'date_previ_hopital', 'Volumes_Ventes_Ville': 'volumes_ventes_ville',
+                            'Volumes_Ventes_Hopital': 'volumes_ventes_hopital'})
+    df.dci = df.dci.str.lower()
+    df.laboratoire = df.laboratoire.str.lower()
+    df.specialite = df.specialite.str.lower()
+    df.voie = df.voie.str.lower()
+    df.voie_4_classes = df.voie_4_classes.str.lower()
+    df.rupture = df.rupture.str.lower()
+    df.date_signalement = pd.to_datetime(df.date_signalement).apply(lambda x: x.date())
+    df.date_signal_debut_rs = pd.to_datetime(df.date_signal_debut_rs).apply(lambda x: x.date())
+    df.date_previ_ville = pd.to_datetime(df.date_previ_ville).apply(lambda x: x.date())
+    df.date_previ_hopital = pd.to_datetime(df.date_previ_hopital).apply(lambda x: x.date())
+    df = df.where(pd.notnull(df), None)
+    df.volumes_ventes_ville = df.volumes_ventes_ville.apply(lambda x: get_volumes(x))
+    df.volumes_ventes_hopital = df.volumes_ventes_hopital.apply(lambda x: get_volumes(x))
+    df.volumes_ventes_ville = df.volumes_ventes_ville.where(pd.notnull(df.volumes_ventes_ville), 0)
+    df.volumes_ventes_hopital = df.volumes_ventes_hopital.where(pd.notnull(df.volumes_ventes_hopital), 0)
+    df = df.astype({'volumes_ventes_ville': int, 'volumes_ventes_hopital': int})
+    df = df.drop_duplicates()
     return df.to_dict(orient='records')
 
 
-db = connect_db()  # establish connection
-connection = db.connect()
-Session = sessionmaker(bind=db)
+def get_ventes() -> List[Dict]:
+    """
+    Table ventes
+    From OCTAVE database
+    """
+    df_2018 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2018_ATC_voie.xlsx')
+    df_2018['Nom Labo'] = None
+    df_2019 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2019_ATC_voie.xlsx')
+    df = pd.concat([df_2018, df_2019])
+
+    # Cleaning
+    df = df.rename(columns={'Année': 'annee', 'code dossier': 'code_dossier', 'code CIS': 'cis',
+                            'Identifiant OCTAVE': 'octave_id', 'Code CIP': 'cip13',
+                            'Nom spécialité': 'denomination_specialite', 'VOIE 4 classes': 'voie_4_classes',
+                            'VOIE': 'voie', 'Présentation': 'libelle', 'ClasseATC': 'atc',
+                            'Régime Remb.': 'regime_remb', 'Unités officine': 'unites_officine',
+                            'Unités hôpital': 'unites_hopital', 'Nom Labo': 'laboratoire'})
+    df = df[['octave_id', 'annee', 'code_dossier', 'laboratoire', 'cis', 'denomination_specialite', 'voie_4_classes',
+             'voie', 'cip13', 'libelle', 'atc', 'regime_remb', 'unites_officine', 'unites_hopital']]
+
+    df.octave_id = df.octave_id.map(int)
+    df.annee = df.annee.map(int)
+    df.cis = df.cis.map(int)
+    df.cis = df.cis.map(str)
+    df.cip13 = df.cip13.map(int)
+    df.cip13 = df.cip13.map(str)
+    df.voie = df.voie.str.lower()
+    df.voie_4_classes = df.voie_4_classes.str.lower()
+    df.laboratoire = df.laboratoire.str.lower()
+    df.denomination_specialite = df.denomination_specialite.str.lower()
+
+    df = df.where(pd.notnull(df), None)
+    df = df.drop_duplicates()
+    return df.to_dict(orient='records')
+
+
+engine = connect_db()  # establish connection
+connection = engine.connect()
+Session = sessionmaker(bind=engine)
 session = Session()
 
 
@@ -215,27 +283,18 @@ def save_to_database_orm(session):
         session.add(api)
         session.commit()
 
+    # Création table SpecialiteSubstance
+    cis_api_list = get_cis_api_list()
+    for cis_api_dict in cis_api_list:
+        cis_api = SpecialiteSubstance(**cis_api_dict)
+        session.add(cis_api)
+        session.commit()
+
     # Création table Presentation
     pres_list = get_pres_list()
     for pres_dict in pres_list:
         pres = Presentation(**pres_dict)
         session.add(pres)
-        session.commit()
-
-    # Création table Consommation
-    conso_list = get_conso_list()
-    cis_set = set(c['cis'] for c in cis_list)
-    for conso_dict in conso_list:
-        if conso_dict['cis'] in cis_set:
-            conso = Consommation(**conso_dict)
-            session.add(conso)
-            session.commit()
-
-    # Création table Fabrication
-    fab_list = get_fabrication_list()
-    for fab_dict in fab_list:
-        fab = Fabrication(**fab_dict)
-        session.add(fab)
         session.commit()
 
     # Création table Production
@@ -245,9 +304,26 @@ def save_to_database_orm(session):
         session.add(prod)
         session.commit()
 
-    # Création table Classification
-    atc_list = get_atc_list()
-    for atc_dict in atc_list:
-        atc = Classification(**atc_dict)
-        session.add(atc)
+    # Création table Ruptures
+    ruptures_list = get_ruptures()
+    for ruptures_dict in ruptures_list:
+        ruptures = Ruptures(**ruptures_dict)
+        session.add(ruptures)
+        session.commit()
+
+    # Création table Ventes
+    ventes_list = get_ventes()
+
+    # On ajoute à la table specialite les CIS qui n'y sont pas
+    all_cis = [c['cis'] for c in cis_list]
+    ventes_cis_dict = {v['cis']: v['denomination_specialite'] for v in ventes_list if v['cis'] not in all_cis}
+    for cis, denom in ventes_cis_dict.items():
+        cis_dict = {'cis': cis, 'name': denom, 'type_amm': None, 'etat_commercialisation': None}
+        spe = Specialite(**cis_dict)
+        session.add(spe)
+        session.commit()
+
+    for ventes_dict in ventes_list:
+        ventes = Ventes(**ventes_dict)
+        session.add(ventes)
         session.commit()

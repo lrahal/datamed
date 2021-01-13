@@ -13,7 +13,6 @@ import seaborn as sns
 sys.path.append('/Users/ansm/Documents/GitHub/datamed')
 
 from create_database.models import connect_db
-from create_database.create_tables_in_db import get_excels_df
 
 
 # # Récupération des données avec géoloc
@@ -28,67 +27,51 @@ connection = engine.connect()
 # In[3]:
 
 
-#df_prod = pd.read_sql_table('production', connection)
-#df_api = pd.read_sql_table('substance_active', connection)
 df_fab = pd.read_sql_table('fabrication', connection)
 
 
 # In[4]:
 
 
-df = get_excels_df()
-df = df.merge(df_fab, how='left', left_on='sites_fabrication_substance_active', right_on='address')
-df = df.drop(['denomination_specialite', 'dci', 'type_amm', 'titulaire_amm', 'sites_production',
-              'sites_conditionnement_primaire', 'sites_conditionnement_secondaire', 'sites_importation',
-              'sites_controle', 'sites_echantillotheque', 'sites_certification', 'substance_active',
-              'sites_fabrication_substance_active', 'mitm', 'pgp', 'filename', 'cos_sim', 'id'], axis=1)
-df = df.rename(columns={'substance_active_match': 'substance_active'})
+df = pd.read_sql_table('production', connection)
+
+df = df.drop(['denomination_specialite', 'dci', 'type_amm', 'titulaire_amm',
+              'sites_production', 'sites_conditionnement_primaire', 'sites_conditionnement_secondaire',
+              'sites_importation', 'sites_controle', 'sites_echantillotheque', 'sites_certification',
+              'substance_active', 'mitm', 'pgp', 'filename'], axis=1)
 df = df.dropna(how='all')
+
+df = df.merge(df_fab, how='left', left_on='fabrication_id', right_on='id')
+df = df.rename(columns={'id_x': 'id'})
+df = df.drop(columns=['id_y', 'sites_fabrication_substance_active', 'fabrication_id'])
+
 df = df.drop_duplicates()
+
+df.head(2)
 
 
 # In[5]:
 
 
-#df = df_prod.merge(df_api, how='left', left_on='substance_active_id', right_on='id')
-#df = df.merge(df_fab, how='left', left_on='fabrication_id', right_on='id')
-#df = df.drop(['id_x', 'id_y', 'id'], axis=1)
+len(df), len(df.cis.unique())
 
 
 # In[6]:
 
 
-len(df), len(df.cis.unique())
-
-
-# In[7]:
-
-
-# df[df.duplicated(subset=None, keep='first')]
-
-
-# In[8]:
-
-
-df.head(2)
-
-
-# In[9]:
-
-
-# Keep rows having the right format (8 digits) (88% of all rows)
+# Keep rows having country filled
 df = df[~df.country.isna()]
 len(df)
 
 
-# In[10]:
+# In[7]:
 
 
 # Liste des pays listés dans le dataset
 countries = sorted(df.country.unique())
 
 
-# In[11]:
+# In[8]:
 
 
 # Listes de pays pour chaque catégorie
@@ -107,19 +90,19 @@ union_list = list(set(europe_countries) | set(mutual_rec_countries) | set(china_
 third_countries = [c for c in countries if c not in union_list]
 
 
-# In[12]:
+# In[9]:
 
 
 len(df[df.country == 'China']) / len(df) * 100
 
 
-# In[13]:
+# In[10]:
 
 
 len(df[df.country == 'India']) / len(df) * 100
 
 
-# In[14]:
+# In[11]:
 
 
 df['france'] = df.country.isin(france_countries)
@@ -132,7 +115,7 @@ df['india'] = df.country.isin(india_countries)
 df['third'] = df.country.isin(third_countries)
 
 
-# In[15]:
+# In[12]:
 
 
 df[df.country == 'Martinique'].head(3)
@@ -142,14 +125,14 @@ df[df.country == 'Martinique'].head(3)
 
 # On représente les données par code CIS et non plus par substance active
 
-# In[16]:
+# In[13]:
 
 
 df2 = pd.DataFrame(df.cis.dropna().unique(), columns=['cis'])
 df2 = df2.dropna()
 
 
-# In[17]:
+# In[14]:
 
 
 df2['france'] = df2.apply(lambda x: True in df[df.cis == x.cis].france.to_list(), axis=1)
@@ -160,13 +143,13 @@ df2['india'] = df2.apply(lambda x: True in df[df.cis == x.cis].india.to_list(), 
 df2['third'] = df2.apply(lambda x: True in df[df.cis == x.cis].third.to_list(), axis=1)
 
 
-# In[18]:
+# In[15]:
 
 
 df2[(df2.europe == True) & (df2.china == True)].head()
 
 
-# In[19]:
+# In[16]:
 
 
 df2['france_only'] = df2.apply(lambda x: not (False in df[df.cis == x.cis].france.to_list()), axis=1)
@@ -177,7 +160,7 @@ df2['india_only'] = df2.apply(lambda x: not (False in df[df.cis == x.cis].india.
 df2['third_only'] = df2.apply(lambda x: not (False in df[df.cis == x.cis].third.to_list()), axis=1)
 
 
-# In[20]:
+# In[17]:
 
 
 df2['nothing_in_france'] = df2.apply(lambda x: not (True in df[df.cis == x.cis].france.to_list()), axis=1)
@@ -188,13 +171,13 @@ df2['nothing_in_india'] = df2.apply(lambda x: not (True in df[df.cis == x.cis].i
 df2['nothing_in_third'] = df2.apply(lambda x: not (True in df[df.cis == x.cis].third.to_list()), axis=1)
 
 
-# In[21]:
+# In[18]:
 
 
 df2[df2.france_only].head()
 
 
-# In[22]:
+# In[19]:
 
 
 #df[~df.cis.apply(lambda x: x.isdigit() if isinstance(x, str) else False)].cis.unique()
@@ -202,14 +185,14 @@ df2[df2.france_only].head()
 
 # ## Calcul des stats
 
-# In[23]:
+# In[20]:
 
 
 def get_stat(label, df):
-    print(label + ': ' + str(len(df[df[label]])) + ' (' + str(len(df[df[label]]) / len(df) * 100) + '%)')
+    print(label + ': ' + str(len(df[df[label]])) + ' (' + str(round(len(df[df[label]]) / len(df) * 100, 2)) + '%)')
 
 
-# In[24]:
+# In[21]:
 
 
 get_stat('france_only', df2)
@@ -227,20 +210,14 @@ get_stat('nothing_in_india', df2)
 get_stat('nothing_in_third', df2)
 
 
-# In[25]:
-
-
-df2[df2.france_only].head()
-
-
-# In[26]:
+# In[22]:
 
 
 # Vérification rapide que les calculs concordent
 len(df2[df2.france_only]) + len(df2[df2.nothing_in_france]) + len(df2[(df2.france) & (~df2.france_only)]) == len(df2)
 
 
-# In[27]:
+# In[23]:
 
 
 only_dict = {
@@ -253,7 +230,7 @@ only_dict = {
 }
 
 
-# In[28]:
+# In[24]:
 
 
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -276,7 +253,7 @@ plt.xticks(range(len(only_dict)), list(only_dict.keys()))
 None
 
 
-# In[29]:
+# In[25]:
 
 
 nothing_dict = {
@@ -289,7 +266,7 @@ nothing_dict = {
 }
 
 
-# In[30]:
+# In[26]:
 
 
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -336,7 +313,7 @@ None
 
 
 
-# In[31]:
+# In[27]:
 
 
 def get_category(x):
@@ -354,19 +331,19 @@ def get_category(x):
         return 'India only'
 
 
-# In[32]:
+# In[28]:
 
 
 x = df2.iloc[217]
 
 
-# In[33]:
+# In[29]:
 
 
 cols = [c for c in df2.columns if c != 'cis']
 
 
-# In[34]:
+# In[30]:
 
 
 def get_col_true(x, cols):
@@ -379,20 +356,20 @@ def get_col_true(x, cols):
     return col_str
 
 
-# In[35]:
+# In[31]:
 
 
 df2['category'] = df2.apply(lambda x: get_category(x), axis=1)
 df2['category'] = df2.apply(lambda x: get_col_true(x, cols) if not x.category else x.category, axis=1)
 
 
-# In[36]:
+# In[32]:
 
 
 df2.head(3)
 
 
-# In[37]:
+# In[33]:
 
 
 sns.set_style("white")

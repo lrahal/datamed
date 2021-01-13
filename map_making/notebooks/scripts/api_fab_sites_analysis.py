@@ -14,7 +14,6 @@ import seaborn as sns
 sys.path.append('/Users/ansm/Documents/GitHub/datamed')
 
 from create_database.models import connect_db
-from create_database.create_tables_in_db import get_excels_df
 
 
 # # Récupération des données avec géoloc
@@ -25,55 +24,44 @@ from create_database.create_tables_in_db import get_excels_df
 engine = connect_db()  # establish connection
 connection = engine.connect()
 
-#metadata = MetaData()
-#metadata.reflect(engine)
-
 
 # In[3]:
-
-
-#substance_active = metadata.tables['substance_active']
-#production = metadata.tables['production']
-#j = production.join(substance_active, production.c.substance_active_id == substance_active.c.id)
-#sel_st = select([production.c.cis, substance_active.c.name]).select_from(j)
-#res = connection.execute(sel_st)
-#for row in res:
-#    print(row)
-
-
-# In[4]:
 
 
 df_fab = pd.read_sql_table('fabrication', connection)
 
 
-# In[5]:
+# In[4]:
 
 
-df = get_excels_df()
-df = df.merge(df_fab, how='left', left_on='sites_fabrication_substance_active', right_on='address')
-df = df.drop(['denomination_specialite', 'dci', 'type_amm', 'titulaire_amm', 'sites_production',
-              'sites_conditionnement_primaire', 'sites_conditionnement_secondaire', 'sites_importation',
-              'sites_controle', 'sites_echantillotheque', 'sites_certification', 'substance_active',
-              'sites_fabrication_substance_active', 'mitm', 'pgp', 'filename', 'cos_sim', 'id'], axis=1)
-df = df.rename(columns={'substance_active_match': 'substance_active'})
+df = pd.read_sql_table('production', connection)
+
+df = df.drop(['denomination_specialite', 'dci', 'type_amm', 'titulaire_amm',
+              'sites_production', 'sites_conditionnement_primaire', 'sites_conditionnement_secondaire',
+              'sites_importation', 'sites_controle', 'sites_echantillotheque', 'sites_certification',
+              'substance_active', 'mitm', 'pgp', 'filename'], axis=1)
 df = df.dropna(how='all')
+
+df = df.merge(df_fab, how='left', left_on='fabrication_id', right_on='id')
+df = df.rename(columns={'id_x': 'id'})
+df = df.drop(columns=['id_y', 'sites_fabrication_substance_active', 'fabrication_id'])
+
 df = df.drop_duplicates()
 
 
-# In[6]:
+# In[5]:
 
 
 df.head()
 
 
-# In[7]:
+# In[6]:
 
 
 len(df), len(df.cis.unique())
 
 
-# In[8]:
+# In[7]:
 
 
 # Keep rows having the right format (8 digits) (88% of all rows)
@@ -82,13 +70,13 @@ df = df[~df.country.isna()]
 #df = df[df.cis.apply(lambda x: x.isdigit() and len(x) == 8)]
 
 
-# In[9]:
+# In[8]:
 
 
 countries = sorted(df.country.unique())
 
 
-# In[10]:
+# In[9]:
 
 
 europe_countries = ['Germany', 'Belgium', 'Austria', 'Bulgaria', 'Croatia', 'Denmark', 'Spain', 'Estonia', 'Finland',
@@ -103,7 +91,7 @@ oecd_countries = ['Germany', 'Australia', 'Austria', 'Belgium', 'Canada', 'Chile
 third_countries = [c for c in countries if c not in europe_countries]
 
 
-# In[11]:
+# In[10]:
 
 
 df['europe'] = df.country.isin(europe_countries)
@@ -113,18 +101,24 @@ df['third'] = df.country.isin(third_countries)
 
 # # Regroupement par code CIS
 
-# In[12]:
+# In[11]:
 
 
 df2 = pd.DataFrame(sorted(df.cis.dropna().unique()), columns=['cis'])
 
 
-# In[13]:
+# In[12]:
 
 
 df2['europe'] = df2.apply(lambda x: True in df[df.cis == x.cis].europe.to_list(), axis=1)
 df2['oecd'] = df2.apply(lambda x: True in df[df.cis == x.cis].oecd.to_list(), axis=1)
 df2['third'] = df2.apply(lambda x: True in df[df.cis == x.cis].third.to_list(), axis=1)
+
+
+# In[13]:
+
+
+df2[df2.cis == '69974276']
 
 
 # In[14]:
@@ -230,25 +224,25 @@ df_repartition.country = df_fab.country.apply(lambda x: 'Europe' if x in europe_
 dfx = df_repartition.groupby('country').count().reset_index()
 
 
-# In[28]:
+# In[27]:
 
 
 dfx['fracs'] = dfx.apply(lambda x: x.id / len(df_repartition) * 100, axis=1)
 
 
-# In[29]:
+# In[28]:
 
 
 dfx = dfx[dfx.fracs > 1.5]
 
 
-# In[30]:
+# In[29]:
 
 
 dfx.country.unique()
 
 
-# In[31]:
+# In[30]:
 
 
 # Some data
@@ -266,7 +260,7 @@ plt.show()
 
 # # Export dans un csv
 
-# In[ ]:
+# In[31]:
 
 
 df_spe = upload_table_from_db('cis_specialite')

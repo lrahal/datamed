@@ -1,7 +1,7 @@
 import os
 
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKeyConstraint
-from sqlalchemy.dialects.mysql import LONGTEXT, FLOAT, YEAR
+from sqlalchemy.dialects.mysql import LONGTEXT, FLOAT, YEAR, DATE
 from sqlalchemy.ext.declarative import declarative_base
 
 # load environment variables
@@ -13,10 +13,9 @@ MYSQL_PWD = os.environ.get('MYSQL_PWD')
 
 def connect_db():
     # create db create_engine
-    db = create_engine('mysql+pymysql://{user}:{pw}@{host}/{db}'
-                       .format(host=HOSTNAME, db=DBNAME, user=UNAME, pw=MYSQL_PWD),
-                       echo=False)
-    return db
+    return create_engine('mysql+pymysql://{user}:{pw}@{host}/{db}'
+                         .format(host=HOSTNAME, db=DBNAME, user=UNAME, pw=MYSQL_PWD),
+                         echo=False)
 
 
 Base = declarative_base()
@@ -27,6 +26,10 @@ class Specialite(Base):
 
     cis = Column(String(120), primary_key=True)
     name = Column(LONGTEXT, nullable=True)
+    atc = Column(String(120), nullable=True)
+    nom_atc = Column(LONGTEXT, nullable=True)
+    type_amm = Column(LONGTEXT, nullable=True)
+    etat_commercialisation = Column(LONGTEXT, nullable=True)
 
 
 class SubstanceActive(Base):
@@ -35,6 +38,23 @@ class SubstanceActive(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
     code = Column(Integer, nullable=True)
+
+
+class SpecialiteSubstance(Base):
+    __tablename__ = 'specialite_substance'
+    __table_args__ = (
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
+        ForeignKeyConstraint(['substance_active_id'], ['substance_active.id']),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cis = Column(String(120), nullable=False)
+    elem_pharma = Column(LONGTEXT, nullable=False)
+    substance_active_id = Column(Integer, nullable=False)
+    dosage = Column(LONGTEXT, nullable=True)
+    ref_dosage = Column(LONGTEXT, nullable=True)
+    nature_composant = Column(LONGTEXT, nullable=False)
+    num_lien = Column(Integer, nullable=False)
 
 
 class Presentation(Base):
@@ -46,19 +66,6 @@ class Presentation(Base):
     cip13 = Column(String(13), primary_key=True)
     libelle = Column(LONGTEXT, nullable=True)
     cis = Column(String(8), nullable=False)
-
-
-class Consommation(Base):
-    __tablename__ = 'consommation'
-    __table_args__ = (
-        ForeignKeyConstraint(['cis'], ['specialite.cis']),
-    )
-
-    cis = Column(String(120), primary_key=True)
-    year = Column(YEAR, nullable=False)
-    ventes_officine = Column(Integer, nullable=False)
-    ventes_hopital = Column(Integer, nullable=False)
-    ventes_total = Column(Integer, nullable=False)
 
 
 class Fabrication(Base):
@@ -101,23 +108,56 @@ class Production(Base):
     filename = Column(LONGTEXT, nullable=False)
 
 
-class Classification(Base):
-    __tablename__ = 'classification'
+class Ruptures(Base):
+    __tablename__ = 'ruptures'
+    __table_args__ = ()
+
+    id_signal = Column(Integer, primary_key=True)
+    signalement = Column(String(10), nullable=True)
+    date_signalement = Column(DATE, nullable=True)
+    laboratoire = Column(LONGTEXT, nullable=True)
+    specialite = Column(LONGTEXT, nullable=True)
+    voie = Column(LONGTEXT, nullable=True)
+    voie_4_classes = Column(LONGTEXT, nullable=True)
+    rupture = Column(LONGTEXT, nullable=True)
+    atc = Column(String(10), nullable=True)
+    dci = Column(LONGTEXT, nullable=True)
+    date_signal_debut_rs = Column(DATE, nullable=True)
+    duree_ville = Column(LONGTEXT, nullable=True)
+    duree_hopital = Column(LONGTEXT, nullable=True)
+    date_previ_ville = Column(DATE, nullable=True)
+    date_previ_hopital = Column(DATE, nullable=True)
+    volumes_ventes_ville = Column(Integer, nullable=True)
+    volumes_ventes_hopital = Column(Integer, nullable=True)
+
+
+class Ventes(Base):
+    __tablename__ = 'ventes'
     __table_args__ = (
         ForeignKeyConstraint(['cis'], ['specialite.cis']),
     )
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    octave_id = Column(Integer, primary_key=True)
+    annee = Column(YEAR, nullable=False)
+    code_dossier = Column(LONGTEXT, nullable=False)
+    laboratoire = Column(LONGTEXT, nullable=True)
     cis = Column(String(120), nullable=False)
+    denomination_specialite = Column(LONGTEXT, nullable=False)
+    voie = Column(LONGTEXT, nullable=False)
+    voie_4_classes = Column(LONGTEXT, nullable=False)
+    cip13 = Column(String(13), nullable=False)
+    libelle = Column(LONGTEXT, nullable=True)
     atc = Column(String(120), nullable=False)
-    v3 = Column(String(120), nullable=False)
+    regime_remb = Column(String(120), nullable=False)
+    unites_officine = Column(Integer, nullable=False)
+    unites_hopital = Column(Integer, nullable=False)
 
 
 engine = connect_db()
 Specialite.__table__.create(bind=engine, checkfirst=True)
 SubstanceActive.__table__.create(bind=engine, checkfirst=True)
+SpecialiteSubstance.__table__.create(bind=engine, checkfirst=True)
 Presentation.__table__.create(bind=engine, checkfirst=True)
-Consommation.__table__.create(bind=engine, checkfirst=True)
-Fabrication.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
-Classification.__table__.create(bind=engine, checkfirst=True)
+Ruptures.__table__.create(bind=engine, checkfirst=True)
+Ventes.__table__.create(bind=engine, checkfirst=True)
