@@ -26,6 +26,8 @@ class Specialite(Base):
 
     cis = Column(String(120), primary_key=True)
     name = Column(LONGTEXT, nullable=True)
+    forme_pharma = Column(LONGTEXT, nullable=True)
+    voie_admin = Column(LONGTEXT, nullable=True)
     atc = Column(String(120), nullable=True)
     nom_atc = Column(LONGTEXT, nullable=True)
     type_amm = Column(LONGTEXT, nullable=True)
@@ -66,6 +68,7 @@ class Presentation(Base):
     cip13 = Column(String(13), primary_key=True)
     libelle = Column(LONGTEXT, nullable=True)
     cis = Column(String(8), nullable=False)
+    taux_remboursement = Column(String(13), nullable=True)
 
 
 class Fabrication(Base):

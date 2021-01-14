@@ -113,8 +113,9 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     values_list = [{
         k: str(v) if v else None
         for k, v in zip(
-            ('cis', 'name', 'atc',  'nom_atc', 'type_amm', 'etat_commercialisation'),
-            (r['cis'], r['nom_spe_pharma'], r['atc'], r['nom_atc'], r['type_amm'], r['etat_commercialisation'])
+            ('cis', 'name', 'forme_pharma', 'voie_admin', 'atc',  'nom_atc', 'type_amm', 'etat_commercialisation'),
+            (r['cis'], r['nom_spe_pharma'], r['forme_pharma'], r['voie_admin'],
+             r['atc'], r['nom_atc'], r['type_amm'], r['etat_commercialisation'])
         )
     }
         for r in records
@@ -130,11 +131,12 @@ def get_pres_list() -> List[Dict]:
     (In RSP, some CIP13 are linked to multiple CIS, ex: 3400936432826 -> 60197246 & 69553494)
     """
     df = upload_cis_cip_from_bdpm('./create_database/data/BDPM/CIS_CIP_bdpm.txt')
+    df = df.where(pd.notnull(df), None)
     records = df.to_dict('records')
 
     return [
-        {k: str(v) for k, v in zip(('cis', 'cip13', 'libelle'),
-                                   (r['cis'], r['cip13'], r['libelle_presentation']))
+        {k: str(v) for k, v in zip(('cis', 'cip13', 'libelle', 'taux_remboursement'),
+                                   (r['cis'], r['cip13'], r['libelle_presentation'], r['taux_remboursement']))
          }
         for r in records
     ]
