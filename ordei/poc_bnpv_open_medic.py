@@ -1,22 +1,24 @@
 import pandas as pd
+from create_database.models import connect_db
 
+
+engine = connect_db()  # establish connection
+connection = engine.connect()
+#
 # 2. IMPORT DES DONNEES ET PREPARATION ----
 # 2.1 Import
-bnpv_open_medic1418_prod_codex = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_open_medic1418_prod_codex.csv', encoding='ISO-8859-1', sep=';')
-bnpv_open_medic1418_sa_codex = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_open_medic1418_sa_codex.csv', encoding='ISO-8859-1', sep=';')
-corresp_spe_prod_subs = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/corresp_spe_prod_subs.csv', encoding='ISO-8859-1', sep=';')
-bnpv_eff_soclong_prod_codex_open = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_eff_soclong_prod_codex_open.csv', encoding='ISO-8859-1', sep=';')
-bnpv_eff_soclong_sa_codex_open = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_eff_soclong_sa_codex_open.csv', encoding='ISO-8859-1', sep=';')
-bnpv_eff_hlt_prod_codex_open = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_eff_hlt_soclong_prod_codex_open.csv', encoding='ISO-8859-1', sep=';')
-bnpv_eff_hlt_sa_codex_open = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_eff_hlt_soclong_sa_codex_open.csv', encoding='ISO-8859-1', sep=';')
-bnpv_notif_prod_codex_open = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_notif_prod_codex_open.csv', encoding='ISO-8859-1', sep=';')
-bnpv_notif_sa_codex_open = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_notif_sa_codex_open.csv', encoding='ISO-8859-1', sep=';')
+bnpv_open_medic1418_prod_codex = pd.read_sql('bnpv_open_medic1418_prod_codex', connection)
+bnpv_open_medic1418_sa_codex = pd.read_sql('bnpv_open_medic1418_sa_codex', connection)
+bnpv_eff_soclong_prod_codex_open = pd.read_sql('bnpv_eff_soclong_prod_codex_open', connection)
+bnpv_eff_soclong_sa_codex_open = pd.read_sql('bnpv_eff_soclong_sa_codex_open', connection)
+bnpv_eff_hlt_prod_codex_open = pd.read_sql('bnpv_eff_hlt_prod_codex_open', connection)
+bnpv_eff_hlt_sa_codex_open = pd.read_sql('bnpv_eff_hlt_sa_codex_open', connection)
+bnpv_notif_prod_codex_open = pd.read_sql('bnpv_notif_prod_codex_open', connection)
+bnpv_notif_sa_codex_open = pd.read_sql('bnpv_notif_sa_codex_open', connection)
 
 # 2.2 Préparation
 # corresp prod_subs
-corresp_prod_subs = corresp_spe_prod_subs.drop_duplicates(subset=['produit_codex', 'substance_codex_unique'])
-corresp_prod_subs = corresp_prod_subs[['produit_codex', 'substance_codex_unique']].sort_values(by=['produit_codex'])
-corresp_prod_subs = corresp_prod_subs.dropna()
+corresp_prod_subs = pd.read_sql('corresp_prod_subs', connection)
 #corresp_prod_subs <- corresp_spe_prod_subs %>%
 #  group_by(PRODUIT_CODEX, SUBSTANCE_CODEX_UNIQUE) %>%
 #  summarise(n_prod_subs=n()) %>%
