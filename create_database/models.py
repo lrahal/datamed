@@ -26,6 +26,8 @@ class Specialite(Base):
 
     cis = Column(String(120), primary_key=True)
     name = Column(LONGTEXT, nullable=True)
+    forme_pharma = Column(LONGTEXT, nullable=True)
+    voie_admin = Column(LONGTEXT, nullable=True)
     atc = Column(String(120), nullable=True)
     nom_atc = Column(LONGTEXT, nullable=True)
     type_amm = Column(LONGTEXT, nullable=True)
@@ -66,6 +68,7 @@ class Presentation(Base):
     cip13 = Column(String(13), primary_key=True)
     libelle = Column(LONGTEXT, nullable=True)
     cis = Column(String(8), nullable=False)
+    taux_remboursement = Column(String(13), nullable=True)
 
 
 class Fabrication(Base):
@@ -153,6 +156,17 @@ class Ventes(Base):
     unites_hopital = Column(Integer, nullable=False)
 
 
+class Produits(Base):
+    __tablename__ = 'produits'
+    __table_args__ = (
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
+    )
+
+    cis = Column(String(120), primary_key=True)
+    specialite = Column(LONGTEXT, nullable=False)
+    produit_codex = Column(LONGTEXT, nullable=False)
+
+
 engine = connect_db()
 Specialite.__table__.create(bind=engine, checkfirst=True)
 SubstanceActive.__table__.create(bind=engine, checkfirst=True)
@@ -161,3 +175,4 @@ Presentation.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
 Ruptures.__table__.create(bind=engine, checkfirst=True)
 Ventes.__table__.create(bind=engine, checkfirst=True)
+Produits.__table__.create(bind=engine, checkfirst=True)

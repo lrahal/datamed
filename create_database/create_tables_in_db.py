@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
 from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstance,
-                     Presentation, Production, Ruptures, Ventes)
+                     Presentation, Production, Ruptures, Ventes, Produits)
 from .transform_db import compute_best_matches
 from .upload_db import upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
 
@@ -113,8 +113,9 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     values_list = [{
         k: str(v) if v else None
         for k, v in zip(
-            ('cis', 'name', 'atc',  'nom_atc', 'type_amm', 'etat_commercialisation'),
-            (r['cis'], r['nom_spe_pharma'], r['atc'], r['nom_atc'], r['type_amm'], r['etat_commercialisation'])
+            ('cis', 'name', 'forme_pharma', 'voie_admin', 'atc',  'nom_atc', 'type_amm', 'etat_commercialisation'),
+            (r['cis'], r['nom_spe_pharma'], r['forme_pharma'], r['voie_admin'],
+             r['atc'], r['nom_atc'], r['type_amm'], r['etat_commercialisation'])
         )
     }
         for r in records
@@ -130,11 +131,12 @@ def get_pres_list() -> List[Dict]:
     (In RSP, some CIP13 are linked to multiple CIS, ex: 3400936432826 -> 60197246 & 69553494)
     """
     df = upload_cis_cip_from_bdpm('./create_database/data/BDPM/CIS_CIP_bdpm.txt')
+    df = df.where(pd.notnull(df), None)
     records = df.to_dict('records')
 
     return [
-        {k: str(v) for k, v in zip(('cis', 'cip13', 'libelle'),
-                                   (r['cis'], r['cip13'], r['libelle_presentation']))
+        {k: str(v) for k, v in zip(('cis', 'cip13', 'libelle', 'taux_remboursement'),
+                                   (r['cis'], r['cip13'], r['libelle_presentation'], r['taux_remboursement']))
          }
         for r in records
     ]
@@ -260,6 +262,14 @@ def get_ventes() -> List[Dict]:
     return df.to_dict(orient='records')
 
 
+def get_produits() -> List[Dict]:
+    df = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/corresp_cis_spe_prod.xlsx')
+    df = df.drop_duplicates()
+    df.cis = df.cis.map(str)
+
+    return df.to_dict(orient='records')
+
+
 engine = connect_db()  # establish connection
 connection = engine.connect()
 Session = sessionmaker(bind=engine)
@@ -326,4 +336,21 @@ def save_to_database_orm(session):
     for ventes_dict in ventes_list:
         ventes = Ventes(**ventes_dict)
         session.add(ventes)
+        session.commit()
+
+    # Création table Produit
+    produits_list = get_produits()
+
+    # On ajoute à la table specialite les CIS qui n'y sont pas
+    all_cis = [c['cis'] for c in cis_list]
+    produits_cis_list = [v['cis'] for v in produits_list if v['cis'] not in all_cis]
+    for cis in produits_cis_list:
+        cis_dict = {'cis': cis, 'name': None, 'type_amm': None, 'etat_commercialisation': None}
+        spe = Specialite(**cis_dict)
+        session.add(spe)
+        session.commit()
+
+    for produits_dict in produits_list:
+        produits = Produits(**produits_dict)
+        session.add(produits)
         session.commit()
