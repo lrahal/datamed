@@ -263,13 +263,10 @@ def get_ventes() -> List[Dict]:
 
 
 def get_produits() -> List[Dict]:
-    df = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/produit_specialite.xlsx')
+    df = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/corresp_cis_spe_prod.xlsx')
     df = df.drop_duplicates()
     df.cis = df.cis.map(str)
 
-    # Mauvais CIS : '62575470', '68722112' et '61788063'
-    bad_cis = ['62575470', '68722112', '61788063']
-    df = df[~df.cis.isin(bad_cis)]
     return df.to_dict(orient='records')
 
 

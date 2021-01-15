@@ -163,7 +163,8 @@ class Produits(Base):
     )
 
     cis = Column(String(120), primary_key=True)
-    produit = Column(LONGTEXT, nullable=False)
+    specialite = Column(LONGTEXT, nullable=False)
+    produit_codex = Column(LONGTEXT, nullable=False)
 
 
 engine = connect_db()
