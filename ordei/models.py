@@ -8,7 +8,6 @@ class CorrespSpeProd(Base):
     __tablename__ = 'corresp_spe_prod'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    specialite_codex = Column(LONGTEXT, nullable=False)
     produit_codex = Column(LONGTEXT, nullable=False)
     substance_codex_unique = Column(LONGTEXT, nullable=True)
 

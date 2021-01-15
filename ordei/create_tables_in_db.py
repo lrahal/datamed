@@ -17,9 +17,12 @@ def save_to_database_orm(session):
     corresp_spe_prod_subs = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/corresp_spe_prod_subs.csv',
                                         encoding='ISO-8859-1', sep=';')
     corresp_spe_prod_subs = corresp_spe_prod_subs.where(pd.notnull(corresp_spe_prod_subs), None)
-    corresp_spe_prod_subs_list = corresp_spe_prod_subs.to_dict(orient='records')
-    for corresp_spe_prod_subs_dict in corresp_spe_prod_subs_list:
-        line = CorrespSpeProd(**corresp_spe_prod_subs_dict)
+    corresp_prod_subs = corresp_spe_prod_subs.drop_duplicates(subset=['produit_codex', 'substance_codex_unique'])
+    corresp_prod_subs = corresp_prod_subs[['produit_codex', 'substance_codex_unique']].sort_values(by=['produit_codex'])
+    corresp_prod_subs = corresp_prod_subs.dropna()
+    corresp_prod_subs_list = corresp_prod_subs.to_dict(orient='records')
+    for corresp_prod_subs_dict in corresp_prod_subs_list:
+        line = CorrespSpeProd(**corresp_prod_subs_dict)
         session.add(line)
         session.commit()
 
