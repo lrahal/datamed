@@ -167,6 +167,20 @@ class Produits(Base):
     produit_codex = Column(LONGTEXT, nullable=False)
 
 
+class ServiceMedicalRendu(Base):
+    __tablename__ = 'service_medical_rendu'
+    __table_args__ = (
+        ForeignKeyConstraint(['cis'], ['specialite.cis']),
+    )
+
+    cis = Column(String(120), primary_key=True)
+    code_dossier = Column(LONGTEXT, nullable=False)
+    motif = Column(LONGTEXT, nullable=False)
+    date_avis = Column(DATE, nullable=False)
+    smr = Column(LONGTEXT, nullable=False)
+    libelle_smr = Column(LONGTEXT, nullable=False)
+
+
 engine = connect_db()
 Specialite.__table__.create(bind=engine, checkfirst=True)
 SubstanceActive.__table__.create(bind=engine, checkfirst=True)
@@ -176,3 +190,4 @@ Production.__table__.create(bind=engine, checkfirst=True)
 Ruptures.__table__.create(bind=engine, checkfirst=True)
 Ventes.__table__.create(bind=engine, checkfirst=True)
 Produits.__table__.create(bind=engine, checkfirst=True)
+ServiceMedicalRendu.__table__.create(bind=engine, checkfirst=True)

@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
 from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstance,
-                     Presentation, Production, Ruptures, Ventes, Produits)
+                     Presentation, Production, Ruptures, Ventes, Produits, ServiceMedicalRendu)
 from .transform_db import compute_best_matches
 from .upload_db import upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
 
@@ -270,6 +270,37 @@ def get_produits() -> List[Dict]:
     return df.to_dict(orient='records')
 
 
+def get_smr() -> List[Dict]:
+    # Read CIS_HAS_SMR_bdpm.txt file and put in dataframe
+    col_names = ['cis', 'code_dossier', 'motif', 'date_avis', 'smr', 'libelle_smr']
+    df = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/create_database/data/CIS_HAS_SMR_bdpm.txt',
+                     sep='\t', encoding='latin1', names=col_names, header=None)
+
+    # Data cleaning
+    df.cis = df.cis.map(str)
+    df.date_avis = df.date_avis.apply(lambda x: pd.to_datetime(x, format='%Y%m%d').date())
+
+    # Attribuer une valeur à chaque SMR
+    smr_dict = {'Commentaires': 0, 'Non précisé': 1, 'Insuffisant': 2, 'Faible': 3, 'Modéré': 4, 'Important': 5}
+    df['valeur_smr'] = df.smr.apply(lambda x: smr_dict[x])
+
+    # Sélectionner le smr avec la date la plus récente
+    date_by_cis = df.groupby('cis').agg({'date_avis': 'max'}).reset_index().to_dict(orient='records')
+    date_by_cis = {d['cis']: d['date_avis'] for d in date_by_cis}
+    df = df[df.apply(lambda x: x.date_avis == date_by_cis[x.cis], axis=1)]
+
+    # Pour une même date, sélectionner le SMR le plus haut
+    smr_by_cis = df.groupby('cis').agg({'valeur_smr': 'max'}).reset_index().to_dict(orient='records')
+    smr_by_cis = {d['cis']: d['valeur_smr'] for d in smr_by_cis}
+    df = df[df.apply(lambda x: x.valeur_smr == smr_by_cis[x.cis], axis=1)]
+
+    # Pour deux SMR identiques, garder celui dont l'index est le plus bas
+    df = df.drop_duplicates(subset=['cis', 'date_avis', 'smr'], keep='first')
+    df = df.drop(['valeur_smr'], axis=1)
+    return df.to_dict(orient='records')
+
+
+
 engine = connect_db()  # establish connection
 connection = engine.connect()
 Session = sessionmaker(bind=engine)
@@ -353,4 +384,12 @@ def save_to_database_orm(session):
     for produits_dict in produits_list:
         produits = Produits(**produits_dict)
         session.add(produits)
+        session.commit()
+
+
+    # Création table ServiceMedicalRendu
+    smr_list = get_smr()
+    for smr_dict in smr_list:
+        smr = ServiceMedicalRendu(**smr_dict)
+        session.add(smr)
         session.commit()
