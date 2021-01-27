@@ -20,6 +20,7 @@ def save_to_database_orm(session):
     corresp_prod_subs = corresp_spe_prod_subs.drop_duplicates(subset=['produit_codex', 'substance_codex_unique'])
     corresp_prod_subs = corresp_prod_subs[['produit_codex', 'substance_codex_unique']].sort_values(by=['produit_codex'])
     corresp_prod_subs = corresp_prod_subs.dropna()
+    corresp_prod_subs.produit_codex = corresp_prod_subs.produit_codex.apply(lambda x: ' '.join(x.split()))
     corresp_prod_subs_list = corresp_prod_subs.to_dict(orient='records')
     for corresp_prod_subs_dict in corresp_prod_subs_list:
         line = CorrespSpeProd(**corresp_prod_subs_dict)
