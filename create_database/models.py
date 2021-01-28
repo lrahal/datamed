@@ -1,7 +1,7 @@
 import os
 
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKeyConstraint
-from sqlalchemy.dialects.mysql import LONGTEXT, FLOAT, YEAR, DATE
+from sqlalchemy.dialects.mysql import LONGTEXT, FLOAT, YEAR, DATE, BOOLEAN
 from sqlalchemy.ext.declarative import declarative_base
 
 # load environment variables
@@ -120,6 +120,9 @@ class Ruptures(Base):
     voie = Column(LONGTEXT, nullable=True)
     voie_4_classes = Column(LONGTEXT, nullable=True)
     rupture = Column(LONGTEXT, nullable=True)
+    etat_dossier = Column(LONGTEXT, nullable=False)
+    circuit_touche_ville = Column(BOOLEAN, nullable=False)
+    circuit_touche_hopital = Column(BOOLEAN, nullable=False)
     atc = Column(String(10), nullable=True)
     dci = Column(LONGTEXT, nullable=True)
     date_signal_debut_rs = Column(DATE, nullable=True)
