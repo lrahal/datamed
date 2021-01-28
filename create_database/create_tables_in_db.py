@@ -1,3 +1,4 @@
+import re
 from typing import List, Dict
 
 import pandas as pd
@@ -271,34 +272,57 @@ def get_produits() -> List[Dict]:
 
 
 def get_smr() -> List[Dict]:
-    # Read CIS_HAS_SMR_bdpm.txt file and put in dataframe
-    col_names = ['cis', 'code_dossier', 'motif', 'date_avis', 'smr', 'libelle_smr']
-    df = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/create_database/data/CIS_HAS_SMR_bdpm.txt',
-                     sep='\t', encoding='latin1', names=col_names, header=None)
+    # Read CIS_HAS_SMR_bdpm.txt & CIS_HAS_ASMR_bdpm.txt files and put in dataframes
+    col_names_smr = ['cis', 'code_dossier', 'motif', 'date_avis', 'smr', 'libelle_smr']
+    df_smr = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/create_database/data/CIS_HAS_SMR_bdpm.txt',
+                         sep='\t', encoding='latin1', names=col_names_smr, header=None)
+    df_smr.libelle_smr = df_smr.libelle_smr.apply(lambda x: re.sub(r'[\x92]', "'", x))
+
+    col_names_asmr = ['cis', 'code_dossier', 'motif', 'date_avis', 'asmr', 'libelle_asmr']
+    df_asmr = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/create_database/data/CIS_HAS_ASMR_bdpm.txt',
+                          sep='\t', encoding='latin1', names=col_names_asmr, header=None)
+    df_asmr.libelle_asmr = df_asmr.libelle_asmr.apply(lambda x: re.sub(r'[\x92]', "'", x))
 
     # Data cleaning
-    df.cis = df.cis.map(str)
-    df.date_avis = df.date_avis.apply(lambda x: pd.to_datetime(x, format='%Y%m%d').date())
+    df_smr.cis = df_smr.cis.map(str)
+    df_asmr.cis = df_asmr.cis.map(str)
+    df_smr.date_avis = df_smr.date_avis.apply(lambda x: pd.to_datetime(x, format='%Y%m%d').date())
+    df_asmr.date_avis = df_asmr.date_avis.apply(lambda x: pd.to_datetime(x, format='%Y%m%d').date())
 
-    # Attribuer une valeur à chaque SMR
+    # Attribuer une valeur à chaque SMR et ASMR
     smr_dict = {'Commentaires': 0, 'Non précisé': 1, 'Insuffisant': 2, 'Faible': 3, 'Modéré': 4, 'Important': 5}
-    df['valeur_smr'] = df.smr.apply(lambda x: smr_dict[x])
+    asmr_dict = {"Commentaires sans chiffrage de l'ASMR": 0, 'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5}
+    df_smr['valeur_smr'] = df_smr.smr.apply(lambda x: smr_dict[x])
+    df_asmr['valeur_asmr'] = df_asmr.asmr.apply(lambda x: asmr_dict[x])
 
     # Sélectionner le smr avec la date la plus récente
-    date_by_cis = df.groupby('cis').agg({'date_avis': 'max'}).reset_index().to_dict(orient='records')
+    date_by_cis = df_smr.groupby('cis').agg({'date_avis': 'max'}).reset_index().to_dict(orient='records')
     date_by_cis = {d['cis']: d['date_avis'] for d in date_by_cis}
-    df = df[df.apply(lambda x: x.date_avis == date_by_cis[x.cis], axis=1)]
+    df_smr = df_smr[df_smr.apply(lambda x: x.date_avis == date_by_cis[x.cis], axis=1)]
 
-    # Pour une même date, sélectionner le SMR le plus haut
-    smr_by_cis = df.groupby('cis').agg({'valeur_smr': 'max'}).reset_index().to_dict(orient='records')
+    date_by_cis = df_asmr.groupby('cis').agg({'date_avis': 'max'}).reset_index().to_dict(orient='records')
+    date_by_cis = {d['cis']: d['date_avis'] for d in date_by_cis}
+    df_asmr = df_asmr[df_asmr.apply(lambda x: x.date_avis == date_by_cis[x.cis], axis=1)]
+
+    # Pour une même date, sélectionner le SMR/ASMR le plus haut
+    smr_by_cis = df_smr.groupby('cis').agg({'valeur_smr': 'max'}).reset_index().to_dict(orient='records')
     smr_by_cis = {d['cis']: d['valeur_smr'] for d in smr_by_cis}
-    df = df[df.apply(lambda x: x.valeur_smr == smr_by_cis[x.cis], axis=1)]
+    df_smr = df_smr[df_smr.apply(lambda x: x.valeur_smr == smr_by_cis[x.cis], axis=1)]
 
-    # Pour deux SMR identiques, garder celui dont l'index est le plus bas
-    df = df.drop_duplicates(subset=['cis', 'date_avis', 'smr'], keep='first')
-    df = df.drop(['valeur_smr'], axis=1)
+    asmr_by_cis = df_asmr.groupby('cis').agg({'valeur_asmr': 'max'}).reset_index().to_dict(orient='records')
+    asmr_by_cis = {d['cis']: d['valeur_asmr'] for d in asmr_by_cis}
+    df_asmr = df_asmr[df_asmr.apply(lambda x: x.valeur_asmr == asmr_by_cis[x.cis], axis=1)]
+
+    # Pour deux SMR/ASMR identiques, garder celui dont l'index est le plus bas
+    df_smr = df_smr.drop_duplicates(subset=['cis', 'date_avis', 'smr'], keep='first')
+    df_smr = df_smr.drop(['valeur_smr'], axis=1)
+
+    df_asmr = df_asmr.drop_duplicates(subset=['cis', 'date_avis', 'asmr'], keep='first')
+    df_asmr = df_asmr.drop(['valeur_asmr'], axis=1)
+
+    df = df_smr.merge(df_asmr[['cis', 'code_dossier', 'asmr', 'libelle_asmr']], on=['cis', 'code_dossier'], how='left')
+    df = df.where(pd.notnull(df), None)
     return df.to_dict(orient='records')
-
 
 
 engine = connect_db()  # establish connection

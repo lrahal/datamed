@@ -179,6 +179,8 @@ class ServiceMedicalRendu(Base):
     date_avis = Column(DATE, nullable=False)
     smr = Column(LONGTEXT, nullable=False)
     libelle_smr = Column(LONGTEXT, nullable=False)
+    asmr = Column(LONGTEXT, nullable=True)
+    libelle_asmr = Column(LONGTEXT, nullable=True)
 
 
 engine = connect_db()
