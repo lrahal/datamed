@@ -5,7 +5,7 @@ import pandas as pd
 from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
-from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstance,
+from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstance, RupturesDC,
                      Presentation, Production, Ruptures, Ventes, Produits, ServiceMedicalRendu)
 from .transform_db import compute_best_matches
 from .upload_db import upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
@@ -208,6 +208,7 @@ def get_ruptures() -> List[Dict]:
                             'Durée_Hôpital': 'duree_hopital', 'DatePrevi_Ville': 'date_previ_ville',
                             'DatePrevi_Hôpital': 'date_previ_hopital', 'Volumes_Ventes_Ville': 'volumes_ventes_ville',
                             'Volumes_Ventes_Hopital': 'volumes_ventes_hopital'})
+
     df.dci = df.dci.str.lower()
     df.laboratoire = df.laboratoire.str.lower()
     df.specialite = df.specialite.str.lower()
@@ -215,6 +216,26 @@ def get_ruptures() -> List[Dict]:
     df.voie_4_classes = df.voie_4_classes.str.lower()
     df.rupture = df.rupture.str.lower()
     df.etat_dossier = df.etat_dossier.str.lower()
+    df.date_signalement = pd.to_datetime(df.date_signalement).apply(lambda x: x.date())
+    df.date_signal_debut_rs = pd.to_datetime(df.date_signal_debut_rs).apply(lambda x: x.date())
+    df.date_previ_ville = pd.to_datetime(df.date_previ_ville).apply(lambda x: x.date())
+    df.date_previ_hopital = pd.to_datetime(df.date_previ_hopital).apply(lambda x: x.date())
+    df = df.where(pd.notnull(df), None)
+    df.volumes_ventes_ville = df.volumes_ventes_ville.apply(lambda x: get_volumes(x))
+    df.volumes_ventes_hopital = df.volumes_ventes_hopital.apply(lambda x: get_volumes(x))
+    df.volumes_ventes_ville = df.volumes_ventes_ville.where(pd.notnull(df.volumes_ventes_ville), 0)
+    df.volumes_ventes_hopital = df.volumes_ventes_hopital.where(pd.notnull(df.volumes_ventes_hopital), 0)
+    df = df.astype({'volumes_ventes_ville': int, 'volumes_ventes_hopital': int})
+    df = df.drop_duplicates()
+    return df.to_dict(orient='records')
+
+
+def get_ruptures_dc() -> List[Dict]:
+    """
+    Table ruptures pour le décret stock
+    """
+    df = pd.read_csv('analysis/data/decret_stock/ruptures.csv', sep=';')
+
     df.date_signalement = pd.to_datetime(df.date_signalement).apply(lambda x: x.date())
     df.date_signal_debut_rs = pd.to_datetime(df.date_signal_debut_rs).apply(lambda x: x.date())
     df.date_previ_ville = pd.to_datetime(df.date_previ_ville).apply(lambda x: x.date())
@@ -368,6 +389,13 @@ def save_to_database_orm(session):
     ruptures_list = get_ruptures()
     for ruptures_dict in ruptures_list:
         ruptures = Ruptures(**ruptures_dict)
+        session.add(ruptures)
+        session.commit()
+
+    # Création table Ruptures DC
+    ruptures_list = get_ruptures_dc()
+    for ruptures_dict in ruptures_list:
+        ruptures = RupturesDC(**ruptures_dict)
         session.add(ruptures)
         session.commit()
 

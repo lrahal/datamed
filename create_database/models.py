@@ -137,6 +137,29 @@ class Ruptures(Base):
     volumes_ventes_hopital = Column(Integer, nullable=True)
 
 
+class RupturesDC(Base):
+    __tablename__ = 'ruptures_dc'
+    __table_args__ = ()
+
+    id_signal = Column(Integer, primary_key=True)
+    signalement = Column(String(10), nullable=True)
+    date_signalement = Column(DATE, nullable=True)
+    laboratoire = Column(LONGTEXT, nullable=True)
+    specialite = Column(LONGTEXT, nullable=True)
+    voie = Column(LONGTEXT, nullable=True)
+    voie_4_classes = Column(LONGTEXT, nullable=True)
+    rupture = Column(LONGTEXT, nullable=True)
+    atc = Column(String(10), nullable=True)
+    dci = Column(LONGTEXT, nullable=True)
+    date_signal_debut_rs = Column(DATE, nullable=True)
+    duree_ville = Column(LONGTEXT, nullable=True)
+    duree_hopital = Column(LONGTEXT, nullable=True)
+    date_previ_ville = Column(DATE, nullable=True)
+    date_previ_hopital = Column(DATE, nullable=True)
+    volumes_ventes_ville = Column(Integer, nullable=True)
+    volumes_ventes_hopital = Column(Integer, nullable=True)
+
+
 class Ventes(Base):
     __tablename__ = 'ventes'
     __table_args__ = (
@@ -193,6 +216,7 @@ SpecialiteSubstance.__table__.create(bind=engine, checkfirst=True)
 Presentation.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
 Ruptures.__table__.create(bind=engine, checkfirst=True)
+RupturesDC.__table__.create(bind=engine, checkfirst=True)
 Ventes.__table__.create(bind=engine, checkfirst=True)
 Produits.__table__.create(bind=engine, checkfirst=True)
 ServiceMedicalRendu.__table__.create(bind=engine, checkfirst=True)
