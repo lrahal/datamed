@@ -98,7 +98,7 @@ def upload_cis_from_rsp(path: str = './create_database/data/RSP/CIS_RSP.txt') ->
     # Read CIS_RSP.txt file and put in dataframe
     col_names = ['cis', 'nom_spe_pharma', 'forme_pharma', 'voie_admin',
                  'statut_amm', 'type_amm', 'etat_commercialisation', 'code_doc']
-    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None, dtype={'cis': str})
     # Put substance_active field in lower case
     df = clean_columns(df, 'nom_spe_pharma')
     return df
@@ -113,7 +113,8 @@ def upload_compo_from_rsp(path: str = './create_database/data/RSP/COMPO_RSP.txt'
     # Read COMPO_RSP.txt file and put in dataframe
     col_names = ['cis', 'elem_pharma', 'code_substance', 'substance_active',
                  'dosage', 'ref_dosage', 'nature_composant',  'num_lien', 'v']
-    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names, header=None)
+    df = pd.read_csv(path, sep='\t', encoding='latin1', names=col_names,
+                     header=None, dtype={'cis': str, 'code_substance': str})
     df = df[~df.substance_active.isna()]
     # Put substance_active field in lower case
     df = clean_columns(df, 'substance_active')

@@ -83,7 +83,6 @@ def get_cis_api_list() -> List[Dict]:
     df = df.merge(df_api, left_on=['code_substance', 'substance_active'], right_on=['code', 'name'], how='left')
     df = df[['cis', 'elem_pharma', 'id', 'dosage', 'ref_dosage', 'nature_composant', 'num_lien']]
     df = df.rename(columns={'id': 'substance_active_id'})
-    df.cis = df.cis.map(str)
     df = df.where(pd.notnull(df), None)
     cis_api_list = df.to_dict(orient='records')
     return sorted(cis_api_list, key=lambda k: k['cis'])
@@ -96,12 +95,11 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     df_cis = upload_cis_from_rsp('./create_database/data/RSP/CIS_RSP.txt')
 
     # Add atc class to df_cis dataframe
-    df_atc = pd.read_excel('./create_database/data/CIS-ATC_2021-01-04.xlsx', names=['cis', 'atc', 'nom_atc'], header=0)
+    df_atc = pd.read_excel('./create_database/data/CIS-ATC_2021-01-04.xlsx',
+                           names=['cis', 'atc', 'nom_atc'], header=0, dtype={'cis': str})
     df_atc = df_atc.drop_duplicates()
 
     df_cis = df_cis.merge(df_atc, on='cis', how='left')
-    df_cis = df_cis.astype({'cis': 'str'})
-    df_atc = df_atc.astype({'cis': 'str'})
     df_atc.nom_atc = df_atc.nom_atc.str.lower()
     df_cis = df_cis.where(pd.notnull(df_cis), None)
 
@@ -236,9 +234,11 @@ def get_ventes() -> List[Dict]:
     Table ventes
     From OCTAVE database
     """
-    df_2018 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2018_ATC_voie.xlsx')
+    df_2018 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2018_ATC_voie.xlsx',
+                            dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'OCTAV': int})
     df_2018['Nom Labo'] = None
-    df_2019 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2019_ATC_voie.xlsx')
+    df_2019 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2019_ATC_voie.xlsx',
+                            dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'OCTAV': int})
     df = pd.concat([df_2018, df_2019])
 
     # Cleaning
@@ -251,12 +251,6 @@ def get_ventes() -> List[Dict]:
     df = df[['octave_id', 'annee', 'code_dossier', 'laboratoire', 'cis', 'denomination_specialite', 'voie_4_classes',
              'voie', 'cip13', 'libelle', 'atc', 'regime_remb', 'unites_officine', 'unites_hopital']]
 
-    df.octave_id = df.octave_id.map(int)
-    df.annee = df.annee.map(int)
-    df.cis = df.cis.map(int)
-    df.cis = df.cis.map(str)
-    df.cip13 = df.cip13.map(int)
-    df.cip13 = df.cip13.map(str)
     df.voie = df.voie.str.lower()
     df.voie_4_classes = df.voie_4_classes.str.lower()
     df.laboratoire = df.laboratoire.str.lower()
@@ -268,10 +262,9 @@ def get_ventes() -> List[Dict]:
 
 
 def get_produits() -> List[Dict]:
-    df = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/corresp_cis_spe_prod.xlsx')
+    df = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/corresp_cis_spe_prod.xlsx',
+                       dtype={'cis': str})
     df = df.drop_duplicates()
-    df.cis = df.cis.map(str)
-
     return df.to_dict(orient='records')
 
 
@@ -279,17 +272,15 @@ def get_smr() -> List[Dict]:
     # Read CIS_HAS_SMR_bdpm.txt & CIS_HAS_ASMR_bdpm.txt files and put in dataframes
     col_names_smr = ['cis', 'code_dossier', 'motif', 'date_avis', 'smr', 'libelle_smr']
     df_smr = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/create_database/data/CIS_HAS_SMR_bdpm.txt',
-                         sep='\t', encoding='latin1', names=col_names_smr, header=None)
+                         sep='\t', encoding='latin1', names=col_names_smr, header=None, dtype={'cis': str})
     df_smr.libelle_smr = df_smr.libelle_smr.apply(lambda x: re.sub(r'[\x92]', "'", x))
 
     col_names_asmr = ['cis', 'code_dossier', 'motif', 'date_avis', 'asmr', 'libelle_asmr']
     df_asmr = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/create_database/data/CIS_HAS_ASMR_bdpm.txt',
-                          sep='\t', encoding='latin1', names=col_names_asmr, header=None)
+                          sep='\t', encoding='latin1', names=col_names_asmr, header=None, dtype={'cis': str})
     df_asmr.libelle_asmr = df_asmr.libelle_asmr.apply(lambda x: re.sub(r'[\x92]', "'", x))
 
     # Data cleaning
-    df_smr.cis = df_smr.cis.map(str)
-    df_asmr.cis = df_asmr.cis.map(str)
     df_smr.date_avis = df_smr.date_avis.apply(lambda x: pd.to_datetime(x, format='%Y%m%d').date())
     df_asmr.date_avis = df_asmr.date_avis.apply(lambda x: pd.to_datetime(x, format='%Y%m%d').date())
 

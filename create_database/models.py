@@ -39,7 +39,7 @@ class SubstanceActive(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
-    code = Column(Integer, nullable=True)
+    code = Column(String(255), nullable=True)
 
 
 class SpecialiteSubstance(Base):
