@@ -196,13 +196,16 @@ def get_ruptures() -> List[Dict]:
     df = pd.read_excel('analysis/data/decret_stock/DRAFT décret stock VOIE.xlsx', header=0, sheet_name='Raw')
 
     # Cleaning
-    df = df[['ID_Signal', 'Signalement', 'Date Signalement', 'Laboratoire', 'Spécialité', 'VOIE',
-             'VOIE 4 CLASSES', 'Rupture', 'ATC', 'DCI', 'Date_Signal_Debut_RS', 'Durée_Ville', 'Durée_Hôpital',
-             'DatePrevi_Ville', 'DatePrevi_Hôpital', 'Volumes_Ventes_Ville', 'Volumes_Ventes_Hopital']]
+    df = df[['ID_Signal', 'Signalement', 'Date Signalement', 'Laboratoire', 'Spécialité',
+             'VOIE', 'VOIE 4 CLASSES', 'Rupture', 'Etat dossier', 'Circuit_Touche_Ville',
+             'Circuit_Touche_Hopital', 'ATC', 'DCI', 'Date_Signal_Debut_RS', 'Durée_Ville',
+             'Durée_Hôpital', 'DatePrevi_Ville', 'DatePrevi_Hôpital', 'Volumes_Ventes_Ville', 'Volumes_Ventes_Hopital']]
     df = df.rename(columns={'ID_Signal': 'id_signal', 'Signalement': 'signalement',
                             'Date Signalement': 'date_signalement', 'Laboratoire': 'laboratoire',
                             'Spécialité': 'specialite', 'VOIE': 'voie', 'VOIE 4 CLASSES': 'voie_4_classes',
-                            'Rupture': 'rupture', 'ATC': 'atc', 'DCI': 'dci',
+                            'Rupture': 'rupture', 'Etat dossier': 'etat_dossier',
+                            'Circuit_Touche_Ville': 'circuit_touche_ville',
+                            'Circuit_Touche_Hopital': 'circuit_touche_hopital', 'ATC': 'atc', 'DCI': 'dci',
                             'Date_Signal_Debut_RS': 'date_signal_debut_rs', 'Durée_Ville': 'duree_ville',
                             'Durée_Hôpital': 'duree_hopital', 'DatePrevi_Ville': 'date_previ_ville',
                             'DatePrevi_Hôpital': 'date_previ_hopital', 'Volumes_Ventes_Ville': 'volumes_ventes_ville',
@@ -213,6 +216,7 @@ def get_ruptures() -> List[Dict]:
     df.voie = df.voie.str.lower()
     df.voie_4_classes = df.voie_4_classes.str.lower()
     df.rupture = df.rupture.str.lower()
+    df.etat_dossier = df.etat_dossier.str.lower()
     df.date_signalement = pd.to_datetime(df.date_signalement).apply(lambda x: x.date())
     df.date_signal_debut_rs = pd.to_datetime(df.date_signal_debut_rs).apply(lambda x: x.date())
     df.date_previ_ville = pd.to_datetime(df.date_previ_ville).apply(lambda x: x.date())
