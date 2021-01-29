@@ -15,7 +15,7 @@ session = Session()
 def save_to_database_orm(session):
     # Création table Corresp_spe_prod
     corresp_spe_prod_subs = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/ordei/data/corresp_spe_prod_subs.csv',
-                                        encoding='ISO-8859-1', sep=';')
+                                        encoding='ISO-8859-1', sep=';', dtype={'codeSubstance': str})
     corresp_spe_prod_subs = corresp_spe_prod_subs.drop('Unnamed: 0', axis=1)
 
     corresp_spe_prod_subs = corresp_spe_prod_subs.rename(
@@ -120,7 +120,7 @@ def save_to_database_orm(session):
     # Création table Bnpv_eff_soclong_sa_codex_open
     bnpv_eff_soclong_sa_codex_open = pd.read_csv(
         '/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_eff_soclong_sa_codex_open.csv', encoding='ISO-8859-1',
-        sep=';')
+        sep=';', dtype={'codeSubstance': str})
     bnpv_eff_soclong_sa_codex_open = bnpv_eff_soclong_sa_codex_open.drop('Unnamed: 0', axis=1)
 
     bnpv_eff_soclong_sa_codex_open = bnpv_eff_soclong_sa_codex_open.rename(
@@ -137,7 +137,7 @@ def save_to_database_orm(session):
     # Création table Bnpv_eff_hlt_sa_codex_open
     bnpv_eff_hlt_sa_codex_open = pd.read_csv(
         '/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_eff_hlt_soclong_sa_codex_open.csv', encoding='ISO-8859-1',
-        sep=';')
+        sep=';', dtype={'codeSubstance': str})
     bnpv_eff_hlt_sa_codex_open = bnpv_eff_hlt_sa_codex_open.drop('Unnamed: 0', axis=1)
 
     bnpv_eff_hlt_sa_codex_open = bnpv_eff_hlt_sa_codex_open.rename(
@@ -153,7 +153,8 @@ def save_to_database_orm(session):
 
     # Création table Bnpv_notif_sa_codex_open
     bnpv_notif_sa_codex_open = pd.read_csv(
-        '/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_notif_sa_codex_open.csv', encoding='ISO-8859-1', sep=';')
+        '/Users/ansm/Documents/GitHub/datamed/ordei/data/bnpv_notif_sa_codex_open.csv',
+        encoding='ISO-8859-1', sep=';', dtype={'codeSubstance': str})
     bnpv_notif_sa_codex_open = bnpv_notif_sa_codex_open.drop('Unnamed: 0', axis=1)
 
     bnpv_notif_sa_codex_open = bnpv_notif_sa_codex_open.rename(
