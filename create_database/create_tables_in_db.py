@@ -6,9 +6,16 @@ from sqlalchemy.orm import sessionmaker
 
 from .jade_analysis import build_api_fab_sites_dataframe
 from .models import (connect_db, Specialite, SubstanceActive, SpecialiteSubstance, RupturesDC,
-                     Presentation, Production, Ruptures, Ventes, Produits, ServiceMedicalRendu)
+                     Presentation, Production, Ruptures, Ventes, Produits, ServiceMedicalRendu, Pays)
 from .transform_db import compute_best_matches
 from .upload_db import upload_cis_from_rsp, upload_compo_from_rsp, upload_cis_cip_from_bdpm
+
+from map_making.get_geoloc import get_locations
+
+from country_list import countries_for_language
+import json
+import unicodedata2
+from datetime import datetime as dt
 
 
 def get_api_by_cis() -> Dict:
@@ -141,37 +148,113 @@ def get_pres_list() -> List[Dict]:
     ]
 
 
+def get_country(address: str, country_list: List, country_dict: Dict) -> Dict:
+    country_in_address = {}
+    for country in country_list:
+        if country in address:
+            country_in_address[country_dict.get(country, country)] = address.count(country)
+    return country_in_address
+
+
+def get_countries_list(df: pd.DataFrame, path: str) -> List[Dict]:
+    df = df[['sites_fabrication_substance_active']]
+    df = df.drop_duplicates()
+
+    countries_en = [c[1].lower() for c in countries_for_language('en')]
+    countries_fr = [c[1].lower() for c in countries_for_language('fr')]
+
+    # json contenant des écritures particulières non listées par les appels ci-dessus
+    with open('/Users/ansm/Documents/GitHub/datamed/map_making/data/countries.json') as json_file:
+        country_dict = json.load(json_file)
+
+    all_countries = set(countries_fr + countries_en + list(country_dict.keys()))
+
+    # Ajouter les écritures sans accents
+    country_list = []
+    for word in all_countries:
+        if word not in country_list:
+            country_list.append(word)
+            word_no_accents = ''.join(
+                (c for c in unicodedata2.normalize('NFD', word) if unicodedata2.category(c) != 'Mn')
+            )
+            if word_no_accents not in country_list:
+                country_list.append(word_no_accents)
+    country_list = sorted(country_list)
+
+    # Lister les pays qui apparaissent vraiment dans les adresses de la dataframe
+    countries_in_df = []
+    addresses = df.sites_fabrication_substance_active.unique()
+    for address in addresses:
+        countries = get_country(address, country_list, country_dict).keys()
+        for country in countries:
+            if country not in countries_in_df:
+                countries_in_df.append(country)
+
+    df['country'] = df.sites_fabrication_substance_active.apply(lambda x: get_country(x, country_list, country_dict))
+
+    for country in countries_in_df:
+        df[country_dict.get(country, country)] = df.country.apply(lambda x: x.get(country, 0))
+
+    # Pour les adresses pour lesquelles on n'a pas réussi à trouver les pays,
+    # on utilise la geocoding API
+    not_found_addresses = df[df.country == {}].sites_fabrication_substance_active.unique()
+    df_not_found_addresses = get_locations(
+        not_found_addresses, 'address_locations_{}.csv'.format(dt.now().date().strftime('%d%m%Y'))
+    )
+    country_by_address = df_not_found_addresses.to_dict(orient='records')
+    country_by_address_dict = {c['address']: c['country'] for c in country_by_address}
+
+    # Résultat de la geocoding injecté dans la dataframe de départ
+    df.loc[df.country == {}, 'country'] = df.loc[df.country == {}, 'sites_fabrication_substance_active'].apply(
+        lambda x: country_by_address_dict[x])
+
+    # Replace NaN values with None
+    df = df.where(df.notnull(), None)
+    df = df.rename(columns={'sites_fabrication_substance_active': 'address'})
+
+    cols_keep = [c for c in df.columns if c != 'country']
+
+    return df[cols_keep].to_csv(path, sep=';', index=False)
+
+
+def get_pays(path: str) -> List[Dict]:
+    df = pd.read_csv(path, sep=';')
+    countries = sorted([col for col in df.columns if col != 'address'])
+    df_loc = get_locations(countries, 'countries_locations_{}.csv'.format(dt.now().date().strftime('%d%m%Y')))
+
+    # Corrections inde qui donne United States avec la geocoding... #chelou
+    df_loc.loc[df_loc.address == 'inde', 'latitude'] = 20.593684
+    df_loc.loc[df_loc.address == 'inde', 'longitude'] = 78.962880
+    df_loc.loc[df_loc.address == 'inde', 'country'] = 'India'
+    return df_loc.to_dict(orient='records')
+
+
 def get_prod_list(df: pd.DataFrame) -> List[Dict]:
     """
-    Create table listing all possible occurences of (cis, substance_active, address)
+    Create table listing all possible occurrences of (cis, substance_active, address)
     """
     # Load substance_active table and join with dataframe
     df_api = pd.read_sql_table('substance_active', connection)
     df = df.merge(df_api, how='left', left_on='substance_active', right_on='name')
     df = df.rename(columns={'id': 'substance_active_id'})
 
-    # Load fabrication table and join with dataframe
-    df_fab = pd.read_sql_table('fabrication', connection)
-    df = df.merge(df_fab, how='left', left_on='sites_fabrication_substance_active', right_on='address')
-    df = df.rename(columns={'id': 'fabrication_id'})
-
     # Replace NaN values with None
     df = df.where(df.notnull(), None)
 
     return [
         {
-            k: v for k, v in zip(('cis', 'substance_active_id', 'fabrication_id', 'substance_active',
+            k: v for k, v in zip(('cis', 'substance_active_id', 'substance_active',
                                   'sites_fabrication_substance_active', 'denomination_specialite', 'dci', 'type_amm',
                                   'titulaire_amm', 'sites_production', 'sites_conditionnement_primaire',
                                   'sites_conditionnement_secondaire', 'sites_importation', 'sites_controle',
                                   'sites_echantillotheque', 'sites_certification', 'mitm', 'pgp', 'filename'),
-                                 (row['cis'], int(row['substance_active_id']), int(row['fabrication_id']),
-                                  row['substance_active'], row['sites_fabrication_substance_active'],
-                                  row['denomination_specialite'], row['dci'], row['type_amm'], row['titulaire_amm'],
-                                  row['sites_production'], row['sites_conditionnement_primaire'],
-                                  row['sites_conditionnement_secondaire'], row['sites_importation'],
-                                  row['sites_controle'], row['sites_echantillotheque'], row['sites_certification'],
-                                  row['mitm'], row['pgp'], row['filename']))
+
+                                 (row['cis'], int(row['substance_active_id']), row['substance_active'],
+                                  row['sites_fabrication_substance_active'], row['denomination_specialite'],
+                                  row['dci'], row['type_amm'], row['titulaire_amm'], row['sites_production'],
+                                  row['sites_conditionnement_primaire'], row['sites_conditionnement_secondaire'],
+                                  row['sites_importation'], row['sites_controle'], row['sites_echantillotheque'],
+                                  row['sites_certification'], row['mitm'], row['pgp'], row['filename']))
         }
         for index, row in df.iterrows()
     ]
@@ -255,12 +338,18 @@ def get_ventes() -> List[Dict]:
     Table ventes
     From OCTAVE database
     """
+    df_2017 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2017_ATC_voie.xlsx',
+                            dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'Identifiant OCTAVE': int})
+    df_2017['Nom Labo'] = None
+
     df_2018 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2018_ATC_voie.xlsx',
-                            dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'OCTAV': int})
+                            dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'Identifiant OCTAVE': int})
     df_2018['Nom Labo'] = None
+
     df_2019 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2019_ATC_voie.xlsx',
-                            dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'OCTAV': int})
-    df = pd.concat([df_2018, df_2019])
+                            dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'Identifiant OCTAVE': int})
+
+    df = pd.concat([df_2017, df_2018, df_2019])
 
     # Cleaning
     df = df.rename(columns={'Année': 'annee', 'code dossier': 'code_dossier', 'code CIS': 'cis',
@@ -376,6 +465,17 @@ def save_to_database_orm(session):
     for pres_dict in pres_list:
         pres = Presentation(**pres_dict)
         session.add(pres)
+        session.commit()
+
+    # Write countries by address csv file
+    path = '/Users/ansm/Documents/GitHub/datamed/create_database/data/countries_by_address.csv'
+    get_countries_list(df, path)
+
+    # Création table Pays
+    pays_list = get_pays(path)
+    for pays_dict in pays_list:
+        pays = Pays(**pays_dict)
+        session.add(pays)
         session.commit()
 
     # Création table Production
