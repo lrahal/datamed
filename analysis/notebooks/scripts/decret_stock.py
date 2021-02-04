@@ -106,6 +106,7 @@ df_cis.head(1)
 
 # Le count ne garde pas les NaN
 df_ventes = pd.read_sql_table('ventes', connection)
+df_ventes = df_ventes.where(pd.notnull(df_ventes), '')
 
 df_ventes.atc = df_ventes.atc.replace(['N03AE', 'N05AX'], ['N05CD08', 'N03AG02'])
 df_ventes.atc = df_ventes.atc.replace(['J05AP01'], ['J05AB04'])
@@ -262,21 +263,15 @@ df['annee'] = df.date_signalement.apply(lambda x: x.year)
 
 df_ventes_groupe = df_ventes.groupby(['annee', group]).agg({'ventes_total': 'sum'}).reset_index()
 ventes_par_groupe = df_ventes_groupe.to_dict(orient='records')
-ventes_par_groupe = {2018: {ventes_dict[group]: ventes_dict['ventes_total']
-                            for ventes_dict in ventes_par_groupe if ventes_dict['annee'] == 2018},
-                     2019: {ventes_dict[group]: ventes_dict['ventes_total']
-                            for ventes_dict in ventes_par_groupe if ventes_dict['annee'] == 2018},
-                     2020: {ventes_dict[group]: ventes_dict['ventes_total'] 
-                            for ventes_dict in ventes_par_groupe if ventes_dict['annee'] == 2019}}
+ventes_par_groupe = {annee: {ventes_dict[group]: ventes_dict['ventes_total']
+                            for ventes_dict in ventes_par_groupe if ventes_dict['annee'] == annee - 1}
+                     for annee in df.annee.unique()}
 
 df_ventes_cis = df_ventes.groupby(['annee', 'cis']).agg({'ventes_total': 'sum'}).reset_index()
 ventes_par_cis = df_ventes_cis.to_dict(orient='records')
-ventes_par_cis = {2018: {ventes_dict['cis']: ventes_dict['ventes_total']
-                         for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2018},
-                  2019: {ventes_dict['cis']: ventes_dict['ventes_total']
-                         for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2018},
-                  2020: {ventes_dict['cis']: ventes_dict['ventes_total'] 
-                         for ventes_dict in ventes_par_cis if ventes_dict['annee'] == 2019}}
+ventes_par_cis = {annee: {ventes_dict['cis']: ventes_dict['ventes_total']
+                         for ventes_dict in ventes_par_cis if ventes_dict['annee'] == annee - 1}
+                  for annee in df.annee.unique()}
 
 
 # In[24]:
@@ -418,7 +413,35 @@ df_ventes_spe['ventes_exist'] = df_ventes_spe.ventes_cis.apply(lambda x: 0 if pd
 df_ventes_spe.head(3)
 
 
+# ## CIS qui n'ont pas de voie dans ventes 2017 mais qui en ont dans ruptures
+
 # In[35]:
+
+
+cis_no_voie = df_ventes[df_ventes.voie == ''].cis.unique().tolist()
+
+
+# In[36]:
+
+
+len(cis_no_voie)
+
+
+# In[37]:
+
+
+df_ventes_spe[df_ventes_spe.cis.isin(cis_no_voie)]
+
+
+# In[38]:
+
+
+df_ventes[df_ventes.cis.isin(cis_no_voie[:3])][['annee', 'cis', 'atc_voie']]
+
+
+# ## Grouper les ruptures par année et classe ATC
+
+# In[39]:
 
 
 # Grouper par année et par classe ATC
@@ -439,7 +462,7 @@ df_ventes_annee_groupe['ventes_cis_inconnus'] = df_ventes_annee_groupe.apply(
 df_ventes_annee_groupe.head(3)
 
 
-# In[36]:
+# In[40]:
 
 
 # Ventes des cis de la classe ATC qui n'apparaissent pas dans les ruptures
@@ -451,7 +474,7 @@ ventes_cis_inconnus_dict = {(r['annee'], r[group]): r['ventes_cis_inconnus'] for
 nb_spe_par_groupe = {r[group]: r['nb_specialites_groupe'] for r in records}
 
 
-# In[37]:
+# In[41]:
 
 
 # Ajouter à la colonne ventes_cis les ventes estimées sur les cis inconnus
@@ -464,7 +487,7 @@ df_ventes_spe['ventes_groupe'] = df_ventes_spe.apply(lambda x: ventes_par_groupe
 df_ventes_spe.head(2)
 
 
-# In[38]:
+# In[42]:
 
 
 def compute_score(g, df):
@@ -500,13 +523,13 @@ df_score = df_score[
 df_score.head(10)
 
 
-# In[39]:
+# In[43]:
 
 
 # df_score[df_score.atc == 'A06AH01']
 
 
-# In[40]:
+# In[44]:
 
 
 # len(df[df.atc.apply(lambda x: len(x) != 7 if x else True)])
@@ -514,7 +537,7 @@ df_score.head(10)
 
 # # Sauvegarder dans csv
 
-# In[41]:
+# In[45]:
 
 
 df_score.to_csv('../data/decret_stock/classes_atc_score_pondéré_niveau_atc5_voie_mitm.csv', index=False, sep=';')
@@ -522,37 +545,37 @@ df_score.to_csv('../data/decret_stock/classes_atc_score_pondéré_niveau_atc5_vo
 
 # # Nombre de ruptures ayant l'ATC complet
 
-# In[42]:
+# In[46]:
 
 
 # len(df[df.atc.apply(lambda x: len(x) == 7 if x and isinstance(x, str) else False)]) / len(df) * 100
 
 
-# In[43]:
+# In[47]:
 
 
 group = ('N05CD08', 'orale')    #('G03DB07', 'orale')
 
 
-# In[44]:
+# In[48]:
 
 
 x = df_ventes_spe[df_ventes_spe.atc_voie == group].iloc[0]
 
 
-# In[45]:
+# In[49]:
 
 
 df_score[df_score.atc_voie == group]
 
 
-# In[46]:
+# In[50]:
 
 
 df_ventes[df_ventes.atc_voie == group]
 
 
-# In[47]:
+# In[51]:
 
 
 # df_ventes[df_ventes.denomination_specialite.str.contains('de sodium sandoz')]
