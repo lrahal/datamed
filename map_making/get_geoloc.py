@@ -16,7 +16,7 @@ import os
 import re
 import time
 import urllib
-from typing import Dict
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -115,7 +115,7 @@ def get_google_results(address: str) -> Dict:
 
 # ------------------ PROCESSING LOOP -----------------------------
 
-def get_locations(addresses: np.ndarray, output_filename: str):
+def get_locations(addresses: List, output_filename: str) -> pd.DataFrame:
     """
     Get latitude and longitude for addresses list
     :param addresses: np.ndarray
@@ -195,4 +195,5 @@ def get_locations(addresses: np.ndarray, output_filename: str):
 
     # Write the full results to csv using the pandas library.
     print('Writing results in csv file')
-    df.to_csv(OUTPUT_FOLDER_PATH + output_filename, sep='$', index=False)
+    df.to_csv(OUTPUT_FOLDER_PATH + output_filename, sep=';', index=False)
+    return df
