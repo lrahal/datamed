@@ -1,53 +1,59 @@
 name: datamedenv
 channels:
   - anaconda
+  - plotly
   - conda-forge
   - defaults
 dependencies:
   - blas=1.0=mkl
   - branca=0.4.2=pyhd8ed1ab_0
-  - brotlipy=0.7.0=py38haf1e3a3_1000
-  - ca-certificates=2020.12.5=h033912b_0
-  - certifi=2020.12.5=py38h50d1736_1
+  - brotlipy=0.7.0=py38h9ed2024_1003
+  - ca-certificates=2021.1.19=hecd8cb5_0
+  - certifi=2020.12.5=py38hecd8cb5_0
   - cffi=1.14.4=py38h2125817_0
-  - chardet=3.0.4=py38_1003
+  - chardet=4.0.0=py38hecd8cb5_1003
+  - click=7.1.2=pyhd3eb1b0_0
   - cryptography=3.3.1=py38hbcfaee0_0
   - folium=0.12.0=pyhd8ed1ab_0
-  - idna=2.10=py_0
+  - idna=2.10=pyhd3eb1b0_0
   - intel-openmp=2019.4=233
-  - jinja2=2.11.3=pyh44b312d_0
+  - jinja2=2.11.3=pyhd3eb1b0_0
+  - joblib=1.0.0=pyhd3eb1b0_0
   - libcxx=10.0.0=1
   - libedit=3.1.20191231=h1de35cc_1
   - libffi=3.3=hb1e8313_2
-  - markupsafe=1.1.1=py38h5406a74_3
+  - markupsafe=1.1.1=py38h1de35cc_1
   - mkl=2019.4=233
   - mkl-service=2.3.0=py38h9ed2024_0
   - mkl_fft=1.2.0=py38hc64f4ea_0
   - mkl_random=1.1.1=py38h959d312_0
   - ncurses=6.2=h0a44026_1
+  - nltk=3.5=py_0
   - numpy=1.19.2=py38h456fd55_0
   - numpy-base=1.19.2=py38hcfb5961_0
-  - openssl=1.1.1i=h35c211d_0
+  - openssl=1.1.1i=h9ed2024_0
   - pandas=1.2.1=py38hb2f4e1b_0
   - pip=20.3.3=py38hecd8cb5_0
+  - plotly=4.14.3=py_0
   - pycparser=2.20=py_2
   - pymysql=1.0.2=py38hecd8cb5_1
-  - pyopenssl=19.1.0=py_1
+  - pyopenssl=20.0.1=pyhd3eb1b0_1
   - pysocks=1.7.1=py38_1
   - python=3.8.5=h26836e1_1
   - python-dateutil=2.8.1=pyhd3eb1b0_0
-  - python_abi=3.8=1_cp38
   - pytz=2021.1=pyhd3eb1b0_0
   - readline=8.1=h9ed2024_0
-  - requests=2.24.0=py_0
+  - regex=2020.11.13=py38h9ed2024_0
+  - requests=2.25.1=pyhd3eb1b0_0
+  - retrying=1.3.3=py_2
   - setuptools=52.0.0=py38hecd8cb5_0
   - six=1.15.0=py38hecd8cb5_0
   - sqlite=3.33.0=hffcf06c_0
   - tk=8.6.10=hb0a8c7a_0
-  - tqdm=4.56.0=pyhd8ed1ab_0
-  - unicodedata2=13.0.0.post2=py38h4d0b108_1
-  - unidecode=1.1.1=py_0
-  - urllib3=1.25.11=py_0
+  - tqdm=4.56.0=pyhd3eb1b0_0
+  - unicodedata2=13.0.0.post2=py38h1de35cc_0
+  - unidecode=1.1.2=pyhd3eb1b0_0
+  - urllib3=1.26.3=pyhd3eb1b0_0
   - wheel=0.36.2=pyhd3eb1b0_0
   - xlrd=1.2.0=py_0
   - xz=5.2.5=h1de35cc_0
@@ -61,7 +67,6 @@ dependencies:
     - bleach==3.3.0
     - blis==0.7.4
     - catalogue==2.0.1
-    - click==7.1.2
     - country-list==0.2.1
     - cycler==0.10.0
     - cymem==2.0.5
