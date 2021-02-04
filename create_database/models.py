@@ -81,18 +81,26 @@ class Fabrication(Base):
     country = Column(LONGTEXT, nullable=True)
 
 
+class Pays(Base):
+    __tablename__ = 'pays'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    address = Column(LONGTEXT, nullable=False)
+    latitude = Column(FLOAT, nullable=False)
+    longitude = Column(FLOAT, nullable=False)
+    country = Column(LONGTEXT, nullable=False)
+
+
 class Production(Base):
     __tablename__ = 'production'
     __table_args__ = (
         ForeignKeyConstraint(['cis'], ['specialite.cis']),
         ForeignKeyConstraint(['substance_active_id'], ['substance_active.id']),
-        ForeignKeyConstraint(['fabrication_id'], ['fabrication.id']),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     cis = Column(String(120), nullable=False)
     substance_active_id = Column(Integer, nullable=False)
-    fabrication_id = Column(Integer, nullable=False)
     substance_active = Column(String(255), nullable=False)
     sites_fabrication_substance_active = Column(LONGTEXT, nullable=False)
     denomination_specialite = Column(LONGTEXT, nullable=True)
@@ -214,6 +222,7 @@ Specialite.__table__.create(bind=engine, checkfirst=True)
 SubstanceActive.__table__.create(bind=engine, checkfirst=True)
 SpecialiteSubstance.__table__.create(bind=engine, checkfirst=True)
 Presentation.__table__.create(bind=engine, checkfirst=True)
+Pays.__table__.create(bind=engine, checkfirst=True)
 Production.__table__.create(bind=engine, checkfirst=True)
 Ruptures.__table__.create(bind=engine, checkfirst=True)
 RupturesDC.__table__.create(bind=engine, checkfirst=True)
