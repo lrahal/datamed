@@ -191,12 +191,19 @@ others = ['usa', 'uk', 'england', 'scotland', 'u.s.a.', 'czech republic', 'espa�
           'république tchèque', 'pays bas', '(es)', 'coree', ' us ', 'deutschland', 'gmbh', '(cn)', ' cn ',
          '(ch)', '(fi)', '(gb)', 'lyon', ' douai ', 'korea', '(de)', 'rép. tchèque', 'andhra pradesh',
          'annemasse', 'gentilly', 'bergamo', 'vitry sur seine', 'rép tchèque', 'gennevilliers', '(gr)',
-         'tarapur', 'la rochelle', 'românia', 'maharashtra', '(hu)', 'ratlam', 'gujarat', '(pl)', '(nl)']
+         'tarapur', 'la rochelle', 'românia', 'maharashtra', '(hu)', 'ratlam', 'gujarat', '(pl)', '(nl)',
+         'macao']
 
 all_countries = set(countries_fr + countries_en + countries_fab + others)
 
 
 # In[21]:
+
+
+[c for c in countries_fab if c not in countries_fr + countries_en]
+
+
+# In[22]:
 
 
 country_list = []
@@ -210,14 +217,14 @@ for word in all_countries:
 country_list = sorted(country_list)
 
 
-# In[22]:
+# In[23]:
 
 
 with open('/Users/ansm/Documents/GitHub/datamed/map_making/data/countries.json') as json_file:
     country_dict = json.load(json_file)
 
 
-# In[23]:
+# In[24]:
 
 
 def get_country(address, country_list):
@@ -241,71 +248,77 @@ for country in tqdm(pays_list):
     df[country_dict.get(country, country)] = df.pays.apply(lambda x: x.get(country, 0))
 
 
-# In[24]:
+# In[25]:
 
 
 df.head(3)
 
 
-# In[25]:
+# In[26]:
 
 
 (1 - len(df[df.pays == {}]) / len(df)) * 100
 
 
-# In[26]:
+# In[27]:
 
 
 df.inde.sum(), df.france.sum(), df.chine.sum()
 
 
-# In[27]:
+# In[28]:
 
 
 len(df[df.pays == {}])
 
 
-# In[28]:
+# In[29]:
+
+
+df[df.pays == {}][['sites_fabrication_substance_active', 'filename']].head()
+
+
+# In[30]:
 
 
 len(df[df.pays.apply(lambda x: len(x) > 1)]) / len(df) * 100
 
 
-# In[29]:
+# In[31]:
 
 
 df[df.pays == {}].iloc[67].sites_fabrication_substance_active
 
 
-# In[30]:
+# In[32]:
 
 
 countries = [col for col in df.columns
              if col not in ['id', 'substance_active_id', 'sites_fabrication_substance_active', 'filename', 'pays']]
 
 
-# In[31]:
+# In[33]:
 
 
 api_by_country = [{'country': col, 'substance_active_id': df[col].sum()} for col in countries]
 df_api_by_country = pd.DataFrame(api_by_country, columns=['country', 'substance_active_id'])
 
 
-# In[32]:
+# In[34]:
 
 
 df_api_by_country.head(1)
 
 
-# In[40]:
+# In[39]:
 
 
-df_countries_loc = pd.read_csv('../data/countries_locations_030221.csv', sep=';')
+df_countries_loc = pd.read_csv('../data/countries_locations_04022021.csv', sep=';')
 df_countries_loc = df_countries_loc.rename(columns={'country': 'country_en'})
 df_countries_loc.head(1)
 
 
-# In[41]:
+# In[40]:
 
 
 df_countries = pd.merge(
@@ -316,13 +329,13 @@ df_countries = pd.merge(
 len(df_countries), len(df_api_by_country)
 
 
-# In[42]:
+# In[41]:
 
 
 df_countries.head()
 
 
-# In[44]:
+# In[42]:
 
 
 state_geo = 'world-countries.json'
@@ -361,19 +374,19 @@ m
 
 # # Avec la geocoding API
 
-# In[37]:
+# In[ ]:
 
 
 # BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json?'
 
 
-# In[38]:
+# In[ ]:
 
 
 # API_KEY = os.environ.get('GCP_KEY')
 
 
-# In[39]:
+# In[ ]:
 
 
 address_full = re.sub(' +', ' ', address_full)  # Remove multiple spaces
