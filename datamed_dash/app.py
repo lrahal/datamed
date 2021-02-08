@@ -1,11 +1,9 @@
-import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output
 
-from datamed_dashboard.app_init import app
-from datamed_dashboard.map import get_dataframe, get_map
+from app_init import app
+from map import get_dataframe
 
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
@@ -62,8 +60,8 @@ app.layout = html.Div(className='container-fluid', children=[
             className="clear-top",
         ),
     ),
-    dbc.Dropdown(id='dropdown', options=[
-        {'label': i, 'value': i} for i in df.state.unique()
+    dcc.Dropdown(id='dropdown', options=[
+        {'label': i, 'value': i} for i in df.atc2.unique()
     ]),
     # html.Iframe(id='map', srcDoc=open('map.html', 'r').read(), width='100%', height='600')
 ])
