@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.mysql import LONGTEXT, YEAR
 
 from create_database.models import connect_db, Base
@@ -9,7 +9,8 @@ class CorrespSpeProd(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     produit_codex = Column(LONGTEXT, nullable=False)
-    substance_codex_unique = Column(LONGTEXT, nullable=True)
+    substance_codex_unique = Column(LONGTEXT, nullable=False)
+    code = Column(String(255), nullable=False)
 
 
 class BnpvOpenMedic1418ProdCodex(Base):
@@ -65,6 +66,7 @@ class BnpvOpenMedic1418SaCodex(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     substance_codex_unique = Column(LONGTEXT, nullable=False)
+    code = Column(String(255), nullable=False)
     annee = Column(YEAR, nullable=False)
     sexe = Column(LONGTEXT, nullable=False)
     age = Column(LONGTEXT, nullable=False)
@@ -77,6 +79,7 @@ class BnpvEffSoclongSaCodexOpen(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     substance_codex_unique = Column(LONGTEXT, nullable=False)
+    code = Column(String(255), nullable=False)
     sexe = Column(LONGTEXT, nullable=False)
     age = Column(Integer, nullable=False)
     soc_long = Column(LONGTEXT, nullable=False)
@@ -89,6 +92,7 @@ class BnpvEffHltSaCodexOpen(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     substance_codex_unique = Column(LONGTEXT, nullable=False)
+    code = Column(String(255), nullable=False)
     sexe = Column(LONGTEXT, nullable=False)
     age = Column(Integer, nullable=False)
     effet_hlt = Column(LONGTEXT, nullable=False)
@@ -101,6 +105,7 @@ class BnpvNotifSaCodexOpen(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     substance_codex_unique = Column(LONGTEXT, nullable=False)
+    code = Column(String(255), nullable=False)
     typ_notif = Column(LONGTEXT, nullable=False)
     sexe = Column(LONGTEXT, nullable=False)
     age = Column(Integer, nullable=False)
