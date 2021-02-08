@@ -18,7 +18,7 @@ def get_dataframe() -> pd.DataFrame:
     df = df.dropna(how='all')
     df = df.drop_duplicates()
 
-    path = 'create_database/data/countries_by_address.csv'
+    path = '../create_database/data/countries_by_address.csv'
     df_address = pd.read_csv(path, sep=';')
 
     df_pays = pd.read_sql_table('pays', connection)
