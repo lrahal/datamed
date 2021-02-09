@@ -6,7 +6,6 @@ from dash.dependencies import Output, Input
 from datamed_dash.app import app
 from datamed_dash.map import get_dataframe, get_map
 
-
 df = get_dataframe()
 
 app.layout = html.Div(className='container-fluid', children=[
