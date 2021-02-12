@@ -8,6 +8,7 @@ from local_settings import db_credentials
 print("test")
 print(db_credentials)
 
+
 def connect_db():
     # create db create_engine
     return create_engine('mysql+pymysql://{user}:{pw}@{host}/{db}'

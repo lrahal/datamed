@@ -7,20 +7,7 @@ from dash.dependencies import Output, Input
 from app1_init import app
 
 
-def _get_page_heading() -> Component:
-    src = '/assets/logo_ansm.png'
-    sticky_style = {
-        'position': 'absolute',
-        'height': '88px',
-        'left': '0px',
-        'top': '0px',
-        'border': '1px solid  #9E9E9E',
-        'width': '100%',
-        'border-right': 'none',
-        'border-left': 'none',
-        'display': 'flex',
-        'align-items': 'center',
-    }
+def _get_nav() -> Component:
     dropdown = dbc.DropdownMenu(
         label="Explorer",
         children=[
@@ -54,17 +41,55 @@ def _get_page_heading() -> Component:
                             className='nav-link',
                             style={'color': 'grey', 'display': 'inline-block'})
                     ),
-                    dbc.Button("Contact", outline=True, className="mr-1", color="primary")]
+                    dbc.Button("CONTACT", outline=True, className="mr-1", color="primary")]
             ),
         ],
         className='navbar-span'
     )
+    return nav
+
+
+def _get_page_heading() -> Component:
+    src = '/assets/logo_ansm.png'
+    sticky_style = {
+        'position': 'absolute',
+        'height': '88px',
+        'left': '0px',
+        'top': '0px',
+        'border': '1px solid  #9E9E9E',
+        'width': '100%',
+        'border-right': 'none',
+        'border-left': 'none',
+        'display': 'flex',
+        'align-items': 'center',
+    }
     img = html.Img(src=src, style={'width': '100px', 'display': 'inline-block'})
-    return html.Div(html.Div([dcc.Link(img, href='/'), nav], className='container'), style=sticky_style)
+    return html.Div(html.Div([dcc.Link(img, href='/'), _get_nav()], className='container'), style=sticky_style)
+
+
+def get_med_search() -> Component:
+    search_bar = dbc.Row(
+        [
+            dbc.Col(dbc.Input(type="search", placeholder="Search")),
+        ],
+        no_gutters=True,
+        className="search-med ml-auto flex-nowrap mt-3 mt-md-0",
+        align="center",
+    )
+    med_search = html.Div([
+        html.Span(
+            "Trouvez des données autour du médicament",
+            style={"font-size": "30px"}
+        ),
+        search_bar
+    ],
+        className='div-med-search'
+    )
+    return med_search
 
 
 app.layout = html.Div(
-    [dcc.Location(id='url', refresh=False), _get_page_heading(),
+    [dcc.Location(id='url', refresh=False), _get_page_heading(), get_med_search(),
      html.Div(id='page-content', className='container')],
     id='layout',
 )
