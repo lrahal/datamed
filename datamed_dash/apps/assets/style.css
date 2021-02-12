@@ -1,4 +1,27 @@
-.navbar-light .navbar-brand {
-  color: rgba(0,0,0,.9),
-  font-size: 20px;
+.btn-outline-primary {
+    color: #a03189;
+    border-color: grey;
+    box-shadow: 1px 3px 1px #9E9E9E;
+}
+
+.btn-outline-primary:hover {
+    color: #fff;
+    background-color: #a03189;
+    border-color: #a03189;
+}
+
+.navbar-span {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.navbar-dropdown .btn-secondary{
+    color: #808080;
+    background-color: #ffffff;
+    border: none;
+}
+
+.container {
+    display: flex;
 }
