@@ -71,3 +71,21 @@
     border: none;
 }
 
+.div-donnees-une {
+    position: absolute;
+    padding: 80px;
+    width: 100%;
+    top: 753px;
+    background: #fff;
+    text-align:center;
+}
+
+.span-donnees-une {
+    margin-top: 30px;
+    padding: 20px;
+    font-size: 15px;
+    width: 25%;
+    display: inline-block;
+    box-shadow: 1px 1px 2px 2px rgba(0, 0, 0, 0.24);
+    justify-content: space-between;
+}

@@ -90,11 +90,40 @@ def get_med_search() -> Component:
     return med_search
 
 
+def get_donnees_une() -> Component:
+    donnees_une = html.Div([
+        html.Div([
+            html.Span(
+                "Les données à la une",
+                style={"font-size": "30px"}
+            )
+        ]),
+        html.Div([
+            html.Span(
+                [html.A('265', style={'color': '#ff8c00', 'font-size': '20px'}), html.A(' ruptures de médicaments')],
+                className='span-donnees-une',
+            ),
+            html.Span(
+                [html.A('10', style={'color': '#ff8c00', 'font-size': '20px'}), html.A(' pays fabriquant du paracétamol')],
+                className='span-donnees-une',
+            ),
+            html.Span(
+                [html.A('1921', style={'color': '#ff8c00', 'font-size': '20px'}), html.A(' effets indésirables vaccin COVID 19')],
+                className='span-donnees-une',
+            ),
+        ], style={'display': 'flex', 'justify-content': 'space-evenly'})
+    ],
+        className='div-donnees-une'
+    )
+    return donnees_une
+
+
 app.layout = html.Div(
     [
         dcc.Location(id='url', refresh=False),
         _get_page_heading(),
         get_med_search(),
+        get_donnees_une(),
         html.Div(id='page-content', className='container')
     ],
     id='layout',
