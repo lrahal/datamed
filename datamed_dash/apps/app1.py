@@ -90,7 +90,8 @@ def get_med_search() -> Component:
     return med_search
 
 
-def get_donnees_une() -> Component:
+def get_donnees_une_prout() -> Component:
+    src = '/assets/pills.jpg'
     donnees_une = html.Div([
         html.Div([
             html.Span(
@@ -100,20 +101,82 @@ def get_donnees_une() -> Component:
         ]),
         html.Div([
             html.Span(
-                [html.A('265', style={'color': '#ff8c00', 'font-size': '20px'}), html.A(' ruptures de médicaments')],
+                [html.A('265', style={'color': '#ff8c00', 'font-size': '20px'}),
+                 html.A(' ruptures de médicaments')],
                 className='span-donnees-une',
             ),
             html.Span(
-                [html.A('10', style={'color': '#ff8c00', 'font-size': '20px'}), html.A(' pays fabriquant du paracétamol')],
+                [html.A('10', style={'color': '#ff8c00', 'font-size': '20px'}),
+                 html.A(' pays fabriquant du paracétamol')],
                 className='span-donnees-une',
             ),
             html.Span(
-                [html.A('1921', style={'color': '#ff8c00', 'font-size': '20px'}), html.A(' effets indésirables vaccin COVID 19')],
+                [html.A('1921', style={'color': '#ff8c00', 'font-size': '20px'}),
+                 html.A(' effets indésirables vaccin COVID 19')],
                 className='span-donnees-une',
             ),
-        ], style={'display': 'flex', 'justify-content': 'space-evenly'})
+        ], style={'display': 'flex', 'justify-content': 'space-evenly'}),
+        html.Div([
+            html.Div([
+                html.Img(src=src, style={'width': '50%'}),
+            ], style={'width': '20%', 'display': 'inline-block'}),
+            html.Iframe(id='map', srcDoc=open('assets/map.html', 'r').read(), style={'width': '60%'})
+        ], style={'display': 'flex', 'justify-content': 'space-evenly', 'padding': '30px'})
     ],
         className='div-donnees-une'
+    )
+    return donnees_une
+
+
+def get_donnees_une() -> Component:
+    src = '/assets/pills.jpg'
+    donnees_une = html.Div([
+        html.Span(
+            'Les données à la une',
+            style={"font-size": "30px"},
+            className='one'
+        ),
+        html.Span(
+            [html.A('265', style={'color': '#ff8c00', 'font-size': '20px'}),
+             html.A(' ruptures de médicaments')],
+            className='two grid-content',
+            ),
+        html.Span(
+                [html.A('10', style={'color': '#ff8c00', 'font-size': '20px'}),
+                 html.A(' pays fabriquant du paracétamol')],
+                className='three grid-content',
+            ),
+        html.Span(
+                [html.A('1921', style={'color': '#ff8c00', 'font-size': '20px'}),
+                 html.A(' effets indésirables vaccin COVID 19')],
+                className='four grid-content',
+            ),
+        html.Div([
+            html.Img(src=src, style={'width': '100%'}),
+            html.B("Qu'est-ce qu'une rupture ?", style={'font-size': '20px', 'display': 'block', 'text-align': 'left'}),
+            html.A("Déclaration ou réelle rupture ? Nos experts vous expliquent la différence avec des chiffres analysés",
+                   style={'display': 'block', 'text-align': 'left'}),
+            html.A(id='link', href='analyse_thematique_ruptures', children="VOIR L'ANALYSE THEMATIQUE", target="_blank",
+                   style={'display': 'block', 'text-align': 'left'})
+        ], className='five grid-content'),
+        html.Div([
+            html.Iframe(id='map', srcDoc=open('assets/map.html', 'r').read())],
+            className='six grid-content'),
+        html.Div([
+            html.Span(
+                [html.A('265', style={'color': '#00bfff', 'font-size': '20px'}),
+                 html.A(' ruptures de médicaments')], style={'display': 'block'}),
+            html.Span(
+                [html.A('35', style={'color': '#00bfff', 'font-size': '20px'}),
+                 html.A(' importations ce mois-ci')], style={'display': 'block'}),
+            html.Span(
+                [html.A('65', style={'color': '#00bfff', 'font-size': '20px'}),
+                 html.A(' réapprovisionnements')], style={'display': 'block'}),
+        ],
+            className='seven grid-content'
+        ),
+    ],
+        className='div-donnees-une-2'
     )
     return donnees_une
 
