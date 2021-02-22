@@ -73,15 +73,17 @@ def get_med_search() -> Component:
             dbc.Col(dbc.Input(type="search", placeholder="Search")),
         ],
         no_gutters=True,
-        className="search-med ml-auto flex-nowrap mt-3 mt-md-0",
+        className="search-med ml-auto flex-nowrap mt-3",
         align="center",
     )
     med_search = html.Div([
         html.Span(
             "Trouvez des données autour du médicament",
-            style={"font-size": "30px"}
+            style={"font-size": "30px", 'margin-top': '5rem'}
         ),
-        search_bar
+        search_bar,
+        dbc.Button("RECHERCHER", outline=True, className="mr-1", color="secondary",
+                   style={'margin-top': '3rem'})
     ],
         className='div-med-search'
     )
@@ -89,8 +91,12 @@ def get_med_search() -> Component:
 
 
 app.layout = html.Div(
-    [dcc.Location(id='url', refresh=False), _get_page_heading(), get_med_search(),
-     html.Div(id='page-content', className='container')],
+    [
+        dcc.Location(id='url', refresh=False),
+        _get_page_heading(),
+        get_med_search(),
+        html.Div(id='page-content', className='container')
+    ],
     id='layout',
 )
 

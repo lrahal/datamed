@@ -10,6 +10,18 @@
     border-color: #a03189;
 }
 
+.btn-outline-secondary {
+    color: #fff;
+    border: none;
+    background-color: #a03189;
+    box-shadow: 0px 2px 0px #9E9E9E;
+}
+
+.btn-outline-secondary:hover {
+    color: #fff;
+    background-color: #a03189;
+}
+
 .navbar-span {
     display: flex;
     width: 100%;
@@ -42,12 +54,20 @@
 
 .div-med-search {
     position: absolute;
+    padding: 60px;
     width: 760px;
-    height: 328px;
     top: 200px;
     left: 30%;
     background: #fff;
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24);
     text-align:center;
+}
+
+.div-med-search .form-control{
+    margin: auto;
+    margin-top: 2rem;
+    width: 60%;
+    background-color: #f5f5f5;
+    border: none;
 }
 
