@@ -1,5 +1,5 @@
 from dash.development.base_component import Component
-from dash_html_components import Div, A, H2, H3, Span, Iframe, Img
+from dash_html_components import Div, A, H2, H3, Span, Iframe, Img, P
 
 
 def Indicateur(value, text, color, class_name):
@@ -29,7 +29,7 @@ def DonneesUne() -> Component:
                     "Qu'est-ce qu'une rupture ?",
                     className='d-block text-left',
                 ),
-                Span(
+                P(
                     "Déclaration ou réelle rupture ? Nos experts vous expliquent la différence avec des chiffres analysés",
                     className='py-5 d-block text-left',
                 ),

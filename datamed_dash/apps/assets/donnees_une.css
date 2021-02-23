@@ -1,7 +1,5 @@
 .donnees-une {
-    margin-top: 150px;
-    padding: 80px;
-    width: 100%;
+    padding: 180px 80px 160px 80px;
     text-align:center;
 
     display: grid;
@@ -9,6 +7,8 @@
     grid-gap: 30px;
     grid-auto-rows: minmax(60px, auto);
     white-space: pre-wrap;
+
+    background: no-repeat center url("./BG_green.svg");
 }
 
 .analyse-thematique {
@@ -18,8 +18,8 @@
 .grid-content {
     box-shadow: 1px 1px 2px 2px rgba(0, 0, 0, 0.24);
     border-radius: 3px;
+    background-color: #fff;
 }
-
 
 .one {
     grid-column: 1 / 4;
