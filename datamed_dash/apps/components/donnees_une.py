@@ -4,7 +4,7 @@ from dash_html_components import Div, A, H2, H3, Span, Iframe, Img
 
 def Indicateur(value, text, color, class_name):
     return Span(
-        [Span(str(value), style={'color': color}), text],
+        [Span(str(value), style={'color': color, 'font-size': '20px'}), text],
         className=class_name,
     )
 
