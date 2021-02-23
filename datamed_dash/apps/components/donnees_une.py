@@ -1,12 +1,12 @@
 from dash.development.base_component import Component
-from dash_html_components import Div, A, B, Span, Iframe, Img
+from dash_html_components import Div, A, H3, Span, Iframe, Img
 
 
 def Indicateur(value, text, color, class_name):
     return Span(
-            [Span(str(value), style={'color': color, 'font-size': '20px'}), text],
-            className=class_name,
-        )
+        [Span(str(value), style={'color': color, 'font-size': '20px'}), text],
+        className=class_name,
+    )
 
 
 def DonneesUne() -> Component:
@@ -25,22 +25,28 @@ def DonneesUne() -> Component:
                 src=src,
                 style={'width': '100%'}
             ),
-            B(
-                "Qu'est-ce qu'une rupture ?",
-                style={'font-size': '20px', 'display': 'block', 'text-align': 'left'}
+            Div([
+                H3(
+                    "Qu'est-ce qu'une rupture ?",
+                    className='d-block text-left',
+                ),
+                Span(
+                    "Déclaration ou réelle rupture ? Nos experts vous expliquent la différence avec des chiffres analysés",
+                    className='py-5 d-block text-left',
+                ),
+                A(
+                    id='link',
+                    href='analyse_thematique_ruptures',
+                    children="VOIR L'ANALYSE THEMATIQUE",
+                    target="_blank",
+                    className='d-block text-left'
+                ),
+            ],
+                className='px-4 py-4 d-block'
             ),
-            Span(
-                "Déclaration ou réelle rupture ? Nos experts vous expliquent la différence avec des chiffres analysés",
-                style={'display': 'block', 'text-align': 'left'}
-            ),
-            A(
-                id='link',
-                href='analyse_thematique_ruptures',
-                children="VOIR L'ANALYSE THEMATIQUE",
-                target="_blank",
-                style={'display': 'block', 'text-align': 'left'})
         ],
-            className='five grid-content'),
+            className='five grid-content'
+        ),
         Div([
             Iframe(
                 id='map',
