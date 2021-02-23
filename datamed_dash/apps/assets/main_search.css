@@ -15,8 +15,8 @@
     border: none;
 }
 
-
 .main-search-container {
+    margin-top: 2rem;
     padding-top: 160px;
     padding-bottom: 100px;
     background: no-repeat center url("./BG_violet.svg");
