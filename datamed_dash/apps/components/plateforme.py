@@ -1,6 +1,6 @@
 from dash.development.base_component import Component
-from dash_html_components import Div, H2, Span, Img, P
 from dash_bootstrap_components import Button
+from dash_html_components import Div, H2, Img, P
 
 
 def Plateforme() -> Component:
