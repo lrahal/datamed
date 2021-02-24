@@ -4,17 +4,18 @@ from sqlalchemy import create_engine, Column, Integer, String, ForeignKeyConstra
 from sqlalchemy.dialects.mysql import LONGTEXT, FLOAT, YEAR, DATE, BOOLEAN
 from sqlalchemy.ext.declarative import declarative_base
 
-# load environment variables
-HOSTNAME = 'localhost'
-DBNAME = 'fab_sites'
-UNAME = 'root'
-MYSQL_PWD = os.environ.get('MYSQL_PWD')
+from local_settings import db_credentials
+print("test")
+print(db_credentials)
 
 
 def connect_db():
     # create db create_engine
     return create_engine('mysql+pymysql://{user}:{pw}@{host}/{db}'
-                         .format(host=HOSTNAME, db=DBNAME, user=UNAME, pw=MYSQL_PWD),
+                         .format(host=db_credentials['HOSTNAME'],
+                                 db=db_credentials['DBNAME'],
+                                 user=db_credentials['UNAME'],
+                                 pw=db_credentials['MYSQL_PWD']),
                          echo=False)
 
 
