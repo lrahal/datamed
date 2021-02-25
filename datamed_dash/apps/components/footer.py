@@ -1,6 +1,15 @@
 from dash.development.base_component import Component
 from dash_html_components import Div, H3, Span, Img, H2, A, B
 from dash_bootstrap_components import Button
+from typing import List
+
+
+def FooterElement(title: str, element_list: List[str]) -> Component:
+    text_element_list = [H2(title)] + [Span(element, className='d-block') for element in element_list]
+    return Div(
+        text_element_list,
+        className='footer-left-content'
+    )
 
 
 def Logos() -> Component:
@@ -27,22 +36,25 @@ def Logos() -> Component:
     )
 
 
-def Site():
+def FooterLeft():
     return Div([
-        H2('Le site'),
-        Span('À propos'),
-        Span('Plan du site'),
-        Span('Mentions légales'),
-        Span('Contact'),
+        FooterElement(
+            'Le site',
+            ['À propos', 'À propos', 'Mentions légales', 'Contact']
+        ),
+        FooterElement(
+            'Partenaires',
+            ['ansm.sante.fr', 'base-donnees-publique.medicaments.gouv.fr', 'Etalab', 'La DINUM']
+        ),
     ],
-        className='site'
+        className='footer-left'
     )
 
 
 def Footer() -> Component:
     return Div([
         Logos(),
-        Site(),
+        FooterLeft(),
     ],
-        style={'display': 'inline-block'}
+        className='footer'
     )

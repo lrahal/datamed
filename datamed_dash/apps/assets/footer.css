@@ -5,13 +5,24 @@
 }
 
 .logos {
-    padding: 100px 40px 100px 40px;
     width: 350px;
-    background-color: #000;
+    float: left;
 }
 
-.site {
-    width: 350px;
+.footer {
+    display: inline-block;
     background-color: #000;
+    margin-top: 300px;
+    width: 100%;
+    padding: 100px 40px 100px 40px;
+}
+
+.footer-left {
+    float: right;
+    display: flex;
+}
+
+.footer-left-content {
+    width: 350px;
     color: #fff;
 }
