@@ -10,7 +10,7 @@ def Indicateur(value, text, color, class_name):
 
 
 def DonneesUne() -> Component:
-    src = '/assets/pills.jpg'
+    src = 'apps/assets/pills.jpg'
     return Div([
         H2(
             'Les données à la une',
@@ -49,7 +49,7 @@ def DonneesUne() -> Component:
         Div([
             Iframe(
                 id='map',
-                srcDoc=open('assets/map.html', 'r').read()
+                srcDoc=open('apps/assets/map.html', 'r').read()
             )
         ],
             className='six grid-content'
