@@ -9,7 +9,6 @@ from .components.plateforme import Plateforme
 
 layout = Div(
     [
-        dcc.Location(id='url', refresh=False),
         Navbar(),
         MainSearch(),
         DonneesUne(),
