@@ -5,7 +5,8 @@ from typing import List
 
 
 def FooterElement(title: str, element_list: List[str]) -> Component:
-    text_element_list = [H2(title)] + [Span(element, className='d-block') for element in element_list]
+    text_element_list = [H2(title, className='mb-4')] + \
+                        [Span(element, className='d-block mb-3') for element in element_list]
     return Div(
         text_element_list,
         className='footer-left-content'
@@ -40,7 +41,7 @@ def FooterLeft():
     return Div([
         FooterElement(
             'Le site',
-            ['À propos', 'À propos', 'Mentions légales', 'Contact']
+            ['À propos', 'Plan de site', 'Mentions légales', 'Contact']
         ),
         FooterElement(
             'Partenaires',
