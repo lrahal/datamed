@@ -9,8 +9,8 @@ dependencies:
   - branca=0.4.2=pyhd8ed1ab_0
   - brotli-python=1.0.9=py38h79c402e_2
   - brotlipy=0.7.0=py38h9ed2024_1003
-  - ca-certificates=2020.10.14=0
-  - certifi=2020.6.20=py38_0
+  - ca-certificates=2021.1.19=hecd8cb5_0
+  - certifi=2020.12.5=py38hecd8cb5_0
   - cffi=1.14.4=py38h2125817_0
   - chardet=4.0.0=py38hecd8cb5_1003
   - click=7.1.2=pyhd3eb1b0_0
