@@ -2,7 +2,7 @@ from dash.development.base_component import Component
 from dash_html_components import Div, A, H2, H3, Span, Iframe, Img, P
 
 
-def Indicateur(value, text, color, class_name):
+def Indicateur(value: int, text: str, color: str, class_name: str) -> Component:
     return Span(
         [Span(str(value), style={'color': color, 'font-size': '20px'}), text],
         className=class_name,
@@ -49,7 +49,7 @@ def DonneesUne() -> Component:
         Div([
             Iframe(
                 id='map',
-                srcDoc=open('assets/map.html', 'r').read()
+                srcDoc=open('./assets/map.html', 'r').read()
             )
         ],
             className='six grid-content'
