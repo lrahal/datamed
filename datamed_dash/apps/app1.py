@@ -1,4 +1,3 @@
-import dash_core_components as dcc
 from dash_html_components import Div
 
 from .components.donnees_une import DonneesUne

@@ -1,7 +1,7 @@
-from dash.development.base_component import Component
-from dash_html_components import Div, H3, Span, Img, H2, A, B
-from dash_bootstrap_components import Button
 from typing import List
+
+from dash.development.base_component import Component
+from dash_html_components import Div, H3, Span, Img, H2, B
 
 
 def FooterElement(title: str, element_list: List[str]) -> Component:
