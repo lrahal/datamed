@@ -1,11 +1,40 @@
 from dash.development.base_component import Component
-from dash_html_components import Div, A, H2, H3, Span, Iframe, Img, P
+from dash_bootstrap_components import Card, CardImg, CardBody, CardLink
+from dash_html_components import Div, A, H2, H4, Span, Iframe, P
 
 
 def Indicateur(value: int, text: str, color: str, class_name: str) -> Component:
     return Span(
         [Span(str(value), style={'color': color, 'font-size': '20px'}), text],
         className=class_name,
+    )
+
+
+def RuptureCard():
+    src = '/assets/pills.jpg'
+    return Card(
+        [
+            CardImg(src=src, top=True),
+            CardBody(
+                [
+                    H4(
+                        "Qu'est-ce qu'une rupture ?",
+                        className='card-title'
+                    ),
+                    P(
+                        "Déclaration ou réelle rupture ? Nos experts vous "
+                        "expliquent la différence avec des chiffres analysés",
+                        className='card-text',
+                    ),
+                    CardLink(
+                        "VOIR L'ANALYSE THÉMATIQUE",
+                        href='analyse_thematique_ruptures',
+                        className='analyse-thematique',
+                    ),
+                ]
+            ),
+        ],
+        className='five grid-content d-flex flex-column align-items-center text-left'
     )
 
 
@@ -24,33 +53,7 @@ def DonneesUne() -> Component:
                 Indicateur(265, ' ruptures de médicaments', '#ff8c00', 'two grid-content'),
                 Indicateur(10, ' pays fabriquent du paracétamol', '#ff8c00', 'three grid-content'),
                 Indicateur(1921, ' effets indésirables vaccin COVID 19', '#ff8c00', 'four grid-content'),
-                Div([
-                    Img(
-                        src=src,
-                        style={'width': '100%'}
-                    ),
-                    Div([
-                        H3(
-                            "Qu'est-ce qu'une rupture ?",
-                            className='d-block text-left',
-                        ),
-                        P(
-                            "Déclaration ou réelle rupture ? Nos experts vous expliquent la différence avec des chiffres analysés",
-                            className='py-5 d-block text-left',
-                        ),
-                        A(
-                            id='link',
-                            href='analyse_thematique_ruptures',
-                            children="VOIR L'ANALYSE THÉMATIQUE",
-                            target="_blank",
-                            className='analyse-thematique d-block text-left'
-                        ),
-                    ],
-                        className='px-4 py-4 d-block'
-                    ),
-                ],
-                    className='five grid-content'
-                ),
+                RuptureCard(),
                 Div([
                     Iframe(
                         id='map',
