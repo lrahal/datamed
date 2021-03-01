@@ -24,4 +24,5 @@
 
 .layout {
     background-color: #fbfcfd;
+    z-index: -2;
 }

@@ -1,8 +1,9 @@
 .donnees-une-container {
-    display: flex;
-    flex-direction:column;
     position: relative;
-    margin-top: 300px;
+    padding-top: 300px;
+    padding-bottom: 380px;
+    background-color: #afca0b;
+
 }
 
 .donnees-une-content {
@@ -11,31 +12,42 @@
     flex-direction:column;
 }
 
-.donnees-une-content > h2 {
-    align-self: center;
-    top: -5em;
-    position: relative;
+.donnees-une-content > * {
+    z-index: 1;
 }
 
-.top {
-    width:100%;
+.donnees-une-container .before {
     position: absolute;
-    top: -200px;
-    background: url("./BG_green1.svg");
+    background: #fbfcfd;
+    width: 100%;
+    top: 0;
+}
+
+.donnees-une-container .before > div{
+    background: url("./BG_green1w.svg");
     background-repeat: no-repeat;
-    height: 200px;
-    z-index: 0;
-    transform:scale(2);
-    background-size:cover;
+    height: 600px;
+    width: 2000px;
+    margin: auto;
+    position: relative;
+    right: 270px;
 }
 
-.bottom {
-    width:100%;
+.donnees-une-container .after {
     position: absolute;
-    bottom: -220px;
+    background: #fbfcfd;
+    width: 100%;
+    bottom: 0;
+}
+
+.donnees-une-container .after > div {
     background: no-repeat url("./BG_green2.svg");
-    background-size: cover;
-    height: 230px;
+    background-repeat-x: repeat;
+    height: 500px;
+    width: 100%;
+    margin: auto;
+    position: relative;
+    background-position: -200px 0;
 }
 
 .donnees-une {
@@ -47,9 +59,6 @@
     grid-gap: 30px;
     grid-auto-rows: minmax(60px, auto);
     white-space: pre-wrap;
-
-    background-color: #afca0b;
-    z-index: 1;
 }
 
 .analyse-thematique {
