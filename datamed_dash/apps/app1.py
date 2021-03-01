@@ -14,5 +14,6 @@ layout = Div(
         Plateforme(),
         Footer(),
     ],
-    id='layout',
+    className='layout',
+    id='layout_landing_page',
 )
