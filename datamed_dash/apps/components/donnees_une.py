@@ -31,10 +31,11 @@ def RuptureCard():
                         href='analyse_thematique_ruptures',
                         className='analyse-thematique',
                     ),
-                ]
+                ],
+                className='d-flex flex-column justify-content-center text-left',
             ),
         ],
-        className='five grid-content d-flex flex-column align-items-center text-left'
+        className='five grid-content'
     )
 
 
