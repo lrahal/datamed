@@ -11,10 +11,9 @@ def Indicateur(value: int, text: str, color: str, class_name: str) -> Component:
 
 
 def RuptureCard():
-    src = '/assets/pills.jpg'
     return Card(
         [
-            CardImg(src=src, top=True),
+            CardImg(src='/assets/pills.jpg', top=True),
             CardBody(
                 [
                     H4(
@@ -31,23 +30,21 @@ def RuptureCard():
                         href='analyse_thematique_ruptures',
                         className='analyse-thematique',
                     ),
-                ]
+                ],
+                className='d-flex flex-column justify-content-center text-left',
             ),
         ],
-        className='five grid-content d-flex flex-column align-items-center text-left'
+        className='five grid-content'
     )
 
 
 def DonneesUne() -> Component:
-    src = '/assets/pills.jpg'
     return Div([
-        Div(
-            [],
-            className='top'
-        ),
+        Div(Div(), className="before"),
         Div([
             H2(
                 'Les données à la une',
+                className="m-auto"
             ),
             Div([
                 Indicateur(265, ' ruptures de médicaments', '#ff8c00', 'two grid-content'),
@@ -83,10 +80,8 @@ def DonneesUne() -> Component:
                 className='donnees-une',
             ),
         ], className='donnees-une-content'),
-        Div(
-            [],
-            className='bottom'
-        ),
+        Div(Div(), className="after"),
+
     ],
         className='donnees-une-container'
     )
