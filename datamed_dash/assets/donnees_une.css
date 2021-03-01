@@ -1,7 +1,3 @@
-h2 {
-display:block;
-}
-
 .donnees-une-container {
     display: flex;
     flex-direction:column;
@@ -16,9 +12,9 @@ display:block;
 }
 
 .donnees-une-content > h2 {
-    align-self:center;
-    top:-5em;
-    position:relative;
+    align-self: center;
+    top: -5em;
+    position: relative;
 }
 
 .top {
