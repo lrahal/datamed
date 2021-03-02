@@ -4,26 +4,28 @@ from sqlalchemy import create_engine, Column, Integer, String, ForeignKeyConstra
 from sqlalchemy.dialects.mysql import LONGTEXT, FLOAT, YEAR, DATE, BOOLEAN
 from sqlalchemy.ext.declarative import declarative_base
 
-from local_settings import db_credentials
-print("test")
-print(db_credentials)
+# load environment variables
+HOSTNAME = "localhost"
+DBNAME = "fab_sites"
+UNAME = "root"
+MYSQL_PWD = os.environ.get("MYSQL_PWD")
 
 
 def connect_db():
     # create db create_engine
-    return create_engine('mysql+pymysql://{user}:{pw}@{host}/{db}'
-                         .format(host=db_credentials['HOSTNAME'],
-                                 db=db_credentials['DBNAME'],
-                                 user=db_credentials['UNAME'],
-                                 pw=db_credentials['MYSQL_PWD']),
-                         echo=False)
+    return create_engine(
+        "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
+            host=HOSTNAME, db=DBNAME, user=UNAME, pw=MYSQL_PWD
+        ),
+        echo=False,
+    )
 
 
 Base = declarative_base()
 
 
 class Specialite(Base):
-    __tablename__ = 'specialite'
+    __tablename__ = "specialite"
 
     cis = Column(String(120), primary_key=True)
     name = Column(LONGTEXT, nullable=True)
@@ -36,7 +38,7 @@ class Specialite(Base):
 
 
 class SubstanceActive(Base):
-    __tablename__ = 'substance_active'
+    __tablename__ = "substance_active"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
@@ -44,10 +46,10 @@ class SubstanceActive(Base):
 
 
 class SpecialiteSubstance(Base):
-    __tablename__ = 'specialite_substance'
+    __tablename__ = "specialite_substance"
     __table_args__ = (
-        ForeignKeyConstraint(['cis'], ['specialite.cis']),
-        ForeignKeyConstraint(['substance_active_id'], ['substance_active.id']),
+        ForeignKeyConstraint(["cis"], ["specialite.cis"]),
+        ForeignKeyConstraint(["substance_active_id"], ["substance_active.id"]),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -61,10 +63,8 @@ class SpecialiteSubstance(Base):
 
 
 class Presentation(Base):
-    __tablename__ = 'presentation'
-    __table_args__ = (
-        ForeignKeyConstraint(['cis'], ['specialite.cis']),
-    )
+    __tablename__ = "presentation"
+    __table_args__ = (ForeignKeyConstraint(["cis"], ["specialite.cis"]),)
 
     cip13 = Column(String(13), primary_key=True)
     libelle = Column(LONGTEXT, nullable=True)
@@ -73,7 +73,7 @@ class Presentation(Base):
 
 
 class Fabrication(Base):
-    __tablename__ = 'fabrication'
+    __tablename__ = "fabrication"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     address = Column(LONGTEXT, nullable=False)
@@ -83,7 +83,7 @@ class Fabrication(Base):
 
 
 class Pays(Base):
-    __tablename__ = 'pays'
+    __tablename__ = "pays"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     address = Column(LONGTEXT, nullable=False)
@@ -93,10 +93,10 @@ class Pays(Base):
 
 
 class Production(Base):
-    __tablename__ = 'production'
+    __tablename__ = "production"
     __table_args__ = (
-        ForeignKeyConstraint(['cis'], ['specialite.cis']),
-        ForeignKeyConstraint(['substance_active_id'], ['substance_active.id']),
+        ForeignKeyConstraint(["cis"], ["specialite.cis"]),
+        ForeignKeyConstraint(["substance_active_id"], ["substance_active.id"]),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -121,7 +121,7 @@ class Production(Base):
 
 
 class Ruptures(Base):
-    __tablename__ = 'ruptures'
+    __tablename__ = "ruptures"
     __table_args__ = ()
 
     id_signal = Column(Integer, primary_key=True)
@@ -147,7 +147,7 @@ class Ruptures(Base):
 
 
 class RupturesDC(Base):
-    __tablename__ = 'ruptures_dc'
+    __tablename__ = "ruptures_dc"
     __table_args__ = ()
 
     id_signal = Column(Integer, primary_key=True)
@@ -170,10 +170,8 @@ class RupturesDC(Base):
 
 
 class Ventes(Base):
-    __tablename__ = 'ventes'
-    __table_args__ = (
-        ForeignKeyConstraint(['cis'], ['specialite.cis']),
-    )
+    __tablename__ = "ventes"
+    __table_args__ = (ForeignKeyConstraint(["cis"], ["specialite.cis"]),)
 
     octave_id = Column(Integer, primary_key=True)
     annee = Column(YEAR, nullable=False)
@@ -192,10 +190,8 @@ class Ventes(Base):
 
 
 class Produits(Base):
-    __tablename__ = 'produits'
-    __table_args__ = (
-        ForeignKeyConstraint(['cis'], ['specialite.cis']),
-    )
+    __tablename__ = "produits"
+    __table_args__ = (ForeignKeyConstraint(["cis"], ["specialite.cis"]),)
 
     cis = Column(String(120), primary_key=True)
     specialite = Column(LONGTEXT, nullable=False)
@@ -203,10 +199,8 @@ class Produits(Base):
 
 
 class ServiceMedicalRendu(Base):
-    __tablename__ = 'service_medical_rendu'
-    __table_args__ = (
-        ForeignKeyConstraint(['cis'], ['specialite.cis']),
-    )
+    __tablename__ = "service_medical_rendu"
+    __table_args__ = (ForeignKeyConstraint(["cis"], ["specialite.cis"]),)
 
     cis = Column(String(120), primary_key=True)
     code_dossier = Column(LONGTEXT, nullable=False)
