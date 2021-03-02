@@ -5,9 +5,9 @@ from dash_html_components import Div, Img, Span, A, B
 
 
 def LogoAnsm() -> Component:
-    src = '/assets/logo_ansm.png'
-    img = Img(src=src, style={'width': '100px', 'display': 'inline-block'})
-    return dcc.Link(img, href='/')
+    src = "/assets/logo_ansm.png"
+    img = Img(src=src, style={"width": "100px", "display": "inline-block"})
+    return dcc.Link(img, href="/")
 
 
 def UrlAnsm() -> Component:
@@ -21,7 +21,7 @@ def MenuItem(title: str, href: str) -> Component:
     return A(
         title,
         href=href,
-        className='nav-link text-secondary d-inline-block',
+        className="nav-link text-secondary d-inline-block",
     )
 
 
@@ -33,7 +33,7 @@ def DropDown() -> Component:
             DropdownMenuItem("Erreurs médicamenteuses"),
             DropdownMenuItem("Effets indésirables"),
         ],
-        className='navbar-dropdown d-inline-block',
+        className="navbar-dropdown d-inline-block",
     )
 
 
@@ -46,15 +46,21 @@ def Navbar() -> Component:
                     UrlAnsm(),
                     Div(
                         [
-                            MenuItem('Analyses thématiques', '/'),
+                            MenuItem("Analyses thématiques", "/"),
                             DropDown(),
-                            MenuItem('À propos', '/'),
-                            Button("CONTACT", outline=True, className="mr-1", color="primary")],
-                        className='navbar-menu',
+                            MenuItem("À propos", "/"),
+                            Button(
+                                "CONTACT",
+                                outline=True,
+                                className="mr-1",
+                                color="primary",
+                            ),
+                        ],
+                        className="navbar-menu",
                     ),
                 ],
-                className='navbar-span'
-            )
+                className="navbar-span",
+            ),
         ],
-        className='navbar-layout container-fluid d-flex'
+        className="navbar-layout container-fluid d-flex",
     )
