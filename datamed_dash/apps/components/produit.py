@@ -1,18 +1,10 @@
 from dash.development.base_component import Component
 from dash_bootstrap_components import (
-    Button,
-    Row,
-    Col,
-    Input,
     Popover,
     PopoverHeader,
     PopoverBody,
-    Card,
-    CardImg,
-    CardBody,
-    CardLink,
 )
-from dash_html_components import Div, A, H1, H2, H3, H4, H6, P, Span
+from dash_html_components import Div, A, H1, H4, H6, P, Span, Img
 
 
 def DescriptionProduit() -> Component:
@@ -63,6 +55,7 @@ def DescriptionProduit() -> Component:
 def PatientsTraites() -> Component:
     return Div(
         [
+            H1("Patients traités", className="section-title"),
             Div(
                 [
                     Span("36 832 698,4 patients/an", className="number"),
@@ -79,22 +72,132 @@ def PatientsTraites() -> Component:
                         [
                             H6(
                                 "Répartition par sexe des patients traités",
-                            )
+                                className="d-block",
+                            ),
+                            Img(
+                                src="/assets/Graph_Nbtraites_sexe.svg",
+                                className="d-block",
+                            ),
                         ],
                         className="box d-inline-block",
                     ),
                     Div(
                         [
                             H6(
-                                "Répartition par sexe des patients traités",
+                                "Répartition par âge des patients traités",
+                                className="d-block",
+                            ),
+                            Img(
+                                src="/assets/Graph_Nbtraites_age.svg",
+                                className="d-block",
                             ),
                         ],
                         className="box d-inline-block",
                     ),
                 ]
             ),
-        ]
+        ],
+        style=({"margin-bottom": "200px"}),
     )
 
 
-# /assets/Card chart2.png
+def CasDeclares() -> Component:
+    return Div(
+        [
+            H1("Cas déclarés d'effets indésirables", className="section-title"),
+            Div(
+                [
+                    Div(
+                        [
+                            Span("2,5 cas/an", className="number"),
+                            P(
+                                "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018",
+                                className="mt-2",
+                            ),
+                        ],
+                        className="box d-inline-block",
+                    ),
+                    Div(
+                        [
+                            Span("4 654 cas déclarés", className="number"),
+                            P(
+                                "Nombre de cas déclarés sur la période 2014/2018",
+                                className="mt-2",
+                            ),
+                        ],
+                        className="box d-inline-block",
+                    ),
+                ],
+                className="d-block",
+            ),
+            Div(
+                [
+                    P(
+                        "Nombre de cas déclarés d'effets indésirables et patients traités par année",
+                        className="mt-2",
+                    ),
+                    Img(src="/assets/Graph_Nbcas_EI.svg", className="d-block"),
+                ],
+                className="box d-block",
+            ),
+            Div(
+                [
+                    Div(
+                        [
+                            H6(
+                                "Répartition par sexe des patients traités",
+                                className="d-block",
+                            ),
+                            Img(
+                                src="/assets/Graph_Nbcas_sexe.svg", className="d-block"
+                            ),
+                        ],
+                        className="box d-inline-block",
+                    ),
+                    Div(
+                        [
+                            H6(
+                                "Répartition par âge des patients traités",
+                                className="d-block",
+                            ),
+                            Img(
+                                src="/assets/Graph_Nbcas_age.svg",
+                                className="d-block",
+                            ),
+                        ],
+                        className="box d-inline-block",
+                    ),
+                ]
+            ),
+            Div(
+                [
+                    P(
+                        "Répartition par type de notificateur",
+                        className="mt-2",
+                    ),
+                    Img(src="/assets/Graph_TypeNotificateur.svg", className="d-block"),
+                ],
+                className="box d-block",
+            ),
+        ],
+        style=({"margin-bottom": "200px"}),
+    )
+
+
+def Organes() -> Component:
+    return Div(
+        [
+            H1("Effets indésirables par systèmes d'organes", className="section-title"),
+            Div(
+                [
+                    P(
+                        "Répartition par type de notificateur",
+                        className="mt-2",
+                    ),
+                    Img(src="/assets/Graph_EIsystemeorganes.svg", className="d-block"),
+                ],
+                className="box d-block",
+            ),
+        ],
+        style=({"margin-bottom": "200px"}),
+    )
