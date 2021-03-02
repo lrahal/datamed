@@ -11,6 +11,6 @@ layout = Div(
         PatientsTraites(),
         Footer(),
     ],
-    className='layout',
-    id='layout_produit',
+    className="layout",
+    id="layout_produit",
 )

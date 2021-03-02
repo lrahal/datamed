@@ -18,18 +18,27 @@ def SearchBar() -> Component:
 
 def MainSearch() -> Component:
     return Div(
-        Div([
-            H1(
-                "Trouvez des données autour du médicament",
-                style={'font-size': '30px'}
-            ),
-            SearchBar(),
-            Button('RECHERCHER', n_clicks=0, outline=True, className='mr-1', color='secondary', id='rechercher-button',
-                   style={'margin-top': '3rem'}, href="/apps/app2")
-        ],
-            className='main-search'
+        Div(
+            [
+                H1(
+                    "Trouvez des données autour du médicament",
+                    style={"font-size": "30px"},
+                ),
+                SearchBar(),
+                Button(
+                    "RECHERCHER",
+                    n_clicks=0,
+                    outline=True,
+                    className="mr-1",
+                    color="secondary",
+                    id="rechercher-button",
+                    style={"margin-top": "3rem"},
+                    href="/apps/app2",
+                ),
+            ],
+            className="main-search",
         ),
-        className='main-search-container'
+        className="main-search-container",
     )
 
 

@@ -5,22 +5,20 @@ from dash.dependencies import Output, Input
 from app import app, server
 from apps import app1, app2
 
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
-])
+app.layout = html.Div(
+    [dcc.Location(id="url", refresh=False), html.Div(id="page-content")]
+)
 
 
-@app.callback(Output('page-content', 'children'),
-              Input('url', 'pathname'))
+@app.callback(Output("page-content", "children"), Input("url", "pathname"))
 def display_page(pathname):
-    if pathname == '/apps/app1':
+    if pathname == "/apps/app1":
         return app1.layout
-    elif pathname == '/apps/app2':
+    elif pathname == "/apps/app2":
         return app2.layout
     else:
         return app1.layout
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run_server(debug=True)
