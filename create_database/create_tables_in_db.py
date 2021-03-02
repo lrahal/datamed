@@ -1,5 +1,6 @@
 import re
 from typing import List, Dict
+import paths
 
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
@@ -85,7 +86,7 @@ def get_cis_api_list() -> List[Dict]:
     """
     Table specialite_substance
     """
-    df = upload_compo_from_rsp('/Users/ansm/Documents/GitHub/datamed/create_database/data/RSP/COMPO_RSP.txt')
+    df = upload_compo_from_rsp(path.P_COMPO_RSP)
     df_api = pd.read_sql_table('substance_active', connection)
     df = df.merge(df_api, left_on=['code_substance', 'substance_active'], right_on=['code', 'name'], how='left')
     df = df[['cis', 'elem_pharma', 'id', 'dosage', 'ref_dosage', 'nature_composant', 'num_lien']]
@@ -102,7 +103,7 @@ def get_cis_list(df: pd.DataFrame) -> List[Dict]:
     df_cis = upload_cis_from_rsp('./create_database/data/RSP/CIS_RSP.txt')
 
     # Add atc class to df_cis dataframe
-    df_atc = pd.read_excel('./create_database/data/CIS-ATC_2021-01-04.xlsx',
+    df_atc = pd.read_excel(paths.P_CIS_ATC,
                            names=['cis', 'atc', 'nom_atc'], header=0, dtype={'cis': str})
     df_atc = df_atc.drop_duplicates()
 
@@ -274,7 +275,7 @@ def get_ruptures() -> List[Dict]:
     """
     Table ruptures
     """
-    df = pd.read_excel('analysis/data/decret_stock/DRAFT décret stock VOIE.xlsx', header=0, sheet_name='Raw')
+    df = pd.read_excel(paths.P_DECRET, header=0, sheet_name='Raw')
 
     # Cleaning
     df = df[['ID_Signal', 'Signalement', 'Date Signalement', 'Laboratoire', 'Spécialité',
@@ -299,10 +300,10 @@ def get_ruptures() -> List[Dict]:
     df.voie_4_classes = df.voie_4_classes.str.lower()
     df.rupture = df.rupture.str.lower()
     df.etat_dossier = df.etat_dossier.str.lower()
-    df.date_signalement = pd.to_datetime(df.date_signalement).apply(lambda x: x.date())
-    df.date_signal_debut_rs = pd.to_datetime(df.date_signal_debut_rs).apply(lambda x: x.date())
-    df.date_previ_ville = pd.to_datetime(df.date_previ_ville).apply(lambda x: x.date())
-    df.date_previ_hopital = pd.to_datetime(df.date_previ_hopital).apply(lambda x: x.date())
+    df.date_signalement = pd.to_datetime(df.date_signalement).dt.date()
+    df.date_signal_debut_rs = pd.to_datetime(df.date_signal_debut_rs).dt.date()
+    df.date_previ_ville = pd.to_datetime(df.date_previ_ville).dt.date()
+    df.date_previ_hopital = pd.to_datetime(df.date_previ_hopital).dt.date()
     df = df.where(pd.notnull(df), None)
     df.volumes_ventes_ville = df.volumes_ventes_ville.apply(lambda x: get_volumes(x))
     df.volumes_ventes_hopital = df.volumes_ventes_hopital.apply(lambda x: get_volumes(x))
@@ -317,7 +318,7 @@ def get_ruptures_dc() -> List[Dict]:
     """
     Table ruptures pour le décret stock
     """
-    df = pd.read_csv('analysis/data/decret_stock/ruptures.csv', sep=';')
+    df = pd.read_csv(paths.P_RUPTURES, sep=';')
 
     df.date_signalement = pd.to_datetime(df.date_signalement).apply(lambda x: x.date())
     df.date_signal_debut_rs = pd.to_datetime(df.date_signal_debut_rs).apply(lambda x: x.date())
@@ -338,15 +339,15 @@ def get_ventes() -> List[Dict]:
     Table ventes
     From OCTAVE database
     """
-    df_2017 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2017_ATC_voie.xlsx',
+    df_2017 = pd.read_excel(paths.P_VENTES_2017,
                             dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'Identifiant OCTAVE': int})
     df_2017['Nom Labo'] = None
 
-    df_2018 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2018_ATC_voie.xlsx',
+    df_2018 = pd.read_excel(paths.P_VENTES_2018,
                             dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'Identifiant OCTAVE': int})
     df_2018['Nom Labo'] = None
 
-    df_2019 = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/OCTAVE/Octave_2019_ATC_voie.xlsx',
+    df_2019 = pd.read_excel(paths.P_VENTES_2019,
                             dtype={'code CIS': str, 'Code CIP': str, 'Année': int, 'Identifiant OCTAVE': int})
 
     df = pd.concat([df_2017, df_2018, df_2019])
@@ -372,8 +373,7 @@ def get_ventes() -> List[Dict]:
 
 
 def get_produits() -> List[Dict]:
-    df = pd.read_excel('/Users/ansm/Documents/GitHub/datamed/create_database/data/corresp_cis_spe_prod.xlsx',
-                       dtype={'cis': str})
+    df = pd.read_excel(paths.P_CIS_SPE_PROD, dtype={'cis': str})
     df = df.drop_duplicates()
     return df.to_dict(orient='records')
 
@@ -381,12 +381,12 @@ def get_produits() -> List[Dict]:
 def get_smr() -> List[Dict]:
     # Read CIS_HAS_SMR_bdpm.txt & CIS_HAS_ASMR_bdpm.txt files and put in dataframes
     col_names_smr = ['cis', 'code_dossier', 'motif', 'date_avis', 'smr', 'libelle_smr']
-    df_smr = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/create_database/data/CIS_HAS_SMR_bdpm.txt',
+    df_smr = pd.read_csv(paths.P_CIS_HAS_SMR,
                          sep='\t', encoding='latin1', names=col_names_smr, header=None, dtype={'cis': str})
     df_smr.libelle_smr = df_smr.libelle_smr.apply(lambda x: re.sub(r'[\x92]', "'", x))
 
     col_names_asmr = ['cis', 'code_dossier', 'motif', 'date_avis', 'asmr', 'libelle_asmr']
-    df_asmr = pd.read_csv('/Users/ansm/Documents/GitHub/datamed/create_database/data/CIS_HAS_ASMR_bdpm.txt',
+    df_asmr = pd.read_csv(paths.P_CIS_HAS_ASMR,
                           sep='\t', encoding='latin1', names=col_names_asmr, header=None, dtype={'cis': str})
     df_asmr.libelle_asmr = df_asmr.libelle_asmr.apply(lambda x: re.sub(r'[\x92]', "'", x))
 
@@ -468,7 +468,7 @@ def save_to_database_orm(session):
         session.commit()
 
     # Write countries by address csv file
-    path = '/Users/ansm/Documents/GitHub/datamed/create_database/data/countries_by_address.csv'
+    path = paths.P_COUNTRIES
     get_countries_list(df, path)
 
     # Création table Pays
@@ -532,7 +532,6 @@ def save_to_database_orm(session):
         produits = Produits(**produits_dict)
         session.add(produits)
         session.commit()
-
 
     # Création table ServiceMedicalRendu
     smr_list = get_smr()
