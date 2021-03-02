@@ -11,9 +11,7 @@ def DescriptionProduit() -> Component:
     return Div(
         Div(
             [
-                H1(
-                    "Doliprane",
-                ),
+                H1("Doliprane"),
                 H4(
                     "PRODUIT",
                     id="produit-target",
@@ -58,10 +56,9 @@ def PatientsTraites() -> Component:
             H1("Patients traités", className="section-title"),
             Div(
                 [
-                    Span("36 832 698,4 patients/an", className="number"),
+                    Div("36 832 698,4 patients/an", className="box-highlight"),
                     P(
-                        "Nombre moyen de patients traités par an sur la période 2014/2018",
-                        className="mt-2",
+                        "Nombre moyen de patients traités par an sur la période 2014/2018"
                     ),
                 ],
                 className="box d-block",
@@ -70,27 +67,15 @@ def PatientsTraites() -> Component:
                 [
                     Div(
                         [
-                            H6(
-                                "Répartition par sexe des patients traités",
-                                className="d-block",
-                            ),
-                            Img(
-                                src="/assets/Graph_Nbtraites_sexe.svg",
-                                className="d-block",
-                            ),
+                            H6("Répartition par sexe des patients traités"),
+                            Img(src="/assets/Graph_Nbtraites_sexe.svg"),
                         ],
                         className="box d-inline-block",
                     ),
                     Div(
                         [
-                            H6(
-                                "Répartition par âge des patients traités",
-                                className="d-block",
-                            ),
-                            Img(
-                                src="/assets/Graph_Nbtraites_age.svg",
-                                className="d-block",
-                            ),
+                            H6("Répartition par âge des patients traités"),
+                            Img(src="/assets/Graph_Nbtraites_age.svg"),
                         ],
                         className="box d-inline-block",
                     ),
@@ -109,61 +94,44 @@ def CasDeclares() -> Component:
                 [
                     Div(
                         [
-                            Span("2,5 cas/an", className="number"),
+                            Div("2,5 cas/an", className="box-highlight"),
                             P(
-                                "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018",
-                                className="mt-2",
+                                "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018"
                             ),
                         ],
                         className="box d-inline-block",
                     ),
                     Div(
                         [
-                            Span("4 654 cas déclarés", className="number"),
-                            P(
-                                "Nombre de cas déclarés sur la période 2014/2018",
-                                className="mt-2",
-                            ),
+                            Div("4 654 cas déclarés", className="box-highlight"),
+                            P("Nombre de cas déclarés sur la période 2014/2018"),
                         ],
                         className="box d-inline-block",
                     ),
                 ],
-                className="d-block",
             ),
             Div(
                 [
                     P(
-                        "Nombre de cas déclarés d'effets indésirables et patients traités par année",
-                        className="mt-2",
+                        "Nombre de cas déclarés d'effets indésirables et patients traités par année"
                     ),
                     Img(src="/assets/Graph_Nbcas_EI.svg", className="d-block"),
                 ],
-                className="box d-block",
+                className="box",
             ),
             Div(
                 [
                     Div(
                         [
-                            H6(
-                                "Répartition par sexe des patients traités",
-                                className="d-block",
-                            ),
-                            Img(
-                                src="/assets/Graph_Nbcas_sexe.svg", className="d-block"
-                            ),
+                            H6("Répartition par sexe des patients traités"),
+                            Img(src="/assets/Graph_Nbcas_sexe.svg"),
                         ],
                         className="box d-inline-block",
                     ),
                     Div(
                         [
-                            H6(
-                                "Répartition par âge des patients traités",
-                                className="d-block",
-                            ),
-                            Img(
-                                src="/assets/Graph_Nbcas_age.svg",
-                                className="d-block",
-                            ),
+                            H6("Répartition par âge des patients traités"),
+                            Img(src="/assets/Graph_Nbcas_age.svg"),
                         ],
                         className="box d-inline-block",
                     ),
@@ -171,13 +139,10 @@ def CasDeclares() -> Component:
             ),
             Div(
                 [
-                    P(
-                        "Répartition par type de notificateur",
-                        className="mt-2",
-                    ),
-                    Img(src="/assets/Graph_TypeNotificateur.svg", className="d-block"),
+                    P("Répartition par type de notificateur"),
+                    Img(src="/assets/Graph_TypeNotificateur.svg"),
                 ],
-                className="box d-block",
+                className="box",
             ),
         ],
         style=({"margin-bottom": "200px"}),
@@ -190,10 +155,7 @@ def Organes() -> Component:
             H1("Effets indésirables par systèmes d'organes", className="section-title"),
             Div(
                 [
-                    P(
-                        "Répartition par type de notificateur",
-                        className="mt-2",
-                    ),
+                    P("Répartition par type de notificateur"),
                     Img(src="/assets/Graph_EIsystemeorganes.svg", className="d-block"),
                 ],
                 className="box d-block",
