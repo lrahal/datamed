@@ -5,13 +5,14 @@ from dash_bootstrap_components import (
     PopoverBody,
 )
 from dash_html_components import Div, A, H1, H4, H6, P, Span, Img
+from sm import SideMenu
 
 
 def DescriptionProduit() -> Component:
     return Div(
         Div(
             [
-                H1("Doliprane"),
+                H1("Doliprane", className="nav-title", id="Desc"),
                 H4(
                     "PRODUIT",
                     id="produit-target",
@@ -53,7 +54,7 @@ def DescriptionProduit() -> Component:
 def PatientsTraites() -> Component:
     return Div(
         [
-            H1("Patients traités", className="section-title"),
+            H1("Patients traités", className="section-title nav-title", id="Pop"),
             Div(
                 [
                     Div("36 832 698,4 patients/an", className="box-highlight"),
@@ -89,7 +90,7 @@ def PatientsTraites() -> Component:
 def CasDeclares() -> Component:
     return Div(
         [
-            H1("Cas déclarés d'effets indésirables", className="section-title"),
+            H1("Cas déclarés d'effets indésirables", className="section-title nav-title", id="Effets"),
             Div(
                 [
                     Div(
@@ -162,4 +163,31 @@ def Organes() -> Component:
             ),
         ],
         style=({"margin-bottom": "200px"}),
+    )
+
+
+def Produit() -> Component:
+    return Div(
+        [
+            SideMenu(
+                id="side-menu",
+                items=[
+                    {"id": "Desc", "label": "Description"},
+                    {"id": "Pop", "label": "Population concernée"},
+                    {"id": "Effets", "label": "Effets indésirables"},
+                    {"id": "EM", "label": "Erreurs médicamenteuses"},
+                    {"id": "PF", "label": "Pays de fabrication"},
+                ],
+                className="side-menu"
+            ),
+            Div(
+                [
+                    DescriptionProduit(),
+                    PatientsTraites(),
+                    CasDeclares(),
+                    Organes(),
+                ]
+            ),
+        ],
+        className="side-menu-container"
     )

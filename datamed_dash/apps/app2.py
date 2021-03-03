@@ -2,15 +2,12 @@ from dash_html_components import Div
 
 from .components.footer import Footer
 from .components.navbar import Navbar
-from .components.produit import DescriptionProduit, PatientsTraites, CasDeclares, Organes
+from .components.produit import Produit
 
 layout = Div(
     [
         Navbar(),
-        DescriptionProduit(),
-        PatientsTraites(),
-        CasDeclares(),
-        Organes(),
+        Produit(),
         Footer(),
     ],
     className="layout",
