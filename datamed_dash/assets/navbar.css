@@ -6,6 +6,7 @@
     display: flex;
     align-items: center;
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24);
+    background-color: #fff;
 }
 
 .navbar-span {
@@ -42,4 +43,10 @@
     color: #fff !important;
     background-color: #ab3e94 !important;
     border: none;
+}
+
+.vl {
+  border-left: 1px solid;
+  border-color: #808080;
+  height: 40px;
 }

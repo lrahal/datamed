@@ -13,7 +13,8 @@ def LogoAnsm() -> Component:
 def UrlAnsm() -> Component:
     return Span(
         ["data.", B("ansm.sante.fr")],
-        className="ml-2 d-inline-block text-dark",
+        style={"color": "black"},
+        className="ml-2 d-inline-block",
     )
 
 
@@ -21,7 +22,7 @@ def MenuItem(title: str, href: str) -> Component:
     return A(
         title,
         href=href,
-        className="nav-link text-secondary d-inline-block",
+        className="nav-link text-secondary d-inline-block mr-4",
     )
 
 
@@ -33,7 +34,7 @@ def DropDown() -> Component:
             DropdownMenuItem("Erreurs médicamenteuses"),
             DropdownMenuItem("Effets indésirables"),
         ],
-        className="navbar-dropdown d-inline-block",
+        className="navbar-dropdown d-inline-block mr-4",
     )
 
 
@@ -48,6 +49,7 @@ def Navbar() -> Component:
                         [
                             MenuItem("Analyses thématiques", "/"),
                             DropDown(),
+                            Div(className="vl mr-4"),
                             MenuItem("À propos", "/"),
                             Button(
                                 "CONTACT",
@@ -62,5 +64,5 @@ def Navbar() -> Component:
                 className="navbar-span",
             ),
         ],
-        className="navbar-layout container-fluid d-flex",
+        className="navbar-layout container-fluid d-flex sticky-top",
     )

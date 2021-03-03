@@ -1,7 +1,7 @@
 from dash.dependencies import Input, Output
 from dash.development.base_component import Component
 from dash_bootstrap_components import Button, Row, Col, Input
-from dash_html_components import Div, H1
+from dash_html_components import Div, Span
 from app import app
 
 
@@ -11,7 +11,7 @@ def SearchBar() -> Component:
             Col(Input(type="search", placeholder="Médicament, substance active")),
         ],
         no_gutters=True,
-        className="ml-auto flex-nowrap mt-3",
+        className="search-bar ml-auto flex-nowrap",
         align="center",
     )
 
@@ -20,9 +20,13 @@ def MainSearch() -> Component:
     return Div(
         Div(
             [
-                H1(
-                    "Trouvez des données autour du médicament",
-                    style={"font-size": "30px"},
+                Span(
+                    "Trouvez des données",
+                    style={"font-size": "34px", "display": "block"},
+                ),
+                Span(
+                    "autour du médicament",
+                    style={"font-size": "34px", "display": "block"},
                 ),
                 SearchBar(),
                 Button(
