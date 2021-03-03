@@ -5,3 +5,8 @@
     margin: auto;
     flex-direction: column;
 }
+
+.arrow:link, .arrow:visited {
+    text-decoration: inherit;
+    color: inherit;
+ }

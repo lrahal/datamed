@@ -47,8 +47,9 @@ def DonneesUne() -> Component:
                 [
                     Span(
                         "Les données à la une",
-                        className="m-auto",
+                        className="m-auto nav-title",
                         style={"font-size": "34px"},
+                        id="donnees-une"
                     ),
                     Div(
                         [
