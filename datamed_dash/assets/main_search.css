@@ -7,7 +7,7 @@
 
 .main-search {
     width: fit-content;
-    padding: 60px;
+    padding: 60px 200px;
     background: #fff;
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24);
     text-align:center;
@@ -18,7 +18,12 @@
 .main-search .form-control{
     margin: auto;
     margin-top: 2rem;
-    width: 60%;
     background-color: #f5f5f5;
     border: none;
+    padding: 1.5rem .75rem;
+    border-radius: .1rem;
+}
+
+.search-bar {
+    width: 450px;
 }

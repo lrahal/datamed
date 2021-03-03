@@ -1,6 +1,6 @@
 from dash.development.base_component import Component
 from dash_bootstrap_components import Card, CardImg, CardBody, CardLink
-from dash_html_components import Div, A, H2, H4, Span, Iframe, P
+from dash_html_components import Div, H4, Span, Iframe, P, Img
 
 
 def Indicateur(value: int, text: str, color: str, class_name: str) -> Component:
@@ -16,11 +16,15 @@ def RuptureCard():
             CardImg(src="/assets/pills.jpg", top=True),
             CardBody(
                 [
-                    H4("Qu'est-ce qu'une rupture ?", className="card-title"),
+                    Span(
+                        "Qu'est-ce qu'une rupture ?",
+                        className="card-title mb-0 font-weight-bold",
+                        style={"font-size": "1.25rem"},
+                    ),
                     P(
                         "Déclaration ou réelle rupture ? Nos experts vous "
                         "expliquent la différence avec des chiffres analysés",
-                        className="card-text",
+                        className="card-text text-secondary mt-4 mb-4",
                     ),
                     CardLink(
                         "VOIR L'ANALYSE THÉMATIQUE",
@@ -41,7 +45,11 @@ def DonneesUne() -> Component:
             Div(Div(), className="before"),
             Div(
                 [
-                    H2("Les données à la une", className="m-auto"),
+                    Span(
+                        "Les données à la une",
+                        className="m-auto",
+                        style={"font-size": "34px"},
+                    ),
                     Div(
                         [
                             Indicateur(
@@ -97,17 +105,25 @@ def DonneesUne() -> Component:
                             ),
                             Div(
                                 [
-                                    A(
-                                        "Répartition par sexe des patients traités au Doliprane"
-                                    )
+                                    Span(
+                                        "Répartition par sexe des patients traités au Doliprane",
+                                    ),
+                                    Img(
+                                        src="/assets/Graph_Nbtraites_sexe.svg",
+                                        className="mt-4",
+                                    ),
                                 ],
                                 className="eight grid-content px-3 py-4",
                             ),
                             Div(
                                 [
-                                    A(
-                                        "Répartition par âge des patients traités au Doliprane"
-                                    )
+                                    Span(
+                                        "Répartition par âge des patients traités au Doliprane",
+                                    ),
+                                    Img(
+                                        src="/assets/Graph_Nbtraites_age.svg",
+                                        className="mt-4",
+                                    ),
                                 ],
                                 className="nine grid-content px-3 py-4",
                             ),
