@@ -5,7 +5,7 @@ from create_database.models import connect_db, Base
 
 
 class CorrespSpeProd(Base):
-    __tablename__ = 'corresp_spe_prod'
+    __tablename__ = "corresp_spe_prod"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     produit_codex = Column(LONGTEXT, nullable=False)
@@ -14,7 +14,7 @@ class CorrespSpeProd(Base):
 
 
 class BnpvOpenMedic1418ProdCodex(Base):
-    __tablename__ = 'bnpv_open_medic1418_prod_codex'
+    __tablename__ = "bnpv_open_medic1418_prod_codex"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     produit_codex = Column(LONGTEXT, nullable=False)
@@ -26,7 +26,7 @@ class BnpvOpenMedic1418ProdCodex(Base):
 
 
 class BnpvEffSoclongProdCodexOpen(Base):
-    __tablename__ = 'bnpv_eff_soclong_prod_codex_open'
+    __tablename__ = "bnpv_eff_soclong_prod_codex_open"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     produit_codex = Column(LONGTEXT, nullable=False)
@@ -38,7 +38,7 @@ class BnpvEffSoclongProdCodexOpen(Base):
 
 
 class BnpvEffHltProdCodexOpen(Base):
-    __tablename__ = 'bnpv_eff_hlt_prod_codex_open'
+    __tablename__ = "bnpv_eff_hlt_prod_codex_open"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     produit_codex = Column(LONGTEXT, nullable=False)
@@ -50,7 +50,7 @@ class BnpvEffHltProdCodexOpen(Base):
 
 
 class BnpvNotifProdCodexOpen(Base):
-    __tablename__ = 'bnpv_notif_prod_codex_open'
+    __tablename__ = "bnpv_notif_prod_codex_open"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     produit_codex = Column(LONGTEXT, nullable=False)
@@ -62,7 +62,7 @@ class BnpvNotifProdCodexOpen(Base):
 
 
 class BnpvOpenMedic1418SaCodex(Base):
-    __tablename__ = 'bnpv_open_medic1418_sa_codex'
+    __tablename__ = "bnpv_open_medic1418_sa_codex"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     substance_codex_unique = Column(LONGTEXT, nullable=False)
@@ -75,7 +75,7 @@ class BnpvOpenMedic1418SaCodex(Base):
 
 
 class BnpvEffSoclongSaCodexOpen(Base):
-    __tablename__ = 'bnpv_eff_soclong_sa_codex_open'
+    __tablename__ = "bnpv_eff_soclong_sa_codex_open"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     substance_codex_unique = Column(LONGTEXT, nullable=False)
@@ -88,7 +88,7 @@ class BnpvEffSoclongSaCodexOpen(Base):
 
 
 class BnpvEffHltSaCodexOpen(Base):
-    __tablename__ = 'bnpv_eff_hlt_sa_codex_open'
+    __tablename__ = "bnpv_eff_hlt_sa_codex_open"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     substance_codex_unique = Column(LONGTEXT, nullable=False)
@@ -101,7 +101,7 @@ class BnpvEffHltSaCodexOpen(Base):
 
 
 class BnpvNotifSaCodexOpen(Base):
-    __tablename__ = 'bnpv_notif_sa_codex_open'
+    __tablename__ = "bnpv_notif_sa_codex_open"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     substance_codex_unique = Column(LONGTEXT, nullable=False)

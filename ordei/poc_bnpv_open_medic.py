@@ -18,7 +18,7 @@ bnpv_notif_sa_codex_open = pd.read_sql('bnpv_notif_sa_codex_open', connection)
 
 # 2.2 Préparation
 # corresp prod_subs
-corresp_prod_subs = pd.read_sql('corresp_prod_subs', connection)
+corresp_prod_subs = pd.read_sql('corresp_spe_prod', connection)
 #corresp_prod_subs <- corresp_spe_prod_subs %>%
 #  group_by(PRODUIT_CODEX, SUBSTANCE_CODEX_UNIQUE) %>%
 #  summarise(n_prod_subs=n()) %>%
