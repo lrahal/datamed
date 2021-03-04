@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,500i,700,700i,900,900i');
+
 .btn-outline-primary {
     color: #a03189;
     border: none;
@@ -25,5 +27,5 @@
 .layout {
     background-color: #fbfcfd;
     z-index: -2;
-    font-family: "Helvetica Neue";
+    font-family: "Roboto";
 }

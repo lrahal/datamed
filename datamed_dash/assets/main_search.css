@@ -27,3 +27,20 @@
 .search-bar {
     width: 450px;
 }
+
+.main-dropdown {
+    margin-top: 2rem;
+    text-align: left;
+}
+
+.main-dropdown .Select-placeholder{
+    padding-left: 1.5rem;
+    color: rgba(0, 0, 0, 0.54);
+    background-color: #E8E8E8;
+}
+
+.main-dropdown .Select-control{
+    display: list-item;
+    border: none;
+    border-radius: 2px;
+}
