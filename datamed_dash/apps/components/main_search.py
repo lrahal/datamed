@@ -15,6 +15,7 @@ def SearchBar() -> Component:
                 Dropdown(
                     id="search-bar",
                     placeholder="Médicament, substance active",
+                    className="main-dropdown",
                 )
             ),
         ],
