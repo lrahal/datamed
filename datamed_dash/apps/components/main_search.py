@@ -1,7 +1,7 @@
 import dash.dependencies as dd
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
-from dash_bootstrap_components import Button, Row, Col, Input
+from dash_bootstrap_components import Button, Row, Col
 from dash_core_components import Dropdown
 from dash_html_components import Div, Span
 import pandas as pd
@@ -56,6 +56,7 @@ def MainSearch() -> Component:
 
 
 df_med = pd.read_csv("./data/liste_produits_substances.csv", delimiter=";")
+med_list = df_med.medicament.tolist()
 
 
 @app.callback(
@@ -66,17 +67,10 @@ def update_search_bar_options(search_value):
     if not search_value:
         raise PreventUpdate
 
-    values = (
-        df_med[
-            df_med.apply(
-                lambda row: row.str.contains(search_value, regex=False).any(), axis=1
-            )
-        ]
-        .head()
-        .medicament.tolist()
-    )
-
-    return [{"label": v, "value": v} for v in values]
+    search_value = search_value.lower()
+    return [
+        {"label": v.lower(), "value": v} for v in med_list if search_value in v.lower()
+    ]
 
 
 @app.callback(
