@@ -90,7 +90,11 @@ def PatientsTraites() -> Component:
 def CasDeclares() -> Component:
     return Div(
         [
-            H1("Cas déclarés d'effets indésirables", className="section-title nav-title", id="Effets"),
+            H1(
+                "Cas déclarés d'effets indésirables",
+                className="section-title nav-title",
+                id="Effets",
+            ),
             Div(
                 [
                     Div(
@@ -178,7 +182,7 @@ def Produit() -> Component:
                     {"id": "EM", "label": "Erreurs médicamenteuses"},
                     {"id": "PF", "label": "Pays de fabrication"},
                 ],
-                className="side-menu"
+                className="side-menu",
             ),
             Div(
                 [
@@ -189,5 +193,5 @@ def Produit() -> Component:
                 ]
             ),
         ],
-        className="side-menu-container"
+        className="side-menu-container",
     )
