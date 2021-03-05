@@ -15,7 +15,7 @@ def SearchBar() -> Component:
                 Dropdown(
                     id="search-bar",
                     placeholder="Médicament, substance active",
-                    className="main-dropdown",
+                    className="normal-text main-dropdown",
                 )
             ),
         ],
@@ -31,18 +31,18 @@ def MainSearch() -> Component:
             [
                 Span(
                     "Trouvez des données",
-                    style={"font-size": "34px", "display": "block"},
+                    className="heading-4 d-block",
                 ),
                 Span(
                     "autour du médicament",
-                    style={"font-size": "34px", "display": "block"},
+                    className="heading-4 d-block",
                 ),
                 SearchBar(),
                 Button(
                     "RECHERCHER",
                     n_clicks=0,
                     outline=True,
-                    className="mr-1",
+                    className="button-text-bold mr-1",
                     color="secondary",
                     id="rechercher-button",
                     type="submit",

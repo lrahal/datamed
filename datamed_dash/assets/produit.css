@@ -4,15 +4,15 @@
 }
 
 .description {
-    margin: 0px 20px 0px 20px;
+    margin: 0 20px 0 20px;
     padding: 30px;
     background: #fff;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.24);
     text-align: left;
 }
 
 .section-title {
-    margin: 0px 20px 20px 20px;
+    margin: 0 20px 20px 20px;
 }
 
 .box {
@@ -20,12 +20,11 @@
     border-radius: 3px;
     background-color: #fff;
     width: fit-content;
-    margin: 0px 20px 30px 20px;
+    margin: 0 20px 30px 20px;
     padding: 1rem;
 }
 
 .box-highlight {
     color: #ff8c00;
-    font-size: 1.75rem;
     margin-bottom: .5rem;
 }

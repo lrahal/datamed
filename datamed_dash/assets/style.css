@@ -16,7 +16,7 @@
     color: #fff;
     border: none;
     background-color: #a03189;
-    box-shadow: 0px 2px 0px #9E9E9E;
+    box-shadow: 0 2px 0 #9E9E9E;
 }
 
 .btn-outline-secondary:hover {
@@ -27,5 +27,78 @@
 .layout {
     background-color: #fbfcfd;
     z-index: -2;
-    font-family: "Roboto";
+    font-family: "Roboto", serif;
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+.heading-1 {
+    font-weight: 300;
+    font-size: 96px;
+}
+
+.heading-2 {
+    font-weight: 300;
+    font-size: 60px;
+}
+
+.heading-3 {
+    font-weight: 400;
+    font-size: 48px;
+}
+
+.heading-4 {
+    font-weight: 400;
+    font-size: 34px;
+    line-height: 40px;
+}
+
+.heading-5 {
+    font-weight: 400;
+    font-size: 24px;
+}
+
+.heading-6 {
+    font-weight: 500;
+    font-size: 20px;
+}
+
+.large-text {
+    font-weight: 400;
+    font-size: 24px;
+}
+
+.medium-text {
+    font-weight: 400;
+    font-size: 20px;
+}
+
+.caption-text {
+    font-weight: 400;
+    font-size: 18px;
+}
+
+.normal-text {
+    font-weight: 400;
+    font-size: 16px;
+}
+
+.button-text {
+    font-weight: 400;
+    font-size: 14px;
+}
+
+.button-text-bold {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.small-text {
+    font-weight: 400;
+    font-size: 12px;
+}
+
+.small-text-bold {
+    font-weight: 500;
+    font-size: 12px;
 }

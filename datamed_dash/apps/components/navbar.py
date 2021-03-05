@@ -22,7 +22,7 @@ def MenuItem(title: str, href: str) -> Component:
     return A(
         title,
         href=href,
-        className="nav-link text-secondary d-inline-block mr-4",
+        className="button-text nav-link text-secondary d-inline-block mr-4",
     )
 
 
@@ -30,9 +30,9 @@ def DropDown() -> Component:
     return DropdownMenu(
         label="Explorer",
         children=[
-            DropdownMenuItem("Cartographie"),
-            DropdownMenuItem("Erreurs médicamenteuses"),
-            DropdownMenuItem("Effets indésirables"),
+            DropdownMenuItem("Cartographie", className="button-text"),
+            DropdownMenuItem("Erreurs médicamenteuses", className="button-text"),
+            DropdownMenuItem("Effets indésirables", className="button-text"),
         ],
         className="navbar-dropdown d-inline-block mr-4",
     )
@@ -54,7 +54,7 @@ def Navbar() -> Component:
                             Button(
                                 "CONTACT",
                                 outline=True,
-                                className="mr-1",
+                                className="button-text-bold mr-1",
                                 color="primary",
                             ),
                         ],

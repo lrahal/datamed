@@ -5,7 +5,7 @@ from dash_html_components import Div, H4, Span, Iframe, P, Img
 
 def Indicateur(value: int, text: str, color: str, class_name: str) -> Component:
     return Span(
-        [Span(str(value), style={"color": color, "font-size": "20px"}), text],
+        [Span(str(value), style={"color": color}), text],
         className=class_name,
     )
 
@@ -18,18 +18,17 @@ def RuptureCard():
                 [
                     Span(
                         "Qu'est-ce qu'une rupture ?",
-                        className="card-title mb-0 font-weight-bold",
-                        style={"font-size": "1.25rem"},
+                        className="heading-6 card-title mb-0",
                     ),
                     P(
                         "Déclaration ou réelle rupture ? Nos experts vous "
                         "expliquent la différence avec des chiffres analysés",
-                        className="card-text text-secondary mt-4 mb-4",
+                        className="card-text text-secondary button-text mt-4 mb-4",
                     ),
                     CardLink(
                         "VOIR L'ANALYSE THÉMATIQUE",
                         href="analyse_thematique_ruptures",
-                        className="analyse-thematique",
+                        className="analyse-thematique button-text-bold",
                     ),
                 ],
                 className="d-flex flex-column justify-content-center text-left",
@@ -47,8 +46,7 @@ def DonneesUne() -> Component:
                 [
                     Span(
                         "Les données à la une",
-                        className="m-auto nav-title",
-                        style={"font-size": "34px"},
+                        className="heading-4 m-auto nav-title",
                         id="donnees-une"
                     ),
                     Div(
@@ -57,19 +55,19 @@ def DonneesUne() -> Component:
                                 265,
                                 " ruptures de médicaments",
                                 "#ff8c00",
-                                "two grid-content",
+                                "two grid-content normal-text",
                             ),
                             Indicateur(
                                 10,
                                 " pays fabriquent du paracétamol",
                                 "#ff8c00",
-                                "three grid-content",
+                                "three grid-content normal-text",
                             ),
                             Indicateur(
                                 1921,
                                 " effets indésirables vaccin COVID 19",
                                 "#ff8c00",
-                                "four grid-content",
+                                "four grid-content normal-text",
                             ),
                             RuptureCard(),
                             Div(
@@ -87,19 +85,19 @@ def DonneesUne() -> Component:
                                         265,
                                         " ruptures de médicaments",
                                         "#00bfff",
-                                        "d-block",
+                                        "d-block normal-text",
                                     ),
                                     Indicateur(
                                         35,
                                         " importations ce mois-ci",
                                         "#00bfff",
-                                        "d-block",
+                                        "d-block normal-text",
                                     ),
                                     Indicateur(
                                         65,
                                         " réapprovisionnements",
                                         "#00bfff",
-                                        "d-block",
+                                        "d-block normal-text",
                                     ),
                                 ],
                                 className="seven grid-content d-flex flex-column justify-content-between py-5",
@@ -108,6 +106,7 @@ def DonneesUne() -> Component:
                                 [
                                     Span(
                                         "Répartition par sexe des patients traités au Doliprane",
+                                        className="normal-text",
                                     ),
                                     Img(
                                         src="/assets/Graph_Nbtraites_sexe.svg",
@@ -120,6 +119,7 @@ def DonneesUne() -> Component:
                                 [
                                     Span(
                                         "Répartition par âge des patients traités au Doliprane",
+                                        className="normal-text",
                                     ),
                                     Img(
                                         src="/assets/Graph_Nbtraites_age.svg",

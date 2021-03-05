@@ -5,8 +5,8 @@ from dash_html_components import Div, H3, Span, Img, H2, B
 
 
 def FooterElement(title: str, element_list: List[str]) -> Component:
-    text_element_list = [H2(title, className="mb-4")] + [
-        Span(element, className="d-block mb-3") for element in element_list
+    text_element_list = [H2(title, className="heading-4 mb-4")] + [
+        Span(element, className="normal-text d-block mb-3") for element in element_list
     ]
     return Div(text_element_list, className="footer-left-content")
 
