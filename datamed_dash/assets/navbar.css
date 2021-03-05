@@ -25,6 +25,8 @@
     color: #808080;
     background-color: #fff;
     border: none;
+    font-weight: 400;
+    font-size: 14px;
 }
 
 .navbar-dropdown .btn-secondary:hover{

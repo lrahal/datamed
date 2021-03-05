@@ -1,6 +1,6 @@
 from dash.development.base_component import Component
 from dash_bootstrap_components import Button
-from dash_html_components import Div, H2, Img, P
+from dash_html_components import Div, Span, Img, P
 
 
 def Plateforme() -> Component:
@@ -10,20 +10,21 @@ def Plateforme() -> Component:
             Img(src=src, style={"width": "50%"}),
             Div(
                 [
-                    H2(
+                    Span(
                         "Une plateforme unique pour réunir les données essentielles de l'ANSM",
+                        className="heading-4",
                     ),
                     P(
                         "Soucieuse de rendre ses données accessibles et transparentes, l'Agence Nationale de Sécurité "
                         "du Médicament et des Produits de Santé a lancé data.ansm.fr, un lieu numérique pour retrouver "
                         "les données autour de l'agence.",
                         className="mt-3 color-black",
-                        style={"font-size": "15px"},
+                        style={"font-size": "20px", "font-weight": "400"},
                     ),
                     Button(
                         "DÉCOUVRIR DATA.ANSM",
                         outline=True,
-                        className="mr-1",
+                        className="button-text-bold  mr-1",
                         color="secondary",
                         style={"margin-top": "1rem"},
                     ),

@@ -12,10 +12,10 @@ def DescriptionProduit() -> Component:
     return Div(
         Div(
             [
-                H1("Doliprane", className="nav-title", id="Desc"),
-                H4(
+                Div("Doliprane", className="heading-4 nav-title", id="Desc"),
+                Div(
                     "PRODUIT",
-                    id="produit-target",
+                    id="caption-text produit-target",
                 ),
                 Popover(
                     [
@@ -26,23 +26,28 @@ def DescriptionProduit() -> Component:
                     is_open=False,
                     target="produit-target",
                 ),
-                H6("Substance(s) active(s)", style={"margin-top": "30px"}),
+                Div("Substance(s) active(s)", className="small-text-bold mt-3"),
                 A(
                     "PARACÉTAMOL",
                     href="/",
-                    style={"font-size": "1rem", "color": "#ff8c00"},
+                    style={"color": "#ff8c00"},
+                    className="normal-text",
                 ),
-                H6("Description", style={"margin-top": "30px"}),
-                Span(
+                Div(
+                    "Description",
+                    style={"margin-top": "30px"},
+                    className="small-text-bold",
+                ),
+                P(
                     "Classe pharmacothérapeutique - classe ATC N02BE01",
-                    style={"font-size": "1rem"},
+                    className="normal-text mt-2",
                 ),
                 P(
                     "DOLIPRANE est un antalgique (calme la douleur) et un antipyrétique (fait baisser la fièvre). "
                     "La substance active de ce médicament est le paracétamol. "
                     "Il est utilisé pour traiter la douleur et/ou la fièvre, par exemple en cas de maux de tête, "
                     "d'état grippal, de douleurs dentaires, de courbatures.",
-                    style={"font-size": "1rem", "margin-top": "10px"},
+                    className="normal-text mt-1",
                 ),
             ],
             className="description",
@@ -54,12 +59,19 @@ def DescriptionProduit() -> Component:
 def PatientsTraites() -> Component:
     return Div(
         [
-            H1("Patients traités", className="section-title nav-title", id="Pop"),
+            Div(
+                "Patients traités",
+                className="section-title nav-title heading-4",
+                id="Pop",
+            ),
             Div(
                 [
-                    Div("36 832 698,4 patients/an", className="box-highlight"),
+                    Div(
+                        "36 832 698,4 patients/an", className="box-highlight heading-4"
+                    ),
                     P(
-                        "Nombre moyen de patients traités par an sur la période 2014/2018"
+                        "Nombre moyen de patients traités par an sur la période 2014/2018",
+                        className="normal-text",
                     ),
                 ],
                 className="box d-block",
@@ -90,26 +102,33 @@ def PatientsTraites() -> Component:
 def CasDeclares() -> Component:
     return Div(
         [
-            H1(
+            Div(
                 "Cas déclarés d'effets indésirables",
-                className="section-title nav-title",
+                className="section-title nav-title heading-4",
                 id="Effets",
             ),
             Div(
                 [
                     Div(
                         [
-                            Div("2,5 cas/an", className="box-highlight"),
+                            Div("2,5 cas/an", className="box-highlight heading-4"),
                             P(
-                                "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018"
+                                "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018",
+                                className="normal-text",
                             ),
                         ],
                         className="box d-inline-block",
                     ),
                     Div(
                         [
-                            Div("4 654 cas déclarés", className="box-highlight"),
-                            P("Nombre de cas déclarés sur la période 2014/2018"),
+                            Div(
+                                "4 654 cas déclarés",
+                                className="box-highlight heading-4",
+                            ),
+                            P(
+                                "Nombre de cas déclarés sur la période 2014/2018",
+                                className="normal-text",
+                            ),
                         ],
                         className="box d-inline-block",
                     ),
@@ -144,7 +163,7 @@ def CasDeclares() -> Component:
             ),
             Div(
                 [
-                    P("Répartition par type de notificateur"),
+                    P("Répartition par type de notificateur", className="normal-text"),
                     Img(src="/assets/Graph_TypeNotificateur.svg"),
                 ],
                 className="box",
@@ -157,10 +176,13 @@ def CasDeclares() -> Component:
 def Organes() -> Component:
     return Div(
         [
-            H1("Effets indésirables par systèmes d'organes", className="section-title"),
+            Div(
+                "Effets indésirables par systèmes d'organes",
+                className="section-title heading-4",
+            ),
             Div(
                 [
-                    P("Répartition par type de notificateur"),
+                    P("Répartition par type de notificateur", className="normal-text"),
                     Img(src="/assets/Graph_EIsystemeorganes.svg", className="d-block"),
                 ],
                 className="box d-block",
