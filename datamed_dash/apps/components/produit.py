@@ -15,7 +15,8 @@ def DescriptionProduit() -> Component:
                 Div("Doliprane", className="heading-4 nav-title", id="Desc"),
                 Div(
                     "PRODUIT",
-                    id="caption-text produit-target",
+                    id="produit-target",
+                    className="caption-text",
                 ),
                 Popover(
                     [
