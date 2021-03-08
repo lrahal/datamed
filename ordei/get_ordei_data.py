@@ -47,15 +47,6 @@ STRAT_DICT = {
     "Séniors (60 ans et plus)": {"value": 60, "field": "age"},
 }
 
-STRATS = [
-    "Ensemble",
-    "Hommes",
-    "Femmes",
-    "Enfants (0-19 ans)",
-    "Adultes (20-59 ans)",
-    "Séniors (60 ans et plus)",
-]
-
 TYP_MED_DICT = {"Substance": "substance_codex_unique", "Produit": "produit_codex"}
 
 
@@ -160,7 +151,6 @@ def get_data_soclong(data_soclong: pd.DataFrame) -> pd.DataFrame:
 
 def compute_med_dict(
     med: str,
-    strat: str,
     data_soclong: pd.DataFrame,
     data_notif: pd.DataFrame,
     data_hlt: pd.DataFrame,
@@ -169,7 +159,7 @@ def compute_med_dict(
     data_annee: pd.DataFrame,
     med_dict: Dict,
 ) -> Dict:
-    med_dict[med][strat] = {
+    med_dict[med] = {
         "soclong": [
             {k: v for k, v in d.items() if k != "medicament"}
             for d in data_soclong.to_dict(orient="records")
@@ -212,71 +202,65 @@ def main():
 
     med_dict = defaultdict(dict)
     for med in tqdm(list_prod_sa.medicament.unique()):
-        for strat in STRATS:
+        strat = "Ensemble"
 
-            data, data_soclong, data_notif, data_hlt = get_typ_med_data(
-                med, list_prod_sa
-            )
+        data, data_soclong, data_notif, data_hlt = get_typ_med_data(
+            med, list_prod_sa
+        )
 
-            if strat != "Ensemble":
-                data, data_soclong, data_notif, data_hlt = get_strat_data(
-                    strat, data, data_soclong, data_notif, data_hlt
-                )
+        data_soclong = get_data_soclong(data_soclong)
 
-            data_soclong = get_data_soclong(data_soclong)
+        data_notif = (
+            data_notif.groupby(["medicament", "typ_notif"])
+            .agg({"n_decla": "sum"})
+            .reset_index()
+        )
+        data_notif.typ_notif = data_notif.apply(
+            lambda x: "Notificateur(s) < 10 cas" if x.n_decla < 10 else x.typ_notif,
+            axis=1,
+        )
+        data_notif = (
+            data_notif.groupby(["medicament", "typ_notif"])
+            .agg({"n_decla": "sum"})
+            .reset_index()
+            .sort_values(by="n_decla", ascending=False)
+        )
 
-            data_notif = (
-                data_notif.groupby(["medicament", "typ_notif"])
-                .agg({"n_decla": "sum"})
-                .reset_index()
-            )
-            data_notif.typ_notif = data_notif.apply(
-                lambda x: "Notificateur(s) < 10 cas" if x.n_decla < 10 else x.typ_notif,
-                axis=1,
-            )
-            data_notif = (
-                data_notif.groupby(["medicament", "typ_notif"])
-                .agg({"n_decla": "sum"})
-                .reset_index()
-                .sort_values(by="n_decla", ascending=False)
-            )
+        data_hlt = (
+            data_hlt.groupby(["medicament", "effet_hlt", "soc_long"])
+            .agg({"n_decla_eff_hlt": "sum"})
+            .reset_index()
+            .sort_values(by="n_decla_eff_hlt", ascending=False)
+        )
 
-            data_hlt = (
-                data_hlt.groupby(["medicament", "effet_hlt", "soc_long"])
-                .agg({"n_decla_eff_hlt": "sum"})
-                .reset_index()
-                .sort_values(by="n_decla_eff_hlt", ascending=False)
-            )
+        data_sexe = (
+            data.groupby("sexe")
+            .agg({"n_cas": "sum", "n_conso": "sum"})
+            .reset_index()
+        )
 
-            data_sexe = (
-                data.groupby("sexe")
-                .agg({"n_cas": "sum", "n_conso": "sum"})
-                .reset_index()
-            )
+        data_age = (
+            data.groupby("age")
+            .agg({"n_cas": "sum", "n_conso": "sum"})
+            .reset_index()
+        )
 
-            data_age = (
-                data.groupby("age")
-                .agg({"n_cas": "sum", "n_conso": "sum"})
-                .reset_index()
-            )
+        data_annee = (
+            data.groupby("annee")
+            .agg({"n_cas": "sum", "n_conso": "sum"})
+            .reset_index()
+        )
 
-            data_annee = (
-                data.groupby("annee")
-                .agg({"n_cas": "sum", "n_conso": "sum"})
-                .reset_index()
-            )
-
-            med_dict = compute_med_dict(
-                med,
-                strat,
-                data_soclong,
-                data_notif,
-                data_hlt,
-                data_sexe,
-                data_age,
-                data_annee,
-                med_dict,
-            )
+        med_dict = compute_med_dict(
+            med,
+            data_soclong,
+            data_notif,
+            data_hlt,
+            data_sexe,
+            data_age,
+            data_annee,
+            med_dict,
+        )
 
     with open("ordei/data/med_dict.json", "w") as outfile:
         json.dump(med_dict, outfile)

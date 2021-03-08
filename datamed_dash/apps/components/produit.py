@@ -1,11 +1,24 @@
+import json
+
+import dash.dependencies as dd
+import pandas as pd
+import plotly.graph_objects as go
+from app import app
 from dash.development.base_component import Component
 from dash_bootstrap_components import (
     Popover,
     PopoverHeader,
     PopoverBody,
 )
-from dash_html_components import Div, A, H1, H4, H6, P, Span, Img
+from dash_core_components import Graph
+from dash_html_components import Div, A, P, Img
 from sm import SideMenu
+from urllib.parse import urlparse, parse_qs
+from dash.exceptions import PreventUpdate
+
+with open("./data/med_dict.json") as jsonfile:
+    med_dict = json.load(jsonfile)
+graphs_colors = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
 
 
 def DescriptionProduit() -> Component:
@@ -85,7 +98,11 @@ def PatientsTraites() -> Component:
                                 "Répartition par sexe des patients traités",
                                 className="normal-text",
                             ),
-                            Img(src="/assets/Graph_Nbtraites_sexe.svg", className="img-card"),
+                            Graph(id="pie-chart"),
+                            # Img(
+                            #    src="/assets/Graph_Nbtraites_sexe.svg",
+                            #    className="img-card",
+                            # ),
                         ],
                         className="box d-inline-block",
                     ),
@@ -95,7 +112,10 @@ def PatientsTraites() -> Component:
                                 "Répartition par âge des patients traités",
                                 className="normal-text",
                             ),
-                            Img(src="/assets/Graph_Nbtraites_age.svg", className="img-card"),
+                            Img(
+                                src="/assets/Graph_Nbtraites_age.svg",
+                                className="img-card",
+                            ),
                         ],
                         className="box d-inline-block",
                     ),
@@ -159,7 +179,9 @@ def CasDeclares() -> Component:
                                 "Répartition par sexe des patients traités",
                                 className="normal-text",
                             ),
-                            Img(src="/assets/Graph_Nbcas_sexe.svg", className="img-card"),
+                            Img(
+                                src="/assets/Graph_Nbcas_sexe.svg", className="img-card"
+                            ),
                         ],
                         className="box d-inline-block",
                     ),
@@ -169,7 +191,9 @@ def CasDeclares() -> Component:
                                 "Répartition par âge des patients traités",
                                 className="normal-text",
                             ),
-                            Img(src="/assets/Graph_Nbcas_age.svg", className="img-card"),
+                            Img(
+                                src="/assets/Graph_Nbcas_age.svg", className="img-card"
+                            ),
                         ],
                         className="box d-inline-block",
                     ),
@@ -198,7 +222,10 @@ def Organes() -> Component:
             ),
             Div(
                 [
-                    P("Effets indésirables les plus déclarés par système d'organe", className="normal-text"),
+                    P(
+                        "Effets indésirables les plus déclarés par système d'organe",
+                        className="normal-text",
+                    ),
                     Img(src="/assets/Graph_EIsystemeorganes.svg", className="d-block"),
                 ],
                 className="box d-block",
@@ -233,3 +260,25 @@ def Produit() -> Component:
         ],
         className="side-menu-container",
     )
+
+
+@app.callback(
+    dd.Output("pie-chart", "figure"),
+    dd.Input("url", "href"),
+)
+# [dd.Input("search-bar", "value"), dd.Input("values", "value")]
+# (names, values)
+def generate_chart(href):
+    parsed_url = urlparse(href)
+    query = parse_qs(parsed_url.query)
+    if "search" not in query:
+        raise PreventUpdate
+    else:
+        df = pd.DataFrame(med_dict[query["search"][0]]["sexe"])
+        fig = go.Pie(
+            labels=df.sexe,
+            values=df.n_cas,
+            name="Répartition par sexe des patients traités",
+            marker_colors=graphs_colors,
+        )
+        return go.Figure(fig)
