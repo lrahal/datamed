@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from create_database.models import connect_db
 from .models import (
-    CorrespSpeProd,
+    CorrespProdSub,
     BnpvOpenMedic1418ProdCodex,
     BnpvEffSoclongProdCodexOpen,
     BnpvEffHltProdCodexOpen,
@@ -54,7 +54,7 @@ def save_to_database_orm(session):
     )
     corresp_prod_subs_list = corresp_prod_subs.to_dict(orient="records")
     for corresp_prod_subs_dict in corresp_prod_subs_list:
-        line = CorrespSpeProd(**corresp_prod_subs_dict)
+        line = CorrespProdSub(**corresp_prod_subs_dict)
         session.add(line)
         session.commit()
 
