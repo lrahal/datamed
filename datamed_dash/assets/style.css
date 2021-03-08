@@ -7,7 +7,7 @@
 }
 
 .btn-outline-primary:hover {
-    color: #a03189;
+    color: #A03189;
     background-color: #dda0dd;
     border: none;
 }
@@ -15,7 +15,7 @@
 .btn-outline-secondary {
     color: #fff;
     border: none;
-    background-color: #a03189;
+    background-color: #A03189;
     box-shadow: 0 2px 0 #9E9E9E;
 }
 
@@ -35,70 +35,97 @@
 .heading-1 {
     font-weight: 300;
     font-size: 96px;
+    line-height: 116px;
+    letter-spacing: 0.25px;
 }
 
 .heading-2 {
     font-weight: 300;
     font-size: 60px;
+    line-height: 80px;
+    letter-spacing: 0.25px;
 }
 
 .heading-3 {
     font-weight: 400;
     font-size: 48px;
+    line-height: 68px;
+    letter-spacing: 0.25px;
 }
 
 .heading-4 {
     font-weight: 400;
     font-size: 34px;
     line-height: 40px;
+    letter-spacing: 0.25px;
 }
 
 .heading-5 {
     font-weight: 400;
     font-size: 24px;
+    line-height: 32px;
 }
 
 .heading-6 {
     font-weight: 500;
     font-size: 20px;
+    line-height: 24px;
+    letter-spacing: 0.15px;
 }
 
 .large-text {
     font-weight: 400;
     font-size: 24px;
+    line-height: 30px;
+    letter-spacing: 0.25px;
 }
 
 .medium-text {
     font-weight: 400;
     font-size: 20px;
+    line-height: 24px;
+    letter-spacing: 0.25px;
 }
 
 .caption-text {
     font-weight: 400;
     font-size: 18px;
+    line-height: 22px;
+    letter-spacing: 0.25px;
+    text-transform: uppercase;
 }
 
 .normal-text {
     font-weight: 400;
     font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0.25px;
 }
 
 .button-text {
     font-weight: 400;
     font-size: 14px;
+    line-height: 18px;
+    letter-spacing: 0.25px;
 }
 
 .button-text-bold {
     font-weight: 500;
     font-size: 14px;
+    line-height: 18px;
+    letter-spacing: 0.25px;
 }
 
 .small-text {
     font-weight: 400;
     font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.25px;
 }
 
 .small-text-bold {
     font-weight: 500;
     font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.25px;
 }

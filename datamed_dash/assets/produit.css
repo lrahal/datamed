@@ -25,6 +25,10 @@
 }
 
 .box-highlight {
-    color: #ff8c00;
+    color: #EF7D00;
     margin-bottom: .5rem;
+}
+
+.img-card {
+    margin-top: 1rem;
 }

@@ -31,7 +31,7 @@ def DescriptionProduit() -> Component:
                 A(
                     "PARACÉTAMOL",
                     href="/",
-                    style={"color": "#ff8c00"},
+                    style={"color": "#EF7D00"},
                     className="normal-text",
                 ),
                 Div(
@@ -81,15 +81,21 @@ def PatientsTraites() -> Component:
                 [
                     Div(
                         [
-                            H6("Répartition par sexe des patients traités"),
-                            Img(src="/assets/Graph_Nbtraites_sexe.svg"),
+                            Div(
+                                "Répartition par sexe des patients traités",
+                                className="normal-text",
+                            ),
+                            Img(src="/assets/Graph_Nbtraites_sexe.svg", className="img-card"),
                         ],
                         className="box d-inline-block",
                     ),
                     Div(
                         [
-                            H6("Répartition par âge des patients traités"),
-                            Img(src="/assets/Graph_Nbtraites_age.svg"),
+                            Div(
+                                "Répartition par âge des patients traités",
+                                className="normal-text",
+                            ),
+                            Img(src="/assets/Graph_Nbtraites_age.svg", className="img-card"),
                         ],
                         className="box d-inline-block",
                     ),
@@ -113,7 +119,7 @@ def CasDeclares() -> Component:
                     Div(
                         [
                             Div("2,5 cas/an", className="box-highlight heading-4"),
-                            P(
+                            Div(
                                 "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018",
                                 className="normal-text",
                             ),
@@ -126,7 +132,7 @@ def CasDeclares() -> Component:
                                 "4 654 cas déclarés",
                                 className="box-highlight heading-4",
                             ),
-                            P(
+                            Div(
                                 "Nombre de cas déclarés sur la période 2014/2018",
                                 className="normal-text",
                             ),
@@ -137,8 +143,9 @@ def CasDeclares() -> Component:
             ),
             Div(
                 [
-                    P(
-                        "Nombre de cas déclarés d'effets indésirables et patients traités par année"
+                    Div(
+                        "Nombre de cas déclarés d'effets indésirables et patients traités par année",
+                        className="normal-text",
                     ),
                     Img(src="/assets/Graph_Nbcas_EI.svg", className="d-block"),
                 ],
@@ -148,15 +155,21 @@ def CasDeclares() -> Component:
                 [
                     Div(
                         [
-                            H6("Répartition par sexe des patients traités"),
-                            Img(src="/assets/Graph_Nbcas_sexe.svg"),
+                            Div(
+                                "Répartition par sexe des patients traités",
+                                className="normal-text",
+                            ),
+                            Img(src="/assets/Graph_Nbcas_sexe.svg", className="img-card"),
                         ],
                         className="box d-inline-block",
                     ),
                     Div(
                         [
-                            H6("Répartition par âge des patients traités"),
-                            Img(src="/assets/Graph_Nbcas_age.svg"),
+                            Div(
+                                "Répartition par âge des patients traités",
+                                className="normal-text",
+                            ),
+                            Img(src="/assets/Graph_Nbcas_age.svg", className="img-card"),
                         ],
                         className="box d-inline-block",
                     ),
@@ -164,7 +177,9 @@ def CasDeclares() -> Component:
             ),
             Div(
                 [
-                    P("Répartition par type de notificateur", className="normal-text"),
+                    Div(
+                        "Répartition par type de notificateur", className="normal-text"
+                    ),
                     Img(src="/assets/Graph_TypeNotificateur.svg"),
                 ],
                 className="box",
@@ -178,12 +193,12 @@ def Organes() -> Component:
     return Div(
         [
             Div(
-                "Effets indésirables par systèmes d'organes",
+                "Effets indésirables par système d'organe",
                 className="section-title heading-4",
             ),
             Div(
                 [
-                    P("Répartition par type de notificateur", className="normal-text"),
+                    P("Effets indésirables les plus déclarés par système d'organe", className="normal-text"),
                     Img(src="/assets/Graph_EIsystemeorganes.svg", className="d-block"),
                 ],
                 className="box d-block",
