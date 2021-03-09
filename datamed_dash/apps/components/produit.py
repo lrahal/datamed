@@ -15,7 +15,7 @@ from sm import SideMenu
 #with open("./data/med_dict.json") as jsonfile:
 #    med_dict = json.load(jsonfile)
 
-with zipfile.ZipFile('../data/med_dict.json.zip', "r") as z:
+with zipfile.ZipFile('./data/med_dict.json.zip', "r") as z:
     filename = z.namelist()[0]
     with z.open(filename) as f:
         data = f.read()
