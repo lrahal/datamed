@@ -10,12 +10,13 @@ from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 from dash_core_components import Graph
 from dash_html_components import Div, A, P, Img
+from plotly.subplots import make_subplots
 from sm import SideMenu
 
-#with open("./data/med_dict.json") as jsonfile:
+# with open("./data/med_dict.json") as jsonfile:
 #    med_dict = json.load(jsonfile)
 
-with zipfile.ZipFile('./data/med_dict.json.zip', "r") as z:
+with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
     with z.open(filename) as f:
         data = f.read()
@@ -178,7 +179,8 @@ def CasDeclares() -> Component:
                         "Nombre de cas déclarés d'effets indésirables et patients traités par année",
                         className="normal-text",
                     ),
-                    Img(src="/assets/Graph_Nbcas_EI.svg", className="d-block"),
+                    Graph(id="courbe-annees", className="img-card"),
+                    # Img(src="/assets/Graph_Nbcas_EI.svg", className="d-block"),
                 ],
                 className="box",
             ),
@@ -286,6 +288,7 @@ def Produit() -> Component:
         dd.Output("pie-patients-traites-age", "figure"),
         dd.Output("pie-cas-declares-sexe", "figure"),
         dd.Output("pie-cas-declares-age", "figure"),
+        dd.Output("courbe-annees", "figure"),
     ],
     dd.Input("url", "href"),
 )
@@ -301,6 +304,7 @@ def generate_chart(href):
 
         df_sexe = pd.DataFrame(med_dict[medicament]["sexe"])
         df_age = pd.DataFrame(med_dict[medicament]["age"])
+        df_annee = pd.DataFrame(med_dict[medicament]["annee"])
 
         fig_patients_sexe = get_pie_chart(
             df_sexe, "sexe", "n_conso", "Répartition par sexe des patients traités"
@@ -324,11 +328,62 @@ def generate_chart(href):
         else:
             fig_cas_age = {}
 
+        fig_annee = make_subplots(specs=[[{"secondary_y": True}]])
+
+        fig_annee.add_trace(
+            go.Scatter(
+                x=df_annee.annee,
+                y=df_annee.n_cas,
+                mode="lines",
+                name="Cas déclarés",
+                line={
+                    "shape": "spline",
+                    "smoothing": 1,
+                    "width": 4,
+                    "color": "#BFAACB",
+                },
+            ),
+            secondary_y=False,
+        )
+
+        fig_annee.add_trace(
+            go.Scatter(
+                x=df_annee.annee,
+                y=df_annee.n_conso,
+                mode="lines",
+                name="Patients traités",
+                line={
+                    "shape": "spline",
+                    "smoothing": 1,
+                    "width": 4,
+                    "color": "#5E2A7E",
+                },
+            ),
+            secondary_y=True,
+        )
+
+        fig_annee.update_yaxes(title_text="Nombre de cas déclarés", secondary_y=False)
+        fig_annee.update_yaxes(
+            title_text="Nombre de patients traités", secondary_y=True
+        )
+
+        fig_annee.update_xaxes(nticks=len(df_annee))
+        fig_annee.update_layout(
+            xaxis_showgrid=False,
+            yaxis_showgrid=True,
+            yaxis2_showgrid=False,
+            plot_bgcolor="rgba(0,0,0,0)",
+            margin=dict(t=0, b=0, l=0, r=0),
+            width=1000,
+            height=350,
+        )
+
         return (
             fig_patients_sexe,
             fig_patients_age,
             fig_cas_sexe,
             fig_cas_age,
+            fig_annee,
         )
 
 
