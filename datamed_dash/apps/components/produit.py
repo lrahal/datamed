@@ -330,21 +330,22 @@ def generate_chart(href):
 
         fig_annee = make_subplots(specs=[[{"secondary_y": True}]])
 
-        fig_annee.add_trace(
-            go.Scatter(
-                x=df_annee.annee,
-                y=df_annee.n_cas,
-                mode="lines",
-                name="Cas déclarés",
-                line={
-                    "shape": "spline",
-                    "smoothing": 1,
-                    "width": 4,
-                    "color": "#BFAACB",
-                },
-            ),
-            secondary_y=False,
-        )
+        if df_annee.n_cas.min() >= 10:
+            fig_annee.add_trace(
+                go.Scatter(
+                    x=df_annee.annee,
+                    y=df_annee.n_cas,
+                    mode="lines",
+                    name="Cas déclarés",
+                    line={
+                        "shape": "spline",
+                        "smoothing": 1,
+                        "width": 4,
+                        "color": "#BFAACB",
+                    },
+                ),
+                secondary_y=False,
+            )
 
         fig_annee.add_trace(
             go.Scatter(
