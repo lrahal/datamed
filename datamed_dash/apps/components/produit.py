@@ -30,11 +30,11 @@ PROD_SUBS = pd.read_csv("./data/liste_produits_substances.csv", sep=";").to_dict
 TYP_MED_DICT = {d["medicament"]: d["typ_medicament"] for d in PROD_SUBS}
 
 
-def DescriptionProduit() -> Component:
+def DescriptionProduit(produit) -> Component:
     return Div(
         Div(
             [
-                Div("Doliprane", className="heading-4 nav-title", id="Desc"),
+                Div(produit.lower().capitalize(), className="heading-4 nav-title", id="Desc"),
                 Div(
                     "PRODUIT",
                     id="produit-target",
@@ -69,8 +69,24 @@ def DescriptionProduit() -> Component:
         className="description-container",
     )
 
+def PiePatientTraiteSexe(produit):
+    df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
 
-def PatientsTraites() -> Component:
+    fig_patients_sexe = get_pie_chart(
+        df_sexe, "sexe", "n_conso", "Répartition par sexe des patients traités"
+    )
+
+    return Graph(
+        figure=fig_patients_sexe,
+        className="img-card",
+        responsive=True,
+    )
+
+
+def PatientsTraites(produit) -> Component:
+    df = pd.DataFrame(med_dict[produit]["annee"])
+    patients_traites = round(df.n_conso.mean())
+
     return Div(
         [
             Div(
@@ -81,9 +97,8 @@ def PatientsTraites() -> Component:
             Div(
                 [
                     Div(
-                        "0",
+                        patients_traites,
                         className="box-highlight heading-4 d-inline-block",
-                        id="patients-traites",
                     ),
                     Div(
                         "patients/an",
@@ -105,11 +120,7 @@ def PatientsTraites() -> Component:
                                     "Répartition par sexe des patients traités",
                                     className="normal-text",
                                 ),
-                                Graph(
-                                    id="pie-patients-traites-sexe",
-                                    className="img-card",
-                                    responsive=True,
-                                ),
+                                PiePatientTraiteSexe(produit),
                             ],
                             className="box",
                         ),
@@ -140,7 +151,7 @@ def PatientsTraites() -> Component:
     )
 
 
-def CasDeclares() -> Component:
+def CasDeclares(produit) -> Component:
     return Div(
         [
             Div(
@@ -254,7 +265,7 @@ def CasDeclares() -> Component:
     )
 
 
-def Organes() -> Component:
+def Organes(produit) -> Component:
     return Div(
         [
             Div(
@@ -287,7 +298,7 @@ def get_pie_chart(df, var_1, var_2, name):
     ).update_layout(margin=dict(t=0, b=0, l=0, r=0))
 
 
-def Produit() -> Component:
+def Produit(produit) -> Component:
     return Div(
         [
             SideMenu(
@@ -303,10 +314,10 @@ def Produit() -> Component:
             ),
             Div(
                 [
-                    DescriptionProduit(),
-                    PatientsTraites(),
-                    CasDeclares(),
-                    Organes(),
+                    DescriptionProduit(produit),
+                    PatientsTraites(produit),
+                    CasDeclares(produit),
+                    Organes(produit),
                 ]
             ),
         ],
@@ -316,7 +327,6 @@ def Produit() -> Component:
 
 @app.callback(
     [
-        dd.Output("pie-patients-traites-sexe", "figure"),
         dd.Output("pie-patients-traites-age", "figure"),
         dd.Output("pie-cas-declares-sexe", "figure"),
         dd.Output("pie-cas-declares-age", "figure"),
@@ -410,7 +420,6 @@ def generate_chart(href):
         )
 
         return (
-            fig_patients_sexe,
             fig_patients_age,
             fig_cas_sexe,
             fig_cas_age,
@@ -420,8 +429,6 @@ def generate_chart(href):
 
 @app.callback(
     [
-        dd.Output("Desc", "children"),
-        dd.Output("patients-traites", "children"),
         dd.Output("cas-an", "children"),
         dd.Output("cas-declares", "children"),
         dd.Output("produit-target", "children"),
@@ -453,8 +460,6 @@ def change_product(href):
             cas_declares = df.n_cas.sum()
 
         return (
-            medicament.lower().capitalize(),
-            patients_traites,
             cas_an,
             cas_declares,
             TYP_MED_DICT[medicament],
