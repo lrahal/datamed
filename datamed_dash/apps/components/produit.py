@@ -94,31 +94,46 @@ def PatientsTraites() -> Component:
                         className="normal-text",
                     ),
                 ],
-                className="box d-block",
+                className="box f-content d-block",
             ),
             Div(
                 [
                     Div(
-                        [
-                            Div(
-                                "Répartition par sexe des patients traités",
-                                className="normal-text",
-                            ),
-                            Graph(id="pie-patients-traites-sexe", className="img-card"),
-                        ],
-                        className="box d-inline-block",
+                        Div(
+                            [
+                                Div(
+                                    "Répartition par sexe des patients traités",
+                                    className="normal-text",
+                                ),
+                                Graph(
+                                    id="pie-patients-traites-sexe",
+                                    className="img-card",
+                                    responsive=True,
+                                ),
+                            ],
+                            className="box",
+                        ),
+                        className="col-xl-5 col-lg-6",
                     ),
                     Div(
-                        [
-                            Div(
-                                "Répartition par âge des patients traités",
-                                className="normal-text",
-                            ),
-                            Graph(id="pie-patients-traites-age", className="img-card"),
-                        ],
-                        className="box d-inline-block",
+                        Div(
+                            [
+                                Div(
+                                    "Répartition par âge des patients traités",
+                                    className="normal-text",
+                                ),
+                                Graph(
+                                    id="pie-patients-traites-age",
+                                    className="img-card",
+                                    responsive=True,
+                                ),
+                            ],
+                            className="box",
+                        ),
+                        className="col-xl-5 col-lg-6",
                     ),
-                ]
+                ],
+                className="row",
             ),
         ],
         style=({"margin-bottom": "200px"}),
@@ -174,15 +189,24 @@ def CasDeclares() -> Component:
                 ],
             ),
             Div(
-                [
+                Div(
                     Div(
-                        "Nombre de cas déclarés d'effets indésirables et patients traités par année",
-                        className="normal-text",
+                        [
+                            Div(
+                                "Nombre de cas déclarés d'effets indésirables et patients traités par année",
+                                className="normal-text",
+                            ),
+                            Graph(
+                                id="courbe-annees",
+                                className="img-card",
+                                responsive=True,
+                            ),
+                        ],
+                        className="box",
                     ),
-                    Graph(id="courbe-annees", className="img-card"),
-                    # Img(src="/assets/Graph_Nbcas_EI.svg", className="d-block"),
-                ],
-                className="box",
+                    className="col-xl-10",
+                ),
+                className="row",
             ),
             Div(
                 [
@@ -192,7 +216,11 @@ def CasDeclares() -> Component:
                                 "Répartition par sexe des cas déclarés",
                                 className="normal-text",
                             ),
-                            Graph(id="pie-cas-declares-sexe", className="img-card"),
+                            Graph(
+                                id="pie-cas-declares-sexe",
+                                className="img-card",
+                                responsive=True,
+                            ),
                         ],
                         className="box d-inline-block",
                     ),
@@ -202,7 +230,11 @@ def CasDeclares() -> Component:
                                 "Répartition par âge des cas déclarés",
                                 className="normal-text",
                             ),
-                            Graph(id="pie-cas-declares-age", className="img-card"),
+                            Graph(
+                                id="pie-cas-declares-age",
+                                className="img-card",
+                                responsive=True,
+                            ),
                         ],
                         className="box d-inline-block",
                     ),
@@ -375,8 +407,6 @@ def generate_chart(href):
             yaxis2_showgrid=False,
             plot_bgcolor="rgba(0,0,0,0)",
             margin=dict(t=0, b=0, l=0, r=0),
-            width=1000,
-            height=350,
         )
 
         return (
