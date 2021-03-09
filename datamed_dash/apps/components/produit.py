@@ -1,4 +1,5 @@
 import json
+import zipfile
 from urllib.parse import urlparse, parse_qs
 
 import dash.dependencies as dd
@@ -11,8 +12,15 @@ from dash_core_components import Graph
 from dash_html_components import Div, A, P, Img
 from sm import SideMenu
 
-with open("./data/med_dict.json") as jsonfile:
-    med_dict = json.load(jsonfile)
+#with open("./data/med_dict.json") as jsonfile:
+#    med_dict = json.load(jsonfile)
+
+with zipfile.ZipFile('../data/med_dict.json.zip', "r") as z:
+    filename = z.namelist()[0]
+    with z.open(filename) as f:
+        data = f.read()
+        med_dict = json.loads(data.decode("utf-8"))
+
 graphs_colors = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
 
 PROD_SUBS = pd.read_csv("./data/liste_produits_substances.csv", sep=";").to_dict(
