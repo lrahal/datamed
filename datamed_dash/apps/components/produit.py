@@ -1,11 +1,24 @@
+import json
+from urllib.parse import urlparse, parse_qs
+
+import dash.dependencies as dd
+import pandas as pd
+import plotly.graph_objects as go
+from app import app
 from dash.development.base_component import Component
-from dash_bootstrap_components import (
-    Popover,
-    PopoverHeader,
-    PopoverBody,
-)
-from dash_html_components import Div, A, H1, H4, H6, P, Span, Img
+from dash.exceptions import PreventUpdate
+from dash_core_components import Graph
+from dash_html_components import Div, A, P, Img
 from sm import SideMenu
+
+with open("./data/med_dict.json") as jsonfile:
+    med_dict = json.load(jsonfile)
+graphs_colors = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
+
+PROD_SUBS = pd.read_csv("./data/liste_produits_substances.csv", sep=";").to_dict(
+    orient="records"
+)
+TYP_MED_DICT = {d["medicament"]: d["typ_medicament"] for d in PROD_SUBS}
 
 
 def DescriptionProduit() -> Component:
@@ -17,15 +30,6 @@ def DescriptionProduit() -> Component:
                     "PRODUIT",
                     id="produit-target",
                     className="caption-text",
-                ),
-                Popover(
-                    [
-                        PopoverHeader("Produit"),
-                        PopoverBody("Le produit est ..."),
-                    ],
-                    id="popover",
-                    is_open=False,
-                    target="produit-target",
                 ),
                 Div("Substance(s) active(s)", className="small-text-bold mt-3"),
                 A(
@@ -68,7 +72,13 @@ def PatientsTraites() -> Component:
             Div(
                 [
                     Div(
-                        "36 832 698,4 patients/an", className="box-highlight heading-4"
+                        "0",
+                        className="box-highlight heading-4 d-inline-block",
+                        id="patients-traites",
+                    ),
+                    Div(
+                        "patients/an",
+                        className="box-highlight heading-4 d-inline-block ml-2",
                     ),
                     P(
                         "Nombre moyen de patients traités par an sur la période 2014/2018",
@@ -85,7 +95,7 @@ def PatientsTraites() -> Component:
                                 "Répartition par sexe des patients traités",
                                 className="normal-text",
                             ),
-                            Img(src="/assets/Graph_Nbtraites_sexe.svg", className="img-card"),
+                            Graph(id="pie-patients-traites-sexe", className="img-card"),
                         ],
                         className="box d-inline-block",
                     ),
@@ -95,7 +105,7 @@ def PatientsTraites() -> Component:
                                 "Répartition par âge des patients traités",
                                 className="normal-text",
                             ),
-                            Img(src="/assets/Graph_Nbtraites_age.svg", className="img-card"),
+                            Graph(id="pie-patients-traites-age", className="img-card"),
                         ],
                         className="box d-inline-block",
                     ),
@@ -118,7 +128,15 @@ def CasDeclares() -> Component:
                 [
                     Div(
                         [
-                            Div("2,5 cas/an", className="box-highlight heading-4"),
+                            Div(
+                                "0",
+                                className="box-highlight heading-4 d-inline-block",
+                                id="cas-an",
+                            ),
+                            Div(
+                                "cas/an",
+                                className="box-highlight heading-4 d-inline-block ml-2",
+                            ),
                             Div(
                                 "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018",
                                 className="normal-text",
@@ -129,8 +147,13 @@ def CasDeclares() -> Component:
                     Div(
                         [
                             Div(
-                                "4 654 cas déclarés",
-                                className="box-highlight heading-4",
+                                "0",
+                                className="box-highlight heading-4 d-inline-block",
+                                id="cas-declares",
+                            ),
+                            Div(
+                                "cas déclarés",
+                                className="box-highlight heading-4 d-inline-block ml-2",
                             ),
                             Div(
                                 "Nombre de cas déclarés sur la période 2014/2018",
@@ -156,20 +179,20 @@ def CasDeclares() -> Component:
                     Div(
                         [
                             Div(
-                                "Répartition par sexe des patients traités",
+                                "Répartition par sexe des cas déclarés",
                                 className="normal-text",
                             ),
-                            Img(src="/assets/Graph_Nbcas_sexe.svg", className="img-card"),
+                            Graph(id="pie-cas-declares-sexe", className="img-card"),
                         ],
                         className="box d-inline-block",
                     ),
                     Div(
                         [
                             Div(
-                                "Répartition par âge des patients traités",
+                                "Répartition par âge des cas déclarés",
                                 className="normal-text",
                             ),
-                            Img(src="/assets/Graph_Nbcas_age.svg", className="img-card"),
+                            Graph(id="pie-cas-declares-age", className="img-card"),
                         ],
                         className="box d-inline-block",
                     ),
@@ -198,7 +221,10 @@ def Organes() -> Component:
             ),
             Div(
                 [
-                    P("Effets indésirables les plus déclarés par système d'organe", className="normal-text"),
+                    P(
+                        "Effets indésirables les plus déclarés par système d'organe",
+                        className="normal-text",
+                    ),
                     Img(src="/assets/Graph_EIsystemeorganes.svg", className="d-block"),
                 ],
                 className="box d-block",
@@ -206,6 +232,17 @@ def Organes() -> Component:
         ],
         style=({"margin-bottom": "200px"}),
     )
+
+
+def get_pie_chart(df, var_1, var_2, name):
+    return go.Figure(
+        go.Pie(
+            labels=df[var_1],
+            values=df[var_2],
+            name=name,
+            marker_colors=graphs_colors,
+        )
+    ).update_layout(margin=dict(t=0, b=0, l=0, r=0))
 
 
 def Produit() -> Component:
@@ -233,3 +270,98 @@ def Produit() -> Component:
         ],
         className="side-menu-container",
     )
+
+
+@app.callback(
+    [
+        dd.Output("pie-patients-traites-sexe", "figure"),
+        dd.Output("pie-patients-traites-age", "figure"),
+        dd.Output("pie-cas-declares-sexe", "figure"),
+        dd.Output("pie-cas-declares-age", "figure"),
+    ],
+    dd.Input("url", "href"),
+)
+def generate_chart(href):
+    parsed_url = urlparse(href)
+    query = parse_qs(parsed_url.query)
+
+    if "search" not in query:
+        raise PreventUpdate
+
+    else:
+        medicament = query["search"][0]
+
+        df_sexe = pd.DataFrame(med_dict[medicament]["sexe"])
+        df_age = pd.DataFrame(med_dict[medicament]["age"])
+
+        fig_patients_sexe = get_pie_chart(
+            df_sexe, "sexe", "n_conso", "Répartition par sexe des patients traités"
+        )
+
+        if df_sexe.n_cas.sum() >= 10:
+            fig_cas_sexe = get_pie_chart(
+                df_sexe, "sexe", "n_cas", "Répartition par sexe des cas déclarés"
+            )
+        else:
+            fig_cas_sexe = {}
+
+        fig_patients_age = get_pie_chart(
+            df_age, "age", "n_conso", "Répartition par âge des patients traités"
+        )
+
+        if df_age.n_cas.sum() >= 10:
+            fig_cas_age = get_pie_chart(
+                df_age, "age", "n_cas", "Répartition par âge des cas déclarés"
+            )
+        else:
+            fig_cas_age = {}
+
+        return (
+            fig_patients_sexe,
+            fig_patients_age,
+            fig_cas_sexe,
+            fig_cas_age,
+        )
+
+
+@app.callback(
+    [
+        dd.Output("Desc", "children"),
+        dd.Output("patients-traites", "children"),
+        dd.Output("cas-an", "children"),
+        dd.Output("cas-declares", "children"),
+        dd.Output("produit-target", "children"),
+    ],
+    dd.Input("url", "href"),
+)
+def change_product(href):
+    parsed_url = urlparse(href)
+    query = parse_qs(parsed_url.query)
+
+    if "search" not in query:
+        raise PreventUpdate
+
+    else:
+        medicament = query["search"][0]
+
+        df = pd.DataFrame(med_dict[medicament]["annee"])
+
+        # Calcul patients traités
+        patients_traites = round(df.n_conso.mean())
+
+        # Calcul nombre de cas par an
+        cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
+
+        # Calcul nombre de cas déclarés
+        if 0 < df.n_cas.sum() < 10:
+            cas_declares = "< 10"
+        else:
+            cas_declares = df.n_cas.sum()
+
+        return (
+            medicament.lower().capitalize(),
+            patients_traites,
+            cas_an,
+            cas_declares,
+            TYP_MED_DICT[medicament],
+        )
