@@ -25,7 +25,7 @@ pd.set_option('display.max_rows', None)
 #    med_dict = json.load(jsonfile.decode("utf-8"))
 
 
-# In[3]:
+# In[2]:
 
 
 with zipfile.ZipFile('../data/med_dict.json.zip', "r") as z:
@@ -35,20 +35,20 @@ with zipfile.ZipFile('../data/med_dict.json.zip', "r") as z:
         med_dict = json.loads(data.decode("utf-8"))
 
 
-# In[4]:
+# In[3]:
 
 
 PROD_SUBS = pd.read_csv("../data/liste_produits_substances.csv", sep=';').to_dict(orient='records')
 type_med_dict = {d['medicament']: d['typ_medicament'] for d in PROD_SUBS}
 
 
-# In[5]:
+# In[4]:
 
 
 med = "CLARADOL"
 
 
-# In[6]:
+# In[5]:
 
 
 ordei_colors = ['#DFD4E5', '#BFAACB', '#5E2A7E']
@@ -233,26 +233,26 @@ fig.show()
 
 # # Histogrammes
 
-# In[26]:
+# In[74]:
 
 
-med = "CLARADOL"
+med = "DOLIPRANE"
 
 
-# In[27]:
+# In[75]:
 
 
 med_dict[med].keys()
 
 
-# In[28]:
+# In[76]:
 
 
 df_notif = pd.DataFrame(med_dict[med]["notif"])
 df_notif.head(3)
 
 
-# In[29]:
+# In[77]:
 
 
 fig = px.bar(df_notif, y='typ_notif', x='n_decla', orientation='h')
@@ -274,6 +274,102 @@ fig.update_layout(
     plot_bgcolor='rgba(0,0,0,0)',
     margin=dict(l=120, r=10, t=140, b=80),
     showlegend=False,
+)
+
+fig.show()
+
+
+# In[97]:
+
+
+fig = go.Figure(
+    go.Bar(
+        y=df_notif.typ_notif, x=df_notif.n_decla, orientation='h',
+        marker=dict(color=['rgba(51,171,102,1)', 'rgba(102,192,140,1)',
+                           'rgba(153,213,179,1)', 'rgba(204,234,217,1)',
+                           'rgba(191,213,60,1)', 'rgba(207,223,109,1)', 'rgba(207,223,109,1)'])
+    )
+)
+
+fig.update_layout(
+    xaxis=dict(
+        showgrid=False,
+        showline=False,
+        showticklabels=False,
+        zeroline=False,
+    ),
+    yaxis=dict(
+        showgrid=False,
+        showline=False,
+        #showticklabels=False,
+        zeroline=False,
+        autorange='reversed',
+        ticks="outside", 
+        tickcolor='white',
+        ticklen=1
+    ),
+    plot_bgcolor='rgba(0,0,0,0)',
+    margin=dict(l=0, r=0, t=0, b=0),
+    barmode='group',
+    bargap=0.10,
+    bargroupgap=0.0,
+    font={'size': 14}
+)
+
+fig.show()
+
+
+# In[ ]:
+
+
+
+
+
+# In[98]:
+
+
+df_soc = pd.DataFrame(med_dict[med]["soclong"])
+df_soc.head(3)
+
+
+# In[101]:
+
+
+df_soc = df_soc.head(10)
+fig = go.Figure(
+    go.Bar(
+        y=df_soc.soc_long, x=df_soc.n_decla_eff, orientation='h',
+        marker=dict(color=['rgba(51,171,102,1)', 'rgba(102,192,140,1)',
+                           'rgba(153,213,179,1)', 'rgba(204,234,217,1)',
+                           'rgba(191,213,60,1)', 'rgba(207,223,109,1)',
+                           'rgba(239,244,206,1)', 'rgba(239,244,206,1)',
+                           'rgba(51,194,214,1)', 'rgba(102,209,224,1)'])
+    )
+)
+
+fig.update_layout(
+    xaxis=dict(
+        showgrid=False,
+        showline=False,
+        showticklabels=False,
+        zeroline=False,
+    ),
+    yaxis=dict(
+        showgrid=False,
+        showline=False,
+        #showticklabels=False,
+        zeroline=False,
+        autorange='reversed',
+        ticks="outside", 
+        tickcolor='white',
+        ticklen=1
+    ),
+    plot_bgcolor='rgba(0,0,0,0)',
+    margin=dict(l=0, r=0, t=0, b=0),
+    barmode='group',
+    bargap=0.10,
+    bargroupgap=0.0,
+    font={'size': 14}
 )
 
 fig.show()
