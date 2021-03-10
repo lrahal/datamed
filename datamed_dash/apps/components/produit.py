@@ -5,10 +5,9 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash.development.base_component import Component
 from dash_core_components import Graph
-from dash_html_components import Div, A, P, Img
+from dash_html_components import Div, A, P
 from plotly.subplots import make_subplots
 from sm import SideMenu
-
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -185,6 +184,114 @@ def CourbesAnnees(produit) -> Graph:
     )
 
 
+def BarNotif(produit) -> Graph:
+    df_notif = pd.DataFrame(med_dict[produit]["notif"])
+
+    fig = go.Figure(
+        go.Bar(
+            y=df_notif.typ_notif,
+            x=df_notif.n_decla,
+            orientation="h",
+            marker=dict(
+                color=[
+                    "rgba(51,171,102,1)",
+                    "rgba(102,192,140,1)",
+                    "rgba(153,213,179,1)",
+                    "rgba(204,234,217,1)",
+                    "rgba(191,213,60,1)",
+                    "rgba(207,223,109,1)",
+                    "rgba(239,244,206,1)",
+                ]
+            ),
+        )
+    )
+
+    fig.update_layout(
+        xaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showline=False,
+            zeroline=False,
+            autorange="reversed",
+            ticks="outside",
+            tickcolor="white",
+            ticklen=1,
+        ),
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=0, b=0),
+        barmode="group",
+        bargap=0.10,
+        bargroupgap=0.0,
+        font={"size": 14},
+    )
+    return Graph(
+        figure=fig,
+        className="img-card",
+        responsive=True,
+    )
+
+
+def BarSoc(produit) -> Graph:
+    df_soc = pd.DataFrame(med_dict[produit]["soclong"])
+    df_soc = df_soc.head(10)
+
+    fig = go.Figure(
+        go.Bar(
+            y=df_soc.soc_long,
+            x=df_soc.n_decla_eff,
+            orientation="h",
+            marker=dict(
+                color=[
+                    "rgba(51,171,102,1)",
+                    "rgba(102,192,140,1)",
+                    "rgba(153,213,179,1)",
+                    "rgba(204,234,217,1)",
+                    "rgba(191,213,60,1)",
+                    "rgba(207,223,109,1)",
+                    "rgba(223,234,157,1)",
+                    "rgba(239,244,206,1)",
+                    "rgba(51,194,214,1)",
+                    "rgba(102,209,224,1)",
+                ]
+            ),
+        )
+    )
+
+    fig.update_layout(
+        xaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showline=False,
+            zeroline=False,
+            autorange="reversed",
+            ticks="outside",
+            tickcolor="white",
+            ticklen=1,
+        ),
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=0, b=0),
+        barmode="group",
+        bargap=0.10,
+        bargroupgap=0.0,
+        font={"size": 14},
+    )
+    return Graph(
+        figure=fig,
+        className="img-card",
+        responsive=True,
+    )
+
+
 def PatientsTraites(produit) -> Component:
     df = pd.DataFrame(med_dict[produit]["annee"])
     patients_traites = round(df.n_conso.mean())
@@ -347,17 +454,21 @@ def CasDeclares(produit) -> Component:
                         ),
                         className="col-xl-5 col-lg-6",
                     ),
+                    Div(
+                        Div(
+                            [
+                                Div(
+                                    "Répartition par type de notificateur",
+                                    className="normal-text",
+                                ),
+                                BarNotif(produit),
+                            ],
+                            className="box",
+                        ),
+                        className="col-xl-10",
+                    ),
                 ],
                 className="row",
-            ),
-            Div(
-                [
-                    Div(
-                        "Répartition par type de notificateur", className="normal-text"
-                    ),
-                    Img(src="/assets/Graph_TypeNotificateur.svg"),
-                ],
-                className="box",
             ),
         ],
         style=({"margin-bottom": "200px"}),
@@ -372,14 +483,20 @@ def Organes(produit) -> Component:
                 className="section-title heading-4",
             ),
             Div(
-                [
-                    P(
-                        "Effets indésirables les plus déclarés par système d'organe",
-                        className="normal-text",
+                Div(
+                    Div(
+                        [
+                            P(
+                                "Effets indésirables les plus déclarés par système d'organe",
+                                className="normal-text",
+                            ),
+                            BarSoc(produit),
+                        ],
+                        className="box",
                     ),
-                    Img(src="/assets/Graph_EIsystemeorganes.svg", className="d-block"),
-                ],
-                className="box d-block",
+                    className="col-xl-10 d-block",
+                ),
+                className="row",
             ),
         ],
         style=({"margin-bottom": "200px"}),
