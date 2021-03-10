@@ -5,10 +5,9 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash.development.base_component import Component
 from dash_core_components import Graph
-from dash_html_components import Div, A, P, Img
+from dash_html_components import Div, A, P
 from plotly.subplots import make_subplots
 from sm import SideMenu
-
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -254,7 +253,7 @@ def BarSoc(produit) -> Graph:
                     "rgba(204,234,217,1)",
                     "rgba(191,213,60,1)",
                     "rgba(207,223,109,1)",
-                    "rgba(239,244,206,1)",
+                    "rgba(223,234,157,1)",
                     "rgba(239,244,206,1)",
                     "rgba(51,194,214,1)",
                     "rgba(102,209,224,1)",
