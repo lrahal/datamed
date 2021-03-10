@@ -5,11 +5,11 @@
 
 
 import sys
-import json
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
 import zipfile
+
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 sys.path.append('/Users/ansm/Documents/GitHub/datamed')
 
