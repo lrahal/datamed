@@ -66,7 +66,7 @@ def DescriptionProduit(produit) -> Component:
     )
 
 
-def PiePatientTraiteSexe(produit) -> Graph:
+def PiePatientTraiteSexe(produit) -> Component:
     df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
 
     fig = get_pie_chart(
@@ -80,7 +80,7 @@ def PiePatientTraiteSexe(produit) -> Graph:
     )
 
 
-def PiePatientTraiteAge(produit) -> Graph:
+def PiePatientTraiteAge(produit) -> Component:
     df_age = pd.DataFrame(med_dict[produit]["age"])
 
     fig = get_pie_chart(
@@ -94,7 +94,7 @@ def PiePatientTraiteAge(produit) -> Graph:
     )
 
 
-def PieCasDeclareSexe(produit) -> Graph:
+def PieCasDeclareSexe(produit) -> Component:
     df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
 
     if df_sexe.n_cas.sum() >= 10:
@@ -111,7 +111,7 @@ def PieCasDeclareSexe(produit) -> Graph:
     )
 
 
-def PieCasDeclareAge(produit) -> Graph:
+def PieCasDeclareAge(produit) -> Component:
     df_age = pd.DataFrame(med_dict[produit]["age"])
 
     if df_age.n_cas.sum() >= 10:
@@ -128,7 +128,7 @@ def PieCasDeclareAge(produit) -> Graph:
     )
 
 
-def CourbesAnnees(produit) -> Graph:
+def CourbesAnnees(produit) -> Component:
     df_annee = pd.DataFrame(med_dict[produit]["annee"])
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -184,7 +184,7 @@ def CourbesAnnees(produit) -> Graph:
     )
 
 
-def BarNotif(produit) -> Graph:
+def BarNotif(produit) -> Component:
     df_notif = pd.DataFrame(med_dict[produit]["notif"])
 
     fig = go.Figure(
@@ -236,7 +236,7 @@ def BarNotif(produit) -> Graph:
     )
 
 
-def BarSoc(produit) -> Graph:
+def BarSoc(produit) -> Component:
     df_soc = pd.DataFrame(med_dict[produit]["soclong"])
     df_soc = df_soc.head(10)
 
