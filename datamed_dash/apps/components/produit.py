@@ -1,20 +1,14 @@
 import json
 import zipfile
-from urllib.parse import urlparse, parse_qs
 
-import dash.dependencies as dd
 import pandas as pd
 import plotly.graph_objects as go
-from app import app
 from dash.development.base_component import Component
-from dash.exceptions import PreventUpdate
 from dash_core_components import Graph
 from dash_html_components import Div, A, P, Img
 from plotly.subplots import make_subplots
 from sm import SideMenu
 
-# with open("./data/med_dict.json") as jsonfile:
-#    med_dict = json.load(jsonfile)
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -34,10 +28,13 @@ def DescriptionProduit(produit) -> Component:
     return Div(
         Div(
             [
-                Div(produit.lower().capitalize(), className="heading-4 nav-title", id="Desc"),
                 Div(
-                    "PRODUIT",
-                    id="produit-target",
+                    produit.lower().capitalize(),
+                    className="heading-4 nav-title",
+                    id="Desc",
+                ),
+                Div(
+                    TYP_MED_DICT[produit],
                     className="caption-text",
                 ),
                 Div("Substance(s) active(s)", className="small-text-bold mt-3"),
@@ -69,15 +66,120 @@ def DescriptionProduit(produit) -> Component:
         className="description-container",
     )
 
-def PiePatientTraiteSexe(produit):
+
+def PiePatientTraiteSexe(produit) -> Graph:
     df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
 
-    fig_patients_sexe = get_pie_chart(
+    fig = get_pie_chart(
         df_sexe, "sexe", "n_conso", "Répartition par sexe des patients traités"
     )
 
     return Graph(
-        figure=fig_patients_sexe,
+        figure=fig,
+        className="img-card",
+        responsive=True,
+    )
+
+
+def PiePatientTraiteAge(produit) -> Graph:
+    df_age = pd.DataFrame(med_dict[produit]["age"])
+
+    fig = get_pie_chart(
+        df_age, "age", "n_conso", "Répartition par âge des patients traités"
+    )
+
+    return Graph(
+        figure=fig,
+        className="img-card",
+        responsive=True,
+    )
+
+
+def PieCasDeclareSexe(produit) -> Graph:
+    df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
+
+    if df_sexe.n_cas.sum() >= 10:
+        fig = get_pie_chart(
+            df_sexe, "sexe", "n_cas", "Répartition par sexe des cas déclarés"
+        )
+    else:
+        fig = {}
+
+    return Graph(
+        figure=fig,
+        className="img-card",
+        responsive=True,
+    )
+
+
+def PieCasDeclareAge(produit) -> Graph:
+    df_age = pd.DataFrame(med_dict[produit]["age"])
+
+    if df_age.n_cas.sum() >= 10:
+        fig = get_pie_chart(
+            df_age, "age", "n_cas", "Répartition par âge des cas déclarés"
+        )
+    else:
+        fig = {}
+
+    return Graph(
+        figure=fig,
+        className="img-card",
+        responsive=True,
+    )
+
+
+def CourbesAnnees(produit) -> Graph:
+    df_annee = pd.DataFrame(med_dict[produit]["annee"])
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    if df_annee.n_cas.min() >= 10:
+        fig.add_trace(
+            go.Scatter(
+                x=df_annee.annee,
+                y=df_annee.n_cas,
+                mode="lines",
+                name="Cas déclarés",
+                line={
+                    "shape": "spline",
+                    "smoothing": 1,
+                    "width": 4,
+                    "color": "#BFAACB",
+                },
+            ),
+            secondary_y=False,
+        )
+
+    fig.add_trace(
+        go.Scatter(
+            x=df_annee.annee,
+            y=df_annee.n_conso,
+            mode="lines",
+            name="Patients traités",
+            line={
+                "shape": "spline",
+                "smoothing": 1,
+                "width": 4,
+                "color": "#5E2A7E",
+            },
+        ),
+        secondary_y=True,
+    )
+
+    fig.update_yaxes(title_text="Nombre de cas déclarés", secondary_y=False)
+    fig.update_yaxes(title_text="Nombre de patients traités", secondary_y=True)
+
+    fig.update_xaxes(nticks=len(df_annee))
+    fig.update_layout(
+        xaxis_showgrid=False,
+        yaxis_showgrid=True,
+        yaxis2_showgrid=False,
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(t=0, b=0, l=0, r=0),
+    )
+    return Graph(
+        figure=fig,
         className="img-card",
         responsive=True,
     )
@@ -133,11 +235,7 @@ def PatientsTraites(produit) -> Component:
                                     "Répartition par âge des patients traités",
                                     className="normal-text",
                                 ),
-                                Graph(
-                                    id="pie-patients-traites-age",
-                                    className="img-card",
-                                    responsive=True,
-                                ),
+                                PiePatientTraiteAge(produit),
                             ],
                             className="box",
                         ),
@@ -152,6 +250,14 @@ def PatientsTraites(produit) -> Component:
 
 
 def CasDeclares(produit) -> Component:
+    df = pd.DataFrame(med_dict[produit]["annee"])
+    cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
+
+    if 0 < df.n_cas.sum() < 10:
+        cas_declares = "< 10"
+    else:
+        cas_declares = df.n_cas.sum()
+
     return Div(
         [
             Div(
@@ -164,9 +270,8 @@ def CasDeclares(produit) -> Component:
                     Div(
                         [
                             Div(
-                                "0",
+                                cas_an,
                                 className="box-highlight heading-4 d-inline-block",
-                                id="cas-an",
                             ),
                             Div(
                                 "cas/an",
@@ -182,9 +287,8 @@ def CasDeclares(produit) -> Component:
                     Div(
                         [
                             Div(
-                                "0",
+                                cas_declares,
                                 className="box-highlight heading-4 d-inline-block",
-                                id="cas-declares",
                             ),
                             Div(
                                 "cas déclarés",
@@ -207,11 +311,7 @@ def CasDeclares(produit) -> Component:
                                 "Nombre de cas déclarés d'effets indésirables et patients traités par année",
                                 className="normal-text",
                             ),
-                            Graph(
-                                id="courbe-annees",
-                                className="img-card",
-                                responsive=True,
-                            ),
+                            CourbesAnnees(produit),
                         ],
                         className="box",
                     ),
@@ -222,34 +322,33 @@ def CasDeclares(produit) -> Component:
             Div(
                 [
                     Div(
-                        [
-                            Div(
-                                "Répartition par sexe des cas déclarés",
-                                className="normal-text",
-                            ),
-                            Graph(
-                                id="pie-cas-declares-sexe",
-                                className="img-card",
-                                responsive=True,
-                            ),
-                        ],
-                        className="box d-inline-block",
+                        Div(
+                            [
+                                Div(
+                                    "Répartition par sexe des cas déclarés",
+                                    className="normal-text",
+                                ),
+                                PieCasDeclareSexe(produit),
+                            ],
+                            className="box",
+                        ),
+                        className="col-xl-5 col-lg-6",
                     ),
                     Div(
-                        [
-                            Div(
-                                "Répartition par âge des cas déclarés",
-                                className="normal-text",
-                            ),
-                            Graph(
-                                id="pie-cas-declares-age",
-                                className="img-card",
-                                responsive=True,
-                            ),
-                        ],
-                        className="box d-inline-block",
+                        Div(
+                            [
+                                Div(
+                                    "Répartition par âge des cas déclarés",
+                                    className="normal-text",
+                                ),
+                                PieCasDeclareAge(produit),
+                            ],
+                            className="box",
+                        ),
+                        className="col-xl-5 col-lg-6",
                     ),
-                ]
+                ],
+                className="row",
             ),
             Div(
                 [
@@ -323,144 +422,3 @@ def Produit(produit) -> Component:
         ],
         className="side-menu-container",
     )
-
-
-@app.callback(
-    [
-        dd.Output("pie-patients-traites-age", "figure"),
-        dd.Output("pie-cas-declares-sexe", "figure"),
-        dd.Output("pie-cas-declares-age", "figure"),
-        dd.Output("courbe-annees", "figure"),
-    ],
-    dd.Input("url", "href"),
-)
-def generate_chart(href):
-    parsed_url = urlparse(href)
-    query = parse_qs(parsed_url.query)
-
-    if "search" not in query:
-        raise PreventUpdate
-
-    else:
-        medicament = query["search"][0]
-
-        df_sexe = pd.DataFrame(med_dict[medicament]["sexe"])
-        df_age = pd.DataFrame(med_dict[medicament]["age"])
-        df_annee = pd.DataFrame(med_dict[medicament]["annee"])
-
-        fig_patients_sexe = get_pie_chart(
-            df_sexe, "sexe", "n_conso", "Répartition par sexe des patients traités"
-        )
-
-        if df_sexe.n_cas.sum() >= 10:
-            fig_cas_sexe = get_pie_chart(
-                df_sexe, "sexe", "n_cas", "Répartition par sexe des cas déclarés"
-            )
-        else:
-            fig_cas_sexe = {}
-
-        fig_patients_age = get_pie_chart(
-            df_age, "age", "n_conso", "Répartition par âge des patients traités"
-        )
-
-        if df_age.n_cas.sum() >= 10:
-            fig_cas_age = get_pie_chart(
-                df_age, "age", "n_cas", "Répartition par âge des cas déclarés"
-            )
-        else:
-            fig_cas_age = {}
-
-        fig_annee = make_subplots(specs=[[{"secondary_y": True}]])
-
-        if df_annee.n_cas.min() >= 10:
-            fig_annee.add_trace(
-                go.Scatter(
-                    x=df_annee.annee,
-                    y=df_annee.n_cas,
-                    mode="lines",
-                    name="Cas déclarés",
-                    line={
-                        "shape": "spline",
-                        "smoothing": 1,
-                        "width": 4,
-                        "color": "#BFAACB",
-                    },
-                ),
-                secondary_y=False,
-            )
-
-        fig_annee.add_trace(
-            go.Scatter(
-                x=df_annee.annee,
-                y=df_annee.n_conso,
-                mode="lines",
-                name="Patients traités",
-                line={
-                    "shape": "spline",
-                    "smoothing": 1,
-                    "width": 4,
-                    "color": "#5E2A7E",
-                },
-            ),
-            secondary_y=True,
-        )
-
-        fig_annee.update_yaxes(title_text="Nombre de cas déclarés", secondary_y=False)
-        fig_annee.update_yaxes(
-            title_text="Nombre de patients traités", secondary_y=True
-        )
-
-        fig_annee.update_xaxes(nticks=len(df_annee))
-        fig_annee.update_layout(
-            xaxis_showgrid=False,
-            yaxis_showgrid=True,
-            yaxis2_showgrid=False,
-            plot_bgcolor="rgba(0,0,0,0)",
-            margin=dict(t=0, b=0, l=0, r=0),
-        )
-
-        return (
-            fig_patients_age,
-            fig_cas_sexe,
-            fig_cas_age,
-            fig_annee,
-        )
-
-
-@app.callback(
-    [
-        dd.Output("cas-an", "children"),
-        dd.Output("cas-declares", "children"),
-        dd.Output("produit-target", "children"),
-    ],
-    dd.Input("url", "href"),
-)
-def change_product(href):
-    parsed_url = urlparse(href)
-    query = parse_qs(parsed_url.query)
-
-    if "search" not in query:
-        raise PreventUpdate
-
-    else:
-        medicament = query["search"][0]
-
-        df = pd.DataFrame(med_dict[medicament]["annee"])
-
-        # Calcul patients traités
-        patients_traites = round(df.n_conso.mean())
-
-        # Calcul nombre de cas par an
-        cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
-
-        # Calcul nombre de cas déclarés
-        if 0 < df.n_cas.sum() < 10:
-            cas_declares = "< 10"
-        else:
-            cas_declares = df.n_cas.sum()
-
-        return (
-            cas_an,
-            cas_declares,
-            TYP_MED_DICT[medicament],
-        )

@@ -1,10 +1,12 @@
-from dash_html_components import Div
-from urllib.parse import urlparse, parse_qs, ParseResultBytes, ParseResult
 from typing import Union
+from urllib.parse import parse_qs, ParseResultBytes, ParseResult
+
+from dash_html_components import Div
 
 from .components.footer import Footer
 from .components.navbar import Navbar
 from .components.produit import Produit
+
 
 def Layout(parsed_url: Union[ParseResultBytes, ParseResult]):
     query = parse_qs(parsed_url.query)

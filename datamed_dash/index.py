@@ -1,9 +1,10 @@
+from urllib.parse import urlparse
+
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output, Input
-from urllib.parse import urlparse
 
-from app import app, server
+from app import app
 from apps import app1, app2
 
 app.layout = html.Div(
