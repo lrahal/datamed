@@ -20,7 +20,7 @@ def SearchBar() -> Component:
             ),
         ],
         no_gutters=True,
-        className="search-bar ml-auto flex-nowrap",
+        className="search-bar ml-auto flex-nowrap mt-4",
         align="center",
     )
 
@@ -42,11 +42,11 @@ def MainSearch() -> Component:
                     "RECHERCHER",
                     n_clicks=0,
                     outline=True,
-                    className="button-text-bold mr-1",
+                    className="button-text-bold",
                     color="secondary",
                     id="rechercher-button",
                     type="submit",
-                    style={"margin-top": "3rem"},
+                    style={"margin-top": "2.5rem"},
                 ),
             ],
             className="main-search",
