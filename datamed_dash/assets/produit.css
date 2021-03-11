@@ -1,10 +1,5 @@
-.description-container {
-    margin-top: 88px;
-    margin-bottom: 200px;
-}
-
 .description {
-    margin: 0 20px 0 20px;
+    margin-left: 20px;
     padding: 30px;
     background: #fff;
     box-shadow: 0 4px 4px rgba(0, 0, 0, 0.24);
@@ -34,4 +29,8 @@
 
 .img-card {
     margin-top: 1rem;
+}
+
+.product-section {
+    margin-bottom: 12.5rem;
 }

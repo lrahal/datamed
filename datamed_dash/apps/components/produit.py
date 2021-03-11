@@ -4,10 +4,14 @@ import zipfile
 import pandas as pd
 import plotly.graph_objects as go
 from dash.development.base_component import Component
-from dash_core_components import Graph
+from dash_core_components import Graph, Dropdown
+from dash_bootstrap_components import Button, Row, Col
 from dash_html_components import Div, A, P
 from plotly.subplots import make_subplots
 from sm import SideMenu
+from app import app
+import dash.dependencies as dd
+from dash.exceptions import PreventUpdate
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -23,13 +27,44 @@ PROD_SUBS = pd.read_csv("./data/liste_produits_substances.csv", sep=";").to_dict
 TYP_MED_DICT = {d["medicament"]: d["typ_medicament"] for d in PROD_SUBS}
 
 
+def SearchDiv(produit):
+    return Div(
+        [
+            Row(
+                [
+                    Col(
+                        Dropdown(
+                            placeholder="Médicament, substance active",
+                            className="normal-text main-dropdown",
+                            id="produit-search-bar",
+                        )
+                    ),
+                ],
+                no_gutters=True,
+                className="col-xl-7 pl-0",
+            ),
+            Button(
+                "RECHERCHER",
+                n_clicks=0,
+                outline=True,
+                className="col-xl-1 button-text-bold",
+                color="secondary",
+                type="submit",
+                id="produit-rechercher-button",
+            ),
+        ],
+        style={"margin-left": "20px", "margin-top": "40px"},
+        className="row",
+    )
+
+
 def DescriptionProduit(produit) -> Component:
     return Div(
         Div(
             [
                 Div(
                     produit.lower().capitalize(),
-                    className="heading-4 nav-title",
+                    className="heading-4",
                     id="Desc",
                 ),
                 Div(
@@ -60,9 +95,9 @@ def DescriptionProduit(produit) -> Component:
                     className="normal-text mt-1",
                 ),
             ],
-            className="description",
+            className="description col-xl-8 col-sm-6",
         ),
-        className="description-container",
+        className="product-section mt-4",
     )
 
 
@@ -71,6 +106,9 @@ def PiePatientTraiteSexe(produit) -> Component:
 
     fig = get_pie_chart(
         df_sexe, "sexe", "n_conso", "Répartition par sexe des patients traités"
+    )
+    fig.update_layout(
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
 
     return Graph(
@@ -86,6 +124,9 @@ def PiePatientTraiteAge(produit) -> Component:
     fig = get_pie_chart(
         df_age, "age", "n_conso", "Répartition par âge des patients traités"
     )
+    fig.update_layout(
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
 
     return Graph(
         figure=fig,
@@ -100,6 +141,9 @@ def PieCasDeclareSexe(produit) -> Component:
     if df_sexe.n_cas.sum() >= 10:
         fig = get_pie_chart(
             df_sexe, "sexe", "n_cas", "Répartition par sexe des cas déclarés"
+        )
+        fig.update_layout(
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
     else:
         fig = {}
@@ -117,6 +161,9 @@ def PieCasDeclareAge(produit) -> Component:
     if df_age.n_cas.sum() >= 10:
         fig = get_pie_chart(
             df_age, "age", "n_cas", "Répartition par âge des cas déclarés"
+        )
+        fig.update_layout(
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
     else:
         fig = {}
@@ -176,6 +223,8 @@ def CourbesAnnees(produit) -> Component:
         yaxis2_showgrid=False,
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(t=0, b=0, l=0, r=0),
+        font={"size": 12, "color": "black"},
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
     return Graph(
         figure=fig,
@@ -227,7 +276,8 @@ def BarNotif(produit) -> Component:
         barmode="group",
         bargap=0.10,
         bargroupgap=0.0,
-        font={"size": 14},
+        font={"size": 12, "color": "black"},
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
     return Graph(
         figure=fig,
@@ -283,7 +333,7 @@ def BarSoc(produit) -> Component:
         barmode="group",
         bargap=0.10,
         bargroupgap=0.0,
-        font={"size": 14},
+        font={"size": 12, "color": "black"},
     )
     return Graph(
         figure=fig,
@@ -333,7 +383,7 @@ def PatientsTraites(produit) -> Component:
                             ],
                             className="box",
                         ),
-                        className="col-xl-5 col-lg-6",
+                        className="col-xl-4 col-lg-5",
                     ),
                     Div(
                         Div(
@@ -346,13 +396,13 @@ def PatientsTraites(produit) -> Component:
                             ],
                             className="box",
                         ),
-                        className="col-xl-5 col-lg-6",
+                        className="col-xl-4 col-lg-5",
                     ),
                 ],
-                className="row",
+                className="row no-gutters",
             ),
         ],
-        style=({"margin-bottom": "200px"}),
+        className="product-section",
     )
 
 
@@ -422,7 +472,7 @@ def CasDeclares(produit) -> Component:
                         ],
                         className="box",
                     ),
-                    className="col-xl-10",
+                    className="col-xl-8",
                 ),
                 className="row",
             ),
@@ -439,7 +489,7 @@ def CasDeclares(produit) -> Component:
                             ],
                             className="box",
                         ),
-                        className="col-xl-5 col-lg-6",
+                        className="col-xl-4 col-lg-5",
                     ),
                     Div(
                         Div(
@@ -452,7 +502,7 @@ def CasDeclares(produit) -> Component:
                             ],
                             className="box",
                         ),
-                        className="col-xl-5 col-lg-6",
+                        className="col-xl-4 col-lg-5",
                     ),
                     Div(
                         Div(
@@ -465,13 +515,13 @@ def CasDeclares(produit) -> Component:
                             ],
                             className="box",
                         ),
-                        className="col-xl-10",
+                        className="col-xl-8",
                     ),
                 ],
                 className="row",
             ),
         ],
-        style=({"margin-bottom": "200px"}),
+        className="product-section",
     )
 
 
@@ -494,12 +544,12 @@ def Organes(produit) -> Component:
                         ],
                         className="box",
                     ),
-                    className="col-xl-10 d-block",
+                    className="col-xl-8",
                 ),
                 className="row",
             ),
         ],
-        style=({"margin-bottom": "200px"}),
+        className="product-section",
     )
 
 
@@ -517,6 +567,7 @@ def get_pie_chart(df, var_1, var_2, name):
 def Produit(produit) -> Component:
     return Div(
         [
+            SearchDiv(produit),
             SideMenu(
                 id="side-menu",
                 items=[
@@ -539,3 +590,30 @@ def Produit(produit) -> Component:
         ],
         className="side-menu-container",
     )
+
+
+df_med = pd.read_csv("./data/liste_produits_substances.csv", delimiter=";")
+med_list = df_med.medicament.tolist()
+
+
+@app.callback(
+    dd.Output("produit-search-bar", "options"),
+    dd.Input("produit-search-bar", "search_value"),
+)
+def update_search_bar_options(search_value):
+    if not search_value:
+        raise PreventUpdate
+
+    search_value = search_value.lower()
+    return [
+        {"label": v.lower(), "value": v} for v in med_list if search_value in v.lower()
+    ]
+
+
+@app.callback(
+    dd.Output("produit-rechercher-button", "href"),
+    dd.Input("produit-search-bar", "value"),
+)
+def update_path(value):
+    if value:
+        return "/apps/app2?search=" + value
