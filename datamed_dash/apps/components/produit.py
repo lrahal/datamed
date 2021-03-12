@@ -27,7 +27,7 @@ PROD_SUBS = pd.read_csv("./data/liste_produits_substances.csv", sep=";").to_dict
 TYP_MED_DICT = {d["medicament"]: d["typ_medicament"] for d in PROD_SUBS}
 
 
-def SearchDiv(produit):
+def SearchDiv(produit) -> Component:
     return Div(
         [
             Row(
@@ -53,7 +53,7 @@ def SearchDiv(produit):
                 id="produit-rechercher-button",
             ),
         ],
-        style={"margin-left": "20px", "margin-top": "40px"},
+        style={"margin-left": "20px", "margin-top": "2rem"},
         className="row",
     )
 
@@ -97,11 +97,12 @@ def DescriptionProduit(produit) -> Component:
             ],
             className="description col-xl-8 col-sm-6",
         ),
-        className="product-section mt-4",
+        style={"margin-top": "2rem"},
+        className="product-section",
     )
 
 
-def PiePatientTraiteSexe(produit) -> Component:
+def PiePatientTraiteSexe(produit) -> Graph:
     df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
 
     fig = get_pie_chart(
@@ -118,7 +119,7 @@ def PiePatientTraiteSexe(produit) -> Component:
     )
 
 
-def PiePatientTraiteAge(produit) -> Component:
+def PiePatientTraiteAge(produit) -> Graph:
     df_age = pd.DataFrame(med_dict[produit]["age"])
 
     fig = get_pie_chart(
@@ -135,7 +136,7 @@ def PiePatientTraiteAge(produit) -> Component:
     )
 
 
-def PieCasDeclareSexe(produit) -> Component:
+def PieCasDeclareSexe(produit) -> Graph:
     df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
 
     if df_sexe.n_cas.sum() >= 10:
@@ -155,7 +156,7 @@ def PieCasDeclareSexe(produit) -> Component:
     )
 
 
-def PieCasDeclareAge(produit) -> Component:
+def PieCasDeclareAge(produit) -> Graph:
     df_age = pd.DataFrame(med_dict[produit]["age"])
 
     if df_age.n_cas.sum() >= 10:
@@ -175,7 +176,7 @@ def PieCasDeclareAge(produit) -> Component:
     )
 
 
-def CourbesAnnees(produit) -> Component:
+def CourbesAnnees(produit) -> Graph:
     df_annee = pd.DataFrame(med_dict[produit]["annee"])
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -233,7 +234,7 @@ def CourbesAnnees(produit) -> Component:
     )
 
 
-def BarNotif(produit) -> Component:
+def BarNotif(produit) -> Graph:
     df_notif = pd.DataFrame(med_dict[produit]["notif"])
 
     fig = go.Figure(
@@ -286,7 +287,7 @@ def BarNotif(produit) -> Component:
     )
 
 
-def BarSoc(produit) -> Component:
+def BarSoc(produit) -> Graph:
     df_soc = pd.DataFrame(med_dict[produit]["soclong"])
     df_soc = df_soc.head(10)
 

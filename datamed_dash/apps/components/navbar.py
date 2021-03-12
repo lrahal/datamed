@@ -5,8 +5,7 @@ from dash_html_components import Div, Img, Span, A, B
 
 
 def LogoAnsm() -> Component:
-    src = "/assets/logo_ansm.png"
-    img = Img(src=src, style={"width": "100px", "display": "inline-block"})
+    img = Img(src="/assets/logo_ansm.png", style={"width": "100px", "display": "inline-block"})
     return dcc.Link(img, href="/")
 
 
