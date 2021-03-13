@@ -5,9 +5,7 @@
 
 
 import sys
-from collections import defaultdict
 
-import numpy as np
 import pandas as pd
 
 sys.path.append('/Users/ansm/Documents/GitHub/datamed')
