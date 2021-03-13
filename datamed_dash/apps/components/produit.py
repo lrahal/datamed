@@ -288,59 +288,60 @@ def BarNotif(produit) -> Graph:
 
 
 def BarSoc(produit) -> Graph:
-    df_soc = pd.DataFrame(med_dict[produit]["soclong"])
-    df_soc = df_soc.head(10)
+    if med_dict[produit]["soclong"]:
+        df_soc = pd.DataFrame(med_dict[produit]["soclong"])
+        df_soc = df_soc.head(10)
 
-    fig = go.Figure(
-        go.Bar(
-            y=df_soc.soc_long,
-            x=df_soc.n_decla_eff,
-            orientation="h",
-            marker=dict(
-                color=[
-                    "rgba(51,171,102,1)",
-                    "rgba(102,192,140,1)",
-                    "rgba(153,213,179,1)",
-                    "rgba(204,234,217,1)",
-                    "rgba(191,213,60,1)",
-                    "rgba(207,223,109,1)",
-                    "rgba(223,234,157,1)",
-                    "rgba(239,244,206,1)",
-                    "rgba(51,194,214,1)",
-                    "rgba(102,209,224,1)",
-                ]
-            ),
+        fig = go.Figure(
+            go.Bar(
+                y=df_soc.soc_long,
+                x=df_soc.n_decla_eff,
+                orientation="h",
+                marker=dict(
+                    color=[
+                        "rgba(51,171,102,1)",
+                        "rgba(102,192,140,1)",
+                        "rgba(153,213,179,1)",
+                        "rgba(204,234,217,1)",
+                        "rgba(191,213,60,1)",
+                        "rgba(207,223,109,1)",
+                        "rgba(223,234,157,1)",
+                        "rgba(239,244,206,1)",
+                        "rgba(51,194,214,1)",
+                        "rgba(102,209,224,1)",
+                    ]
+                ),
+            )
         )
-    )
 
-    fig.update_layout(
-        xaxis=dict(
-            showgrid=False,
-            showline=False,
-            showticklabels=False,
-            zeroline=False,
-        ),
-        yaxis=dict(
-            showgrid=False,
-            showline=False,
-            zeroline=False,
-            autorange="reversed",
-            ticks="outside",
-            tickcolor="white",
-            ticklen=1,
-        ),
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=0, b=0),
-        barmode="group",
-        bargap=0.10,
-        bargroupgap=0.0,
-        font={"size": 12, "color": "black"},
-    )
-    return Graph(
-        figure=fig,
-        className="img-card",
-        responsive=True,
-    )
+        fig.update_layout(
+            xaxis=dict(
+                showgrid=False,
+                showline=False,
+                showticklabels=False,
+                zeroline=False,
+            ),
+            yaxis=dict(
+                showgrid=False,
+                showline=False,
+                zeroline=False,
+                autorange="reversed",
+                ticks="outside",
+                tickcolor="white",
+                ticklen=1,
+            ),
+            plot_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=0, r=0, t=0, b=0),
+            barmode="group",
+            bargap=0.10,
+            bargroupgap=0.0,
+            font={"size": 12, "color": "black"},
+        )
+        return Graph(
+            figure=fig,
+            className="img-card",
+            responsive=True,
+        )
 
 
 def PatientsTraites(produit) -> Component:
