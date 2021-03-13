@@ -26,6 +26,9 @@ PROD_SUBS = pd.read_csv("./data/liste_produits_substances.csv", sep=";").to_dict
 )
 TYP_MED_DICT = {d["medicament"]: d["typ_medicament"] for d in PROD_SUBS}
 
+f = open("./data/substance_by_produit.json", "r")
+SUBSTANCE_BY_PRODUIT = json.loads(f.read())
+
 
 def SearchDiv(produit) -> Component:
     return Div(
@@ -73,7 +76,7 @@ def DescriptionProduit(produit) -> Component:
                 ),
                 Div("Substance(s) active(s)", className="small-text-bold mt-3"),
                 A(
-                    "PARACÉTAMOL",
+                    ", ".join(SUBSTANCE_BY_PRODUIT[produit.lower()]),
                     href="/",
                     style={"color": "#EF7D00"},
                     className="normal-text",
@@ -235,56 +238,59 @@ def CourbesAnnees(produit) -> Graph:
 
 
 def BarNotif(produit) -> Graph:
-    df_notif = pd.DataFrame(med_dict[produit]["notif"])
+    if med_dict[produit]["notif"]:
+        df_notif = pd.DataFrame(med_dict[produit]["notif"])
 
-    fig = go.Figure(
-        go.Bar(
-            y=df_notif.typ_notif,
-            x=df_notif.n_decla,
-            orientation="h",
-            marker=dict(
-                color=[
-                    "rgba(51,171,102,1)",
-                    "rgba(102,192,140,1)",
-                    "rgba(153,213,179,1)",
-                    "rgba(204,234,217,1)",
-                    "rgba(191,213,60,1)",
-                    "rgba(207,223,109,1)",
-                    "rgba(239,244,206,1)",
-                ]
+        fig = go.Figure(
+            go.Bar(
+                y=df_notif.typ_notif,
+                x=df_notif.n_decla,
+                orientation="h",
+                marker=dict(
+                    color=[
+                        "rgba(51,171,102,1)",
+                        "rgba(102,192,140,1)",
+                        "rgba(153,213,179,1)",
+                        "rgba(204,234,217,1)",
+                        "rgba(191,213,60,1)",
+                        "rgba(207,223,109,1)",
+                        "rgba(239,244,206,1)",
+                    ]
+                ),
+            )
+        )
+
+        fig.update_layout(
+            xaxis=dict(
+                showgrid=False,
+                showline=False,
+                showticklabels=False,
+                zeroline=False,
+            ),
+            yaxis=dict(
+                showgrid=False,
+                showline=False,
+                zeroline=False,
+                autorange="reversed",
+                ticks="outside",
+                tickcolor="white",
+                ticklen=1,
+            ),
+            plot_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=0, r=0, t=0, b=0),
+            barmode="group",
+            bargap=0.10,
+            bargroupgap=0.0,
+            font={"size": 12, "color": "black"},
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
             ),
         )
-    )
-
-    fig.update_layout(
-        xaxis=dict(
-            showgrid=False,
-            showline=False,
-            showticklabels=False,
-            zeroline=False,
-        ),
-        yaxis=dict(
-            showgrid=False,
-            showline=False,
-            zeroline=False,
-            autorange="reversed",
-            ticks="outside",
-            tickcolor="white",
-            ticklen=1,
-        ),
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=0, b=0),
-        barmode="group",
-        bargap=0.10,
-        bargroupgap=0.0,
-        font={"size": 12, "color": "black"},
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    )
-    return Graph(
-        figure=fig,
-        className="img-card",
-        responsive=True,
-    )
+        return Graph(
+            figure=fig,
+            className="img-card",
+            responsive=True,
+        )
 
 
 def BarSoc(produit) -> Graph:
