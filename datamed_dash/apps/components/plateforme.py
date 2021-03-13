@@ -7,7 +7,7 @@ def Plateforme() -> Component:
     src = "/assets/screen.jpg"
     return Div(
         [
-            Img(src=src, style={"width": "50%"}),
+            Img(src=src, style={"width": "50%"}, className="img-fluid", alt="Responsive image"),
             Div(
                 [
                     Span(

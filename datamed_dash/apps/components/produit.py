@@ -1,17 +1,17 @@
 import json
 import zipfile
 
+import dash.dependencies as dd
 import pandas as pd
 import plotly.graph_objects as go
+from app import app
 from dash.development.base_component import Component
-from dash_core_components import Graph, Dropdown
+from dash.exceptions import PreventUpdate
 from dash_bootstrap_components import Button, Row, Col
-from dash_html_components import Div, A, P
+from dash_core_components import Graph, Dropdown
+from dash_html_components import Div, A, P, Img
 from plotly.subplots import make_subplots
 from sm import SideMenu
-from app import app
-import dash.dependencies as dd
-from dash.exceptions import PreventUpdate
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -105,6 +105,24 @@ def DescriptionProduit(produit) -> Component:
     )
 
 
+def NoData() -> Div:
+    return Div(
+        [
+            Img(
+                src="/assets/illu_no_data.svg",
+                className="img-fluid",
+                alt="Responsive image",
+            ),
+            Div(
+                "Données insuffisantes pour affichage",
+                className="small-text",
+                style={"color": "#9e9e9e"},
+            ),
+        ],
+        className="d-flex flex-column align-items-center",
+    )
+
+
 def PiePatientTraiteSexe(produit) -> Graph:
     df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
 
@@ -150,7 +168,7 @@ def PieCasDeclareSexe(produit) -> Graph:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
     else:
-        fig = {}
+        return NoData()
 
     return Graph(
         figure=fig,
@@ -170,7 +188,7 @@ def PieCasDeclareAge(produit) -> Graph:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
     else:
-        fig = {}
+        return NoData()
 
     return Graph(
         figure=fig,
@@ -291,6 +309,8 @@ def BarNotif(produit) -> Graph:
             className="img-card",
             responsive=True,
         )
+    else:
+        NoData()
 
 
 def BarSoc(produit) -> Graph:
@@ -348,6 +368,8 @@ def BarSoc(produit) -> Graph:
             className="img-card",
             responsive=True,
         )
+    else:
+        return NoData()
 
 
 def PatientsTraites(produit) -> Component:
