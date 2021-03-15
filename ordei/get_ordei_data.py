@@ -159,7 +159,7 @@ def compute_med_dict(
     data_annee: pd.DataFrame,
     med_dict: Dict,
 ) -> Dict:
-    med_dict[med] = {
+    med_dict[med.lower().capitalize()] = {
         "soclong": [
             {k: v for k, v in d.items() if k != "medicament"}
             for d in data_soclong.to_dict(orient="records")
