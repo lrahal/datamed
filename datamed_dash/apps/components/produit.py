@@ -13,6 +13,7 @@ from dash_html_components import Div, A, P, Img
 from plotly.subplots import make_subplots
 from sm import SideMenu
 
+
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
     with z.open(filename) as f:
@@ -21,16 +22,20 @@ with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
 
 graphs_colors = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
 
-PROD_SUBS = pd.read_csv("./data/liste_produits_substances.csv", sep=";").to_dict(
-    orient="records"
-)
-TYP_MED_DICT = {d["medicament"]: d["typ_medicament"] for d in PROD_SUBS}
+#PROD_SUBS = pd.read_csv("./data/liste_produits_substances.csv", sep=";").to_dict(
+#    orient="records"
+#)
+#TYP_MED_DICT = {d["medicament"]: d["typ_medicament"] for d in PROD_SUBS}
 
-f = open("./data/substance_by_produit.json", "r")
-SUBSTANCE_BY_PRODUIT = json.loads(f.read())
+file_sub_by_spe = open("./data/substance_by_specialite.json", "r")
+SUBSTANCE_BY_SPECIALITE = json.loads(file_sub_by_spe.read())
+
+file_liste_spe = open("./data/liste_specialites.json", "r")
+SPE_DICT = json.loads(file_liste_spe.read())
+SPE_LIST = list(set(SPE_DICT.keys()))
 
 
-def SearchDiv(produit) -> Component:
+def SearchDiv() -> Component:
     return Div(
         [
             Row(
@@ -61,25 +66,29 @@ def SearchDiv(produit) -> Component:
     )
 
 
-def DescriptionProduit(produit) -> Component:
+def DescriptionProduit(specialite) -> Component:
     return Div(
         Div(
             [
                 Div(
-                    produit.lower().capitalize(),
+                    specialite,
                     className="heading-4",
                     id="Desc",
                 ),
-                Div(
-                    TYP_MED_DICT[produit],
-                    className="caption-text",
-                ),
-                Div("Substance(s) active(s)", className="small-text-bold mt-3"),
+                Div("Produit", className="small-text-bold mt-3"),
                 A(
-                    ", ".join(SUBSTANCE_BY_PRODUIT[produit.lower()]),
+                    SUBSTANCE_BY_SPECIALITE[specialite]['produit'],
                     href="/",
                     style={"color": "#EF7D00"},
                     className="normal-text",
+                ),
+                Div("Substance(s) active(s)", className="small-text-bold mt-3"),
+                A(
+                    ", ".join(SUBSTANCE_BY_SPECIALITE[specialite]['substances']),
+                    href="/",
+                    style={"color": "#EF7D00"},
+                    className="normal-text",
+                    id="refresh-substances"
                 ),
                 Div(
                     "Description",
@@ -123,7 +132,8 @@ def NoData() -> Div:
     )
 
 
-def PiePatientTraiteSexe(produit) -> Graph:
+def PiePatientTraiteSexe(specialite) -> Graph:
+    produit = SUBSTANCE_BY_SPECIALITE[specialite]['produit']
     df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
 
     fig = get_pie_chart(
@@ -140,7 +150,8 @@ def PiePatientTraiteSexe(produit) -> Graph:
     )
 
 
-def PiePatientTraiteAge(produit) -> Graph:
+def PiePatientTraiteAge(specialite) -> Graph:
+    produit = SUBSTANCE_BY_SPECIALITE[specialite]['produit']
     df_age = pd.DataFrame(med_dict[produit]["age"])
 
     fig = get_pie_chart(
@@ -157,7 +168,8 @@ def PiePatientTraiteAge(produit) -> Graph:
     )
 
 
-def PieCasDeclareSexe(produit) -> Graph:
+def PieCasDeclareSexe(specialite) -> Graph:
+    produit = SUBSTANCE_BY_SPECIALITE[specialite]['produit']
     df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
 
     if df_sexe.n_cas.sum() >= 10:
@@ -177,7 +189,8 @@ def PieCasDeclareSexe(produit) -> Graph:
     )
 
 
-def PieCasDeclareAge(produit) -> Graph:
+def PieCasDeclareAge(specialite) -> Graph:
+    produit = SUBSTANCE_BY_SPECIALITE[specialite]['produit']
     df_age = pd.DataFrame(med_dict[produit]["age"])
 
     if df_age.n_cas.sum() >= 10:
@@ -197,7 +210,8 @@ def PieCasDeclareAge(produit) -> Graph:
     )
 
 
-def CourbesAnnees(produit) -> Graph:
+def CourbesAnnees(specialite) -> Graph:
+    produit = SUBSTANCE_BY_SPECIALITE[specialite]['produit']
     df_annee = pd.DataFrame(med_dict[produit]["annee"])
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -255,9 +269,9 @@ def CourbesAnnees(produit) -> Graph:
     )
 
 
-def BarNotif(produit) -> Graph:
-    if med_dict[produit]["notif"]:
-        df_notif = pd.DataFrame(med_dict[produit]["notif"])
+def BarNotif(specialite) -> Graph:
+    if med_dict[SUBSTANCE_BY_SPECIALITE[specialite]['produit']]["notif"]:
+        df_notif = pd.DataFrame(med_dict[SUBSTANCE_BY_SPECIALITE[specialite]['produit']]["notif"])
 
         fig = go.Figure(
             go.Bar(
@@ -313,9 +327,9 @@ def BarNotif(produit) -> Graph:
         return NoData()
 
 
-def BarSoc(produit) -> Graph:
-    if med_dict[produit]["soclong"]:
-        df_soc = pd.DataFrame(med_dict[produit]["soclong"])
+def BarSoc(specialite) -> Graph:
+    if med_dict[SUBSTANCE_BY_SPECIALITE[specialite]['produit']]["soclong"]:
+        df_soc = pd.DataFrame(med_dict[SUBSTANCE_BY_SPECIALITE[specialite]['produit']]["soclong"])
         df_soc = df_soc.head(10)
 
         fig = go.Figure(
@@ -372,7 +386,8 @@ def BarSoc(produit) -> Graph:
         return NoData()
 
 
-def PatientsTraites(produit) -> Component:
+def PatientsTraites(specialite) -> Component:
+    produit = SUBSTANCE_BY_SPECIALITE[specialite]['produit']
     df = pd.DataFrame(med_dict[produit]["annee"])
     patients_traites = round(df.n_conso.mean())
 
@@ -409,7 +424,7 @@ def PatientsTraites(produit) -> Component:
                                     "Répartition par sexe des patients traités",
                                     className="normal-text",
                                 ),
-                                PiePatientTraiteSexe(produit),
+                                PiePatientTraiteSexe(specialite),
                             ],
                             className="box",
                         ),
@@ -422,7 +437,7 @@ def PatientsTraites(produit) -> Component:
                                     "Répartition par âge des patients traités",
                                     className="normal-text",
                                 ),
-                                PiePatientTraiteAge(produit),
+                                PiePatientTraiteAge(specialite),
                             ],
                             className="box",
                         ),
@@ -436,7 +451,8 @@ def PatientsTraites(produit) -> Component:
     )
 
 
-def CasDeclares(produit) -> Component:
+def CasDeclares(specialite) -> Component:
+    produit = SUBSTANCE_BY_SPECIALITE[specialite]['produit']
     df = pd.DataFrame(med_dict[produit]["annee"])
     cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
 
@@ -498,7 +514,7 @@ def CasDeclares(produit) -> Component:
                                 "Nombre de cas déclarés d'effets indésirables et patients traités par année",
                                 className="normal-text",
                             ),
-                            CourbesAnnees(produit),
+                            CourbesAnnees(specialite),
                         ],
                         className="box",
                     ),
@@ -515,7 +531,7 @@ def CasDeclares(produit) -> Component:
                                     "Répartition par sexe des cas déclarés",
                                     className="normal-text",
                                 ),
-                                PieCasDeclareSexe(produit),
+                                PieCasDeclareSexe(specialite),
                             ],
                             className="box",
                         ),
@@ -528,7 +544,7 @@ def CasDeclares(produit) -> Component:
                                     "Répartition par âge des cas déclarés",
                                     className="normal-text",
                                 ),
-                                PieCasDeclareAge(produit),
+                                PieCasDeclareAge(specialite),
                             ],
                             className="box",
                         ),
@@ -541,7 +557,7 @@ def CasDeclares(produit) -> Component:
                                     "Répartition par type de notificateur",
                                     className="normal-text",
                                 ),
-                                BarNotif(produit),
+                                BarNotif(specialite),
                             ],
                             className="box",
                         ),
@@ -555,7 +571,7 @@ def CasDeclares(produit) -> Component:
     )
 
 
-def Organes(produit) -> Component:
+def Organes(specialite) -> Component:
     return Div(
         [
             Div(
@@ -570,7 +586,7 @@ def Organes(produit) -> Component:
                                 "Effets indésirables les plus déclarés par système d'organe",
                                 className="normal-text",
                             ),
-                            BarSoc(produit),
+                            BarSoc(specialite),
                         ],
                         className="box",
                     ),
@@ -594,10 +610,10 @@ def get_pie_chart(df, var_1, var_2, name):
     ).update_layout(margin=dict(t=0, b=0, l=0, r=0))
 
 
-def Produit(produit) -> Component:
+def Produit(specialite) -> Component:
     return Div(
         [
-            SearchDiv(produit),
+            SearchDiv(),
             SideMenu(
                 id="side-menu",
                 items=[
@@ -611,19 +627,15 @@ def Produit(produit) -> Component:
             ),
             Div(
                 [
-                    DescriptionProduit(produit),
-                    PatientsTraites(produit),
-                    CasDeclares(produit),
-                    Organes(produit),
+                    DescriptionProduit(specialite),
+                    PatientsTraites(specialite),
+                    CasDeclares(specialite),
+                    Organes(specialite),
                 ]
             ),
         ],
         className="side-menu-container",
     )
-
-
-df_med = pd.read_csv("./data/liste_produits_substances.csv", delimiter=";")
-med_list = df_med.medicament.tolist()
 
 
 @app.callback(
@@ -635,8 +647,9 @@ def update_search_bar_options(search_value):
         raise PreventUpdate
 
     search_value = search_value.lower()
+    values_list = [v for v in SPE_LIST if search_value in v.lower()][:10]
     return [
-        {"label": v.lower(), "value": v} for v in med_list if search_value in v.lower()
+        {"label": v, "value": v} for v in values_list
     ]
 
 
