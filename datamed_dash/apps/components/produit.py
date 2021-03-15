@@ -310,7 +310,7 @@ def BarNotif(produit) -> Graph:
             responsive=True,
         )
     else:
-        NoData()
+        return NoData()
 
 
 def BarSoc(produit) -> Graph:
