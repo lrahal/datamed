@@ -10,12 +10,12 @@ from .components.produit import Produit
 
 def Layout(parsed_url: Union[ParseResultBytes, ParseResult]):
     query = parse_qs(parsed_url.query)
-    produit = query["search"][0]
+    specialite = query["search"][0]
 
     return Div(
         [
             Navbar(),
-            Produit(produit),
+            Produit(specialite),
             Footer(),
         ],
         className="layout",
