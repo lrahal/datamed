@@ -34,6 +34,9 @@ file_liste_spe = open("./data/liste_specialites.json", "r")
 SPE_DICT = json.loads(file_liste_spe.read())
 SPE_LIST = list(set(SPE_DICT.keys()))
 
+file_atc_by_spe = open("./data/atc_by_spe.json", "r")
+ATC_BY_SPE = json.loads(file_atc_by_spe.read())
+
 
 def SearchDiv() -> Component:
     return Div(
@@ -96,7 +99,9 @@ def DescriptionProduit(specialite) -> Component:
                     className="small-text-bold",
                 ),
                 P(
-                    "Classe pharmacothérapeutique - classe ATC N02BE01",
+                    "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
+                        ATC_BY_SPE[specialite]['nom_atc'], ATC_BY_SPE[specialite]['code_atc']
+                    ),
                     className="normal-text mt-2",
                 ),
                 P(
