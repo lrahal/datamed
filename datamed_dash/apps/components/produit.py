@@ -112,7 +112,7 @@ def DescriptionProduit(specialite) -> Component:
                     className="normal-text mt-1",
                 ),
             ],
-            className="description col-xl-8 col-sm-6",
+            className="description col-xl-8 col-sm-11",
         ),
         style={"margin-top": "2rem"},
         className="product-section",
@@ -622,7 +622,6 @@ def get_pie_chart(df, var_1, var_2, name):
 def Produit(specialite) -> Component:
     return Div(
         [
-            SearchDiv(),
             SideMenu(
                 id="side-menu",
                 items=[
@@ -634,6 +633,7 @@ def Produit(specialite) -> Component:
                 ],
                 className="side-menu",
             ),
+            SearchDiv(),
             Div(
                 [
                     DescriptionProduit(specialite),

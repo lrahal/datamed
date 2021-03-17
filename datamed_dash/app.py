@@ -7,6 +7,10 @@ app = dash.Dash(
         dbc.themes.BOOTSTRAP,
         __file__.replace("index.py", "./assets/style.css"),
     ],
+    external_scripts=[
+        dbc.themes.BOOTSTRAP,
+        __file__.replace("index.py", "./assets/menu.js"),
+    ],
     suppress_callback_exceptions=True,
     title="Dashboard - DataMed",
 )

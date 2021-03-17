@@ -21,6 +21,7 @@ nav.side-menu {
   width: 270px;
   text-transform: uppercase;
   align-self: flex-start;
+  overflow: hidden;
 }
 
 nav.side-menu ul {
@@ -59,4 +60,19 @@ nav.side-menu li {
 .nav-title {
     padding-top: 120px;
     margin-top: -120px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@media (max-width: 1000px) {
+  nav {
+    display: none;
+  }
+  .side-menu-container {
+    padding-left: 0px;
+  }
 }
