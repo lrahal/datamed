@@ -1,5 +1,6 @@
 import json
 
+
 import dash.dependencies as dd
 from app import app
 from dash.development.base_component import Component
@@ -65,14 +66,16 @@ def MainSearch() -> Component:
     dd.Output("search-bar", "options"),
     dd.Input("search-bar", "search_value"),
 )
+
 def update_search_bar_options(search_value):
     if not search_value:
         raise PreventUpdate
 
+
     search_value = search_value.lower()
     values_list = [v for v in SPE_LIST if search_value in v.lower()][:10]
     return [
-        {"label": v, "value": v} for v in values_list
+        {"label": v[:100]+"..." if len(v)>100 else v, "value": v} for v in values_list
     ]
 
 
