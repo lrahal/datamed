@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function(){
         var rect1 = menu.getBoundingClientRect();
         var rect2 = footer.getBoundingClientRect();
         var overlap = !(rect1.bottom < rect2.top)
-
+        
         if (overlap) {
             menu.style.height = (rect1.height - (rect1.bottom - rect2.top) + 1) +"px"
         } else {
