@@ -15,6 +15,13 @@ SPE_DICT = json.loads(file_liste_spe.read())
 SPE_LIST = list(set(SPE_DICT.keys()))
 
 
+def MainSearchTitle() -> Component:
+    return Div(
+        [Div("Plateforme des données publiques"), Div("de l'Agence du Médicament")],
+        className="main-search-title heading-4"
+    )
+
+
 def SearchBar() -> Component:
     return Row(
         [
@@ -34,30 +41,33 @@ def SearchBar() -> Component:
 
 def MainSearch() -> Component:
     return Div(
-        Div(
-            [
-                Span(
-                    "Trouvez des données",
-                    className="heading-4 d-block",
-                ),
-                Span(
-                    "autour du médicament",
-                    className="heading-4 d-block",
-                ),
-                SearchBar(),
-                Button(
-                    "RECHERCHER",
-                    n_clicks=0,
-                    outline=True,
-                    className="button-text-bold",
-                    color="secondary",
-                    id="rechercher-button",
-                    type="submit",
-                    style={"margin-top": "2.5rem"},
-                ),
-            ],
-            className="main-search",
-        ),
+        [
+            MainSearchTitle(),
+            Div(
+                [
+                    Span(
+                        "Trouvez des données",
+                        className="heading-4 d-block",
+                    ),
+                    Span(
+                        "autour du médicament",
+                        className="heading-4 d-block",
+                    ),
+                    SearchBar(),
+                    Button(
+                        "RECHERCHER",
+                        n_clicks=0,
+                        outline=True,
+                        className="button-text-bold",
+                        color="secondary",
+                        id="rechercher-button",
+                        type="submit",
+                        style={"margin-top": "2.5rem"},
+                    ),
+                ],
+                className="main-search",
+            ),
+        ],
         className="main-search-container",
     )
 
@@ -75,7 +85,7 @@ def update_search_bar_options(search_value):
     search_value = search_value.lower()
     values_list = [v for v in SPE_LIST if search_value in v.lower()][:10]
     return [
-        {"label": v[:100]+"..." if len(v)>100 else v, "value": v} for v in values_list
+        {"label": v[:50]+"..." if len(v)>50 else v, "value": v} for v in values_list
     ]
 
 

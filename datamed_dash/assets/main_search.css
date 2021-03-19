@@ -9,7 +9,7 @@
     width: fit-content;
     padding: 60px 200px;
     background: #fff;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.24);
     text-align:center;
     align-items: center;
     margin: auto;
@@ -42,4 +42,12 @@
     display: list-item;
     border: none;
     border-radius: 2px;
+}
+
+.main-search-title {
+    margin: auto;
+    width: fit-content;
+    padding-bottom: 4rem;
+    text-align: center;
+    color: #A03189;
 }
