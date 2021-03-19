@@ -7,11 +7,20 @@ import plotly.graph_objects as go
 from app import app
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
-from dash_bootstrap_components import Button, Row, Col
+from dash_bootstrap_components import (
+    Button,
+    Row,
+    Col,
+    Modal,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+)
 from dash_core_components import Graph, Dropdown
 from dash_html_components import Div, A, P, Img
 from plotly.subplots import make_subplots
 from sm import SideMenu
+from urllib.parse import parse_qs, urlparse
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -334,6 +343,10 @@ def BarSoc(specialite) -> Graph:
         )
         df_soc = df_soc.head(10)
 
+        df_hlt = pd.DataFrame(
+            med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["hlt"]
+        )
+
         fig = go.Figure(
             go.Bar(
                 y=df_soc.soc_long,
@@ -379,13 +392,33 @@ def BarSoc(specialite) -> Graph:
             bargroupgap=0.0,
             font={"size": 12, "color": "black"},
         )
-        return Graph(
-            figure=fig,
-            className="img-card",
-            responsive=True,
+        return Div(
+            [
+                Graph(
+                    figure=fig,
+                    className="img-card",
+                    responsive=True,
+                    id="notif-bar-chart",
+                ),
+                HltModal(),
+            ]
         )
     else:
         return NoData()
+
+
+def HltModal() -> Component:
+    return Modal(
+        [
+            ModalBody("coucou"),
+            # ModalFooter(
+            #     Button(
+            #         "Close", id="close-backdrop", className="ml-auto"
+            #     )
+            # ),
+        ],
+        id="update-on-click-data",
+    )
 
 
 def PatientsTraites(specialite) -> Component:
@@ -658,3 +691,25 @@ def update_search_bar_options(search_value):
 def update_path(value):
     if value:
         return "/apps/app2?search=" + value
+
+
+@app.callback(
+    [dd.Output("update-on-click-data", "is_open"), dd.Output("update-on-click-data", "children")],
+    [dd.Input("notif-bar-chart", "clickData"), dd.Input("close-backdrop", "n_clicks")],
+    # dd.State("update-on-click-data", "is_open"),
+)
+def update_callback(click_data, n1):
+    if click_data:
+        #parsed_url = urlparse(href)
+        #query = parse_qs(parsed_url.query)
+        #specialite = query["search"][0]
+
+        soclong = click_data["points"][0]["label"]
+
+        return True, [
+            ModalBody(soclong),
+        ]  # df_hlt[df_hlt.soc_long == soclong]
+    elif n1:
+        return False, [ModalBody("void")]
+    else:
+        return False, [ModalBody("void")]
