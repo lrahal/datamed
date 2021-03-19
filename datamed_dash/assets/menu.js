@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", function(){
-    if (document.getElementsByTagName("nav")[0] <> undefined) {
         window.addEventListener("scroll", function() {
             var menu = document.getElementsByTagName("nav")[0];
             var footer = document.getElementsByClassName("footer")[0];
+
+            if (menu != undefined) {
             var rect1 = menu.getBoundingClientRect();
             var rect2 = footer.getBoundingClientRect();
             var overlap = !(rect1.bottom < rect2.top)
@@ -16,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function(){
                     menu.style.height = "";
                 }
             }
-
-        })
-    }
+        }
+    })
 });
