@@ -21,32 +21,6 @@
     display: flex;
 }
 
-.navbar-dropdown .btn-secondary{
-    color: #808080;
-    background-color: #fff;
-    border: none;
-    font-weight: 400;
-    font-size: 14px;
-}
-
-.navbar-dropdown .btn-secondary:hover{
-    color: #fff;
-    background-color: #a03189;
-    border: none;
-}
-
-.navbar-dropdown.show .dropdown-toggle {
-    color: #fff;
-    background-color: #a03189;
-    border: none;
-}
-
-.navbar-dropdown .dropdown-toggle:active {
-    color: #fff !important;
-    background-color: #ab3e94 !important;
-    border: none;
-}
-
 .vl {
   border-left: 1px solid;
   border-color: #808080;

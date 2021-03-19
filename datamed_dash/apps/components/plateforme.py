@@ -22,7 +22,7 @@ def Plateforme() -> Component:
                         style={"font-size": "20px", "font-weight": "400"},
                     ),
                     Button(
-                        "DÉCOUVRIR DATA.ANSM",
+                        "À PROPOS",
                         outline=True,
                         className="button-text-bold  mr-1",
                         color="secondary",

@@ -25,18 +25,6 @@ def MenuItem(title: str, href: str) -> Component:
     )
 
 
-def DropDown() -> Component:
-    return DropdownMenu(
-        label="Explorer",
-        children=[
-            DropdownMenuItem("Cartographie", className="button-text"),
-            DropdownMenuItem("Erreurs médicamenteuses", className="button-text"),
-            DropdownMenuItem("Effets indésirables", className="button-text"),
-        ],
-        className="navbar-dropdown d-inline-block mr-4",
-    )
-
-
 def Navbar() -> Component:
     return Div(
         [
@@ -47,7 +35,7 @@ def Navbar() -> Component:
                     Div(
                         [
                             MenuItem("Analyses thématiques", "/"),
-                            DropDown(),
+                            MenuItem("Explorer", "/"),
                             Div(className="vl mr-4"),
                             MenuItem("À propos", "/"),
                             Button(
