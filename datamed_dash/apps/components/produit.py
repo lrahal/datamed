@@ -621,8 +621,6 @@ def Produit(specialite) -> Component:
                     {"id": "Desc", "label": "Description"},
                     {"id": "Pop", "label": "Population concernée"},
                     {"id": "Effets", "label": "Effets indésirables"},
-                    {"id": "EM", "label": "Erreurs médicamenteuses"},
-                    {"id": "PF", "label": "Pays de fabrication"},
                 ],
                 className="side-menu",
             ),
