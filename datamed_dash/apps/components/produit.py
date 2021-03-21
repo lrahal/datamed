@@ -394,12 +394,17 @@ def BarSoc(specialite) -> Graph:
         )
         return Div(
             [
-                Graph(
-                    figure=fig,
-                    className="img-card",
-                    responsive=True,
-                    id="notif-bar-chart",
+                Div(
+                    Graph(
+                        figure=fig,
+                        className="img-card",
+                        responsive=True,
+                        clear_on_unhover=True,
+                        id="soc-bar-chart",
+                    ),
+                    id="soc-chart-container",
                 ),
+                Div(id="selected-soc", className="d-none"),
                 HltModal(),
             ]
         )
@@ -410,12 +415,8 @@ def BarSoc(specialite) -> Graph:
 def HltModal() -> Component:
     return Modal(
         [
-            ModalBody("coucou"),
-            # ModalFooter(
-            #     Button(
-            #         "Close", id="close-backdrop", className="ml-auto"
-            #     )
-            # ),
+            ModalBody("coucou", id="body-modal"),
+            ModalFooter(Button("Close", id="close-backdrop", className="ml-auto")),
         ],
         id="update-on-click-data",
     )
@@ -694,22 +695,26 @@ def update_path(value):
 
 
 @app.callback(
-    [dd.Output("update-on-click-data", "is_open"), dd.Output("update-on-click-data", "children")],
-    [dd.Input("notif-bar-chart", "clickData"), dd.Input("close-backdrop", "n_clicks")],
-    # dd.State("update-on-click-data", "is_open"),
+    [
+        dd.Output("update-on-click-data", "is_open"),
+        dd.Output("body-modal", "children"),
+        dd.Output("selected-soc", "children"),
+    ],
+    [
+        dd.Input("soc-chart-container", "n_clicks"),
+        dd.Input("close-backdrop", "n_clicks"),
+    ],
+    [dd.State("selected-soc", "children"), dd.State("soc-bar-chart", "hoverData")],
 )
-def update_callback(click_data, n1):
-    if click_data:
-        #parsed_url = urlparse(href)
-        #query = parse_qs(parsed_url.query)
-        #specialite = query["search"][0]
+def update_callback(clicks_container, clicks_close, previous_selected_soc, hover_data):
+    print(hover_data)
+    if not hover_data:
+        return False, "", ""
 
-        soclong = click_data["points"][0]["label"]
+    selected_soc = hover_data["points"][0]["label"]
+    selected_soc_has_changed = selected_soc != previous_selected_soc
 
-        return True, [
-            ModalBody(soclong),
-        ]  # df_hlt[df_hlt.soc_long == soclong]
-    elif n1:
-        return False, [ModalBody("void")]
+    if selected_soc_has_changed:
+        return True, selected_soc, selected_soc  # df_hlt[df_hlt.soc_long == soclong]
     else:
-        return False, [ModalBody("void")]
+        return False, "", ""
