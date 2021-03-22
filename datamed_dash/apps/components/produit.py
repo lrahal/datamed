@@ -27,14 +27,21 @@ with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
     with z.open(filename) as f:
         data = f.read()
-        med_dict = json.loads(data.decode("utf-8"))
+        MED_DICT = json.loads(data.decode("utf-8"))
 
-graphs_colors = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
-
-# PROD_SUBS = pd.read_csv("./data/liste_produits_substances.csv", sep=";").to_dict(
-#    orient="records"
-# )
-# TYP_MED_DICT = {d["medicament"]: d["typ_medicament"] for d in PROD_SUBS}
+PIE_COLORS = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
+BAR_CHART_COLORS = [
+    "rgba(51,171,102,1)",
+    "rgba(102,192,140,1)",
+    "rgba(153,213,179,1)",
+    "rgba(204,234,217,1)",
+    "rgba(191,213,60,1)",
+    "rgba(207,223,109,1)",
+    "rgba(223,234,157,1)",
+    "rgba(239,244,206,1)",
+    "rgba(51,194,214,1)",
+    "rgba(102,209,224,1)",
+]
 
 file_sub_by_spe = open("./data/substance_by_specialite.json", "r")
 SUBSTANCE_BY_SPECIALITE = json.loads(file_sub_by_spe.read())
@@ -128,87 +135,37 @@ def NoData() -> Div:
     )
 
 
-def PiePatientTraiteSexe(specialite) -> Graph:
+def PieChart(specialite, var_1, var_2):
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
+    df = pd.DataFrame(MED_DICT[produit][var_1])
 
-    fig = get_pie_chart(
-        df_sexe, "sexe", "n_conso", "Répartition par sexe des patients traités"
-    )
-    fig.update_layout(
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-
-    return Graph(
-        figure=fig,
-        className="img-card",
-        responsive=True,
-    )
-
-
-def PiePatientTraiteAge(specialite) -> Graph:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df_age = pd.DataFrame(med_dict[produit]["age"])
-
-    fig = get_pie_chart(
-        df_age, "age", "n_conso", "Répartition par âge des patients traités"
-    )
-    fig.update_layout(
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-
-    return Graph(
-        figure=fig,
-        className="img-card",
-        responsive=True,
-    )
-
-
-def PieCasDeclareSexe(specialite) -> Graph:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df_sexe = pd.DataFrame(med_dict[produit]["sexe"])
-
-    if df_sexe.n_cas.sum() >= 10:
-        fig = get_pie_chart(
-            df_sexe, "sexe", "n_cas", "Répartition par sexe des cas déclarés"
-        )
-        fig.update_layout(
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
-    else:
+    if var_2 == "n_cas" and df.n_cas.sum() < 10:
         return NoData()
 
-    return Graph(
-        figure=fig,
-        className="img-card",
-        responsive=True,
-    )
-
-
-def PieCasDeclareAge(specialite) -> Graph:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df_age = pd.DataFrame(med_dict[produit]["age"])
-
-    if df_age.n_cas.sum() >= 10:
-        fig = get_pie_chart(
-            df_age, "age", "n_cas", "Répartition par âge des cas déclarés"
-        )
-        fig.update_layout(
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
     else:
-        return NoData()
-
-    return Graph(
-        figure=fig,
-        className="img-card",
-        responsive=True,
-    )
+        fig = go.Figure(
+            go.Pie(
+                labels=df[var_1],
+                values=df[var_2],
+                name="Répartition par {} des patients traités".format(var_1),
+                marker_colors=PIE_COLORS,
+            )
+        ).update_layout(
+            margin=dict(t=0, b=0, l=0, r=0),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+            ),
+        )
+        return Graph(
+            figure=fig,
+            className="img-card",
+            responsive=True,
+        )
 
 
 def CourbesAnnees(specialite) -> Graph:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df_annee = pd.DataFrame(med_dict[produit]["annee"])
+    df_annee = pd.DataFrame(MED_DICT[produit]["annee"])
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
@@ -266,9 +223,9 @@ def CourbesAnnees(specialite) -> Graph:
 
 
 def BarNotif(specialite) -> Graph:
-    if med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]:
+    if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]:
         df_notif = pd.DataFrame(
-            med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]
+            MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]
         )
 
         fig = go.Figure(
@@ -317,24 +274,18 @@ def BarNotif(specialite) -> Graph:
             ),
         )
         return Graph(
-            figure=fig,
-            className="img-card",
-            responsive=True,
+            figure=fig, className="img-card", responsive=True, style={"height": "328px"}
         )
     else:
         return NoData()
 
 
 def BarSoc(specialite) -> Graph:
-    if med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]:
+    if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]:
         df_soc = pd.DataFrame(
-            med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]
+            MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]
         )
         df_soc = df_soc.head(10)
-
-        df_hlt = pd.DataFrame(
-            med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["hlt"]
-        )
 
         fig = go.Figure(
             go.Bar(
@@ -381,6 +332,7 @@ def BarSoc(specialite) -> Graph:
             bargroupgap=0.0,
             font={"size": 12, "color": "black"},
         )
+
         return Div(
             [
                 Div(
@@ -390,6 +342,7 @@ def BarSoc(specialite) -> Graph:
                         responsive=True,
                         clear_on_unhover=True,
                         id="soc-bar-chart",
+                        style={"height": "472px"},
                     ),
                     id="soc-chart-container",
                 ),
@@ -424,7 +377,7 @@ def HltModal() -> Modal:
 
 def PatientsTraites(specialite) -> Component:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df = pd.DataFrame(med_dict[produit]["annee"])
+    df = pd.DataFrame(MED_DICT[produit]["annee"])
     patients_traites = round(df.n_conso.mean())
 
     return Div(
@@ -460,7 +413,7 @@ def PatientsTraites(specialite) -> Component:
                                     "Répartition par sexe des patients traités",
                                     className="normal-text",
                                 ),
-                                PiePatientTraiteSexe(specialite),
+                                PieChart(specialite, "sexe", "n_conso"),
                             ],
                             className="box",
                         ),
@@ -473,7 +426,7 @@ def PatientsTraites(specialite) -> Component:
                                     "Répartition par âge des patients traités",
                                     className="normal-text",
                                 ),
-                                PiePatientTraiteAge(specialite),
+                                PieChart(specialite, "age", "n_conso"),
                             ],
                             className="box",
                         ),
@@ -489,7 +442,7 @@ def PatientsTraites(specialite) -> Component:
 
 def CasDeclares(specialite) -> Component:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df = pd.DataFrame(med_dict[produit]["annee"])
+    df = pd.DataFrame(MED_DICT[produit]["annee"])
     cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
 
     if 0 < df.n_cas.sum() < 10:
@@ -567,7 +520,7 @@ def CasDeclares(specialite) -> Component:
                                     "Répartition par sexe des cas déclarés",
                                     className="normal-text",
                                 ),
-                                PieCasDeclareSexe(specialite),
+                                PieChart(specialite, "sexe", "n_cas"),
                             ],
                             className="box",
                         ),
@@ -580,7 +533,7 @@ def CasDeclares(specialite) -> Component:
                                     "Répartition par âge des cas déclarés",
                                     className="normal-text",
                                 ),
-                                PieCasDeclareAge(specialite),
+                                PieChart(specialite, "age", "n_cas"),
                             ],
                             className="box",
                         ),
@@ -633,17 +586,6 @@ def Organes(specialite) -> Component:
         ],
         className="product-section",
     )
-
-
-def get_pie_chart(df, var_1, var_2, name):
-    return go.Figure(
-        go.Pie(
-            labels=df[var_1],
-            values=df[var_2],
-            name=name,
-            marker_colors=graphs_colors,
-        )
-    ).update_layout(margin=dict(t=0, b=0, l=0, r=0))
 
 
 def Produit(specialite) -> Component:
@@ -725,7 +667,7 @@ def update_callback(
         specialite = query["search"][0]
 
         df_hlt = pd.DataFrame(
-            med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["hlt"]
+            MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["hlt"]
         )
         df_hlt = df_hlt.rename(
             columns={"effet_hlt": "Détail des effets rapportés par nombre décroissant"}
