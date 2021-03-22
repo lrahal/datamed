@@ -29,6 +29,12 @@ with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
         data = f.read()
         MED_DICT = json.loads(data.decode("utf-8"))
 
+with zipfile.ZipFile("./data/notice_by_spe.json.zip", "r") as z:
+    filename = z.namelist()[0]
+    with z.open(filename) as f:
+        data = f.read()
+        NOTICE_BY_SPE = json.loads(data.decode("utf-8"))
+
 PIE_COLORS = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
 BAR_CHART_COLORS = [
     "rgba(51,171,102,1)",
@@ -103,10 +109,7 @@ def DescriptionProduit(specialite) -> Component:
                     className="normal-text mt-2",
                 ),
                 P(
-                    "DOLIPRANE est un antalgique (calme la douleur) et un antipyrétique (fait baisser la fièvre). "
-                    "La substance active de ce médicament est le paracétamol. "
-                    "Il est utilisé pour traiter la douleur et/ou la fièvre, par exemple en cas de maux de tête, "
-                    "d'état grippal, de douleurs dentaires, de courbatures.",
+                    NOTICE_BY_SPE[specialite],
                     className="normal-text mt-1",
                 ),
             ],
