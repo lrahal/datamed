@@ -20,7 +20,7 @@ def MainSearchTitle() -> Component:
     )
 
 
-def SearchBar(search_bar_class_names: str, search_bar_id: str = "") -> Component:
+def SearchBar(search_bar_class_names: str, search_bar_id: str) -> Component:
     return Row(
         [
             Col(
@@ -50,7 +50,7 @@ def MainSearch() -> Component:
                         "autour du médicament",
                         className="heading-4 d-block",
                     ),
-                    SearchBar("search-bar ml-auto flex-nowrap mt-4 align-items-center"),
+                    SearchBar("search-bar ml-auto flex-nowrap mt-4 align-items-center", "search-bar"),
                     Button(
                         "RECHERCHER",
                         n_clicks=0,
