@@ -1,5 +1,6 @@
 import json
 import zipfile
+from urllib.parse import urlparse, parse_qs
 
 import dash.dependencies as dd
 import pandas as pd
@@ -9,18 +10,18 @@ from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 from dash_bootstrap_components import (
     Button,
-    Row,
-    Col,
     Modal,
     ModalHeader,
     ModalBody,
     ModalFooter,
+    Table,
 )
-from dash_core_components import Graph, Dropdown
+from dash_core_components import Graph
 from dash_html_components import Div, A, P, Img
 from plotly.subplots import make_subplots
 from sm import SideMenu
-from urllib.parse import parse_qs, urlparse
+
+from .main_search import SearchBar
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -49,19 +50,7 @@ ATC_BY_SPE = json.loads(file_atc_by_spe.read())
 def SearchDiv() -> Component:
     return Div(
         [
-            Row(
-                [
-                    Col(
-                        Dropdown(
-                            placeholder="Médicament, substance active",
-                            className="normal-text main-dropdown",
-                            id="produit-search-bar",
-                        )
-                    ),
-                ],
-                no_gutters=True,
-                className="col-xl-6 col-sm-9 pl-0",
-            ),
+            SearchBar("col-xl-6 col-sm-9 pl-0", "produit-search-bar"),
             Button(
                 "RECHERCHER",
                 n_clicks=0,
@@ -412,12 +401,23 @@ def BarSoc(specialite) -> Graph:
         return NoData()
 
 
-def HltModal() -> Component:
+def HltModal() -> Modal:
     return Modal(
         [
-            ModalBody("coucou", id="body-modal"),
-            ModalFooter(Button("Close", id="close-backdrop", className="ml-auto")),
+            ModalHeader(id="header-modal"),
+            ModalBody(id="body-modal"),
+            ModalFooter(
+                Button(
+                    "Fermer",
+                    id="close-backdrop",
+                    className="ml-auto button-text-bold",
+                    color="secondary",
+                    outline=True,
+                )
+            ),
         ],
+        scrollable=True,
+        centered=True,
         id="update-on-click-data",
     )
 
@@ -698,23 +698,50 @@ def update_path(value):
     [
         dd.Output("update-on-click-data", "is_open"),
         dd.Output("body-modal", "children"),
+        dd.Output("header-modal", "children"),
         dd.Output("selected-soc", "children"),
     ],
     [
         dd.Input("soc-chart-container", "n_clicks"),
         dd.Input("close-backdrop", "n_clicks"),
+        dd.Input("url", "href"),
     ],
     [dd.State("selected-soc", "children"), dd.State("soc-bar-chart", "hoverData")],
 )
-def update_callback(clicks_container, clicks_close, previous_selected_soc, hover_data):
-    print(hover_data)
+def update_callback(
+    clicks_container, clicks_close, href, previous_selected_soc, hover_data
+):
     if not hover_data:
-        return False, "", ""
+        return False, "", "", ""
 
     selected_soc = hover_data["points"][0]["label"]
     selected_soc_has_changed = selected_soc != previous_selected_soc
 
     if selected_soc_has_changed:
-        return True, selected_soc, selected_soc  # df_hlt[df_hlt.soc_long == soclong]
+        parsed_url = urlparse(href)
+        query = parse_qs(parsed_url.query)
+        specialite = query["search"][0]
+
+        df_hlt = pd.DataFrame(
+            med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["hlt"]
+        )
+        df_hlt = df_hlt.rename(
+            columns={"effet_hlt": "Détail des effets rapportés par nombre décroissant"}
+        )
+        df_hlt_details = df_hlt[df_hlt.soc_long == selected_soc][
+            ["Détail des effets rapportés par nombre décroissant"]
+        ]
+        return (
+            True,
+            Table.from_dataframe(
+                df_hlt_details,
+                striped=True,
+                bordered=True,
+                hover=True,
+                responsive=True,
+            ),
+            selected_soc,
+            selected_soc,
+        )
     else:
-        return False, "", ""
+        return False, "", "", ""
