@@ -42,13 +42,14 @@ def scrap_bdpm(cis_list: List, spe_by_cis: Dict) -> Dict:
         notice = ""
         for ele in notice_elements:
             if (
-                ele.text.replace("\n", "")
+                ele.text.replace("\n", " ")
                 .strip()
                 .startswith("Classe pharmacothérapeutique")
+                or "ATC" in ele.text.replace("\n", " ").strip()
             ):
                 continue
             else:
-                notice += ele.text.replace("\n", "").strip()
+                notice += ele.text.replace("\n", " ").strip().lower().capitalize()
         notice_dict[spe_by_cis[cis]] = notice
     return notice_dict
 
@@ -57,5 +58,5 @@ def __main__():
     cis_list = get_cis_list()
     spe_by_cis = get_spe_by_cis()
     notice_dict = scrap_bdpm(cis_list, spe_by_cis)
-    with open("./datamed_dash/data/notice_by_cis.json", "w") as outfile:
+    with open("./datamed_dash/data/notice_by_spe.json", "w") as outfile:
         json.dump(notice_dict, outfile)
