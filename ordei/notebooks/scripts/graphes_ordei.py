@@ -7,7 +7,6 @@
 import sys
 import zipfile
 
-import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -16,13 +15,6 @@ sys.path.append('/Users/ansm/Documents/GitHub/datamed')
 from ordei.get_ordei_data import *
 
 pd.set_option('display.max_rows', None)
-
-
-# In[2]:
-
-
-#with open('../data/med_dict.json.zip') as jsonfile:
-#    med_dict = json.load(jsonfile.decode("utf-8"))
 
 
 # In[2]:
@@ -38,17 +30,24 @@ with zipfile.ZipFile('../data/med_dict.json.zip', "r") as z:
 # In[3]:
 
 
-PROD_SUBS = pd.read_csv("../data/liste_produits_substances.csv", sep=';').to_dict(orient='records')
-type_med_dict = {d['medicament']: d['typ_medicament'] for d in PROD_SUBS}
+file_sub_by_spe = open("../data/substance_by_specialite.json", "r")
+SUBSTANCE_BY_SPECIALITE = json.loads(file_sub_by_spe.read())
 
 
 # In[4]:
 
 
-med = "CLARADOL"
+#PROD_SUBS = pd.read_csv("../data/liste_produits_substances.csv", sep=';').to_dict(orient='records')
+#type_med_dict = {d['medicament']: d['typ_medicament'] for d in PROD_SUBS}
 
 
 # In[5]:
+
+
+specialite = "Doliprane 200 mg, suppositoire"
+
+
+# In[6]:
 
 
 ordei_colors = ['#DFD4E5', '#BFAACB', '#5E2A7E']
@@ -59,7 +58,7 @@ ordei_colors = ['#DFD4E5', '#BFAACB', '#5E2A7E']
 # In[7]:
 
 
-df_annee = pd.DataFrame(med_dict[med]["annee"])
+df_annee = pd.DataFrame(med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["annee"])
 
 
 # In[8]:
@@ -93,7 +92,7 @@ df_annee.head()
 # In[12]:
 
 
-df_sexe = pd.DataFrame(med_dict[med]["sexe"])
+df_sexe = pd.DataFrame(med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["sexe"])
 df_sexe.head()
 
 
@@ -122,7 +121,7 @@ fig_sexe.show()
 # In[15]:
 
 
-df_age = pd.DataFrame(med_dict[med]["age"])
+df_age = pd.DataFrame(med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["age"])
 df_age.head()
 
 
@@ -151,57 +150,45 @@ fig_age.show()
 # In[18]:
 
 
-dd = defaultdict(dict)
-for d in med_dict["DOLIPRANE"]["sexe"]:
-    dd[d['sexe']] = {'n_cas': d['n_cas'], 'n_conso': d['n_conso']}
+#dd = defaultdict(dict)
+#for d in med_dict["DOLIPRANE"]["sexe"]:
+#    dd[d['sexe']] = {'n_cas': d['n_cas'], 'n_conso': d['n_conso']}
 
 
 # In[19]:
 
 
-med_dict["DOLIPRANE"]["sexe"]
+#fig = go.Figure(go.Sunburst(
+#    labels=['n_cas', 'n_conso', 'Femmes', 'Hommes', 'Femmes', 'Hommes'],
+#    parents=['', '', 'n_cas', 'n_cas', 'n_conso', 'n_conso'],
+#    values=[4654, 184163492, 2848, 104550066, 1806, 79613426],
+#))
+#fig.update_layout(margin = dict(t=0, l=0, r=0, b=0))
 
+#fig.show()
+
+
+# # Courbes
 
 # In[20]:
 
 
-104550066 + 79613426
+df_annee = pd.DataFrame(med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["annee"])
 
 
 # In[21]:
 
 
-fig = go.Figure(go.Sunburst(
-    labels=['n_cas', 'n_conso', 'Femmes', 'Hommes', 'Femmes', 'Hommes'],
-    parents=['', '', 'n_cas', 'n_cas', 'n_conso', 'n_conso'],
-    values=[4654, 184163492, 2848, 104550066, 1806, 79613426],
-))
-fig.update_layout(margin = dict(t=0, l=0, r=0, b=0))
-
-fig.show()
-
-
-# # Courbes
-
-# In[22]:
-
-
-df_annee = pd.DataFrame(med_dict[med]["annee"])
-
-
-# In[23]:
-
-
 df_annee.head()
 
 
-# In[24]:
+# In[22]:
 
 
 df_annee.n_cas.min()
 
 
-# In[25]:
+# In[23]:
 
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -233,53 +220,14 @@ fig.show()
 
 # # Histogrammes
 
-# In[74]:
+# In[24]:
 
 
-med = "DOLIPRANE"
-
-
-# In[75]:
-
-
-med_dict[med].keys()
-
-
-# In[76]:
-
-
-df_notif = pd.DataFrame(med_dict[med]["notif"])
+df_notif = pd.DataFrame(med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"])
 df_notif.head(3)
 
 
-# In[77]:
-
-
-fig = px.bar(df_notif, y='typ_notif', x='n_decla', orientation='h')
-
-fig.update_layout(
-    xaxis=dict(
-        showgrid=False,
-        showline=False,
-        showticklabels=False,
-        zeroline=False,
-    ),
-    yaxis=dict(
-        showgrid=False,
-        showline=False,
-        #showticklabels=False,
-        zeroline=False,
-    ),
-    barmode='stack',
-    plot_bgcolor='rgba(0,0,0,0)',
-    margin=dict(l=120, r=10, t=140, b=80),
-    showlegend=False,
-)
-
-fig.show()
-
-
-# In[97]:
+# In[25]:
 
 
 fig = go.Figure(
@@ -319,20 +267,14 @@ fig.update_layout(
 fig.show()
 
 
-# In[ ]:
+# In[26]:
 
 
-
-
-
-# In[98]:
-
-
-df_soc = pd.DataFrame(med_dict[med]["soclong"])
+df_soc = pd.DataFrame(med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"])
 df_soc.head(3)
 
 
-# In[101]:
+# In[27]:
 
 
 df_soc = df_soc.head(10)
@@ -373,6 +315,41 @@ fig.update_layout(
 )
 
 fig.show()
+
+
+# # HLT
+
+# In[28]:
+
+
+specialite
+
+
+# In[29]:
+
+
+df_hlt = pd.DataFrame(med_dict[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["hlt"])
+df_hlt = df_hlt.rename(columns={"effet_hlt": "Détail des effets rapportés par nombre décroissant"})
+
+df_hlt.head(3)
+
+
+# In[30]:
+
+
+selected_soc = "Affections de la peau et du tissu sous-cutané"
+
+
+# In[31]:
+
+
+df_hlt[df_hlt.soc_long == selected_soc][["Détail des effets rapportés par nombre décroissant"]]
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
