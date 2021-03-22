@@ -135,7 +135,7 @@ def NoData() -> Div:
     )
 
 
-def PieChart(specialite, var_1, var_2):
+def PieChart(specialite, var_1, var_2) -> Graph:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df = pd.DataFrame(MED_DICT[produit][var_1])
 
