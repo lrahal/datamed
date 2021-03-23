@@ -80,6 +80,9 @@ def SearchDiv() -> Component:
 
 
 def DescriptionProduit(specialite) -> Component:
+    substances_actives = ", ".join(
+        SUBSTANCE_BY_SPECIALITE[specialite]["substances"]
+    ).upper()
     return Div(
         Div(
             [
@@ -88,17 +91,19 @@ def DescriptionProduit(specialite) -> Component:
                     className="heading-4",
                     id="Desc",
                 ),
-                Div("Substance(s) active(s)", className="small-text-bold mt-3"),
+                Div(
+                    "SPÉCIALITÉ DE MÉDICAMENT",
+                    className="caption-text",
+                ),
+                Div("Substance(s) active(s)", className="small-text-bold"),
                 A(
-                    ", ".join(SUBSTANCE_BY_SPECIALITE[specialite]["substances"]),
+                    substances_actives,
                     href="/",
-                    style={"color": "#EF7D00"},
-                    className="normal-text",
+                    className="normal-text link",
                     id="refresh-substances",
                 ),
                 Div(
                     "Description",
-                    style={"margin-top": "30px"},
                     className="small-text-bold",
                 ),
                 P(
@@ -106,17 +111,17 @@ def DescriptionProduit(specialite) -> Component:
                         ATC_BY_SPE[specialite]["nom_atc"],
                         ATC_BY_SPE[specialite]["code_atc"],
                     ),
-                    className="normal-text mt-2",
+                    className="normal-text",
                 ),
                 P(
                     NOTICE_BY_SPE[specialite],
-                    className="normal-text mt-1",
+                    className="normal-text mt-3",
                 ),
             ],
             className="description col-xl-8 col-sm-11",
         ),
-        style={"margin-top": "2rem"},
-        className="product-section",
+        style={"margin-top": "31.5px"},
+        className="specialite-section",
     )
 
 
@@ -439,7 +444,7 @@ def PatientsTraites(specialite) -> Component:
                 className="row no-gutters",
             ),
         ],
-        className="product-section",
+        className="specialite-section",
     )
 
 
@@ -559,7 +564,7 @@ def CasDeclares(specialite) -> Component:
                 className="row",
             ),
         ],
-        className="product-section",
+        className="specialite-section",
     )
 
 
@@ -587,7 +592,7 @@ def Organes(specialite) -> Component:
                 className="row",
             ),
         ],
-        className="product-section",
+        className="specialite-section",
     )
 
 
