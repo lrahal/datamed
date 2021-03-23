@@ -63,7 +63,7 @@ ATC_BY_SPE = json.loads(file_atc_by_spe.read())
 def SearchDiv() -> Component:
     return Div(
         [
-            SearchBar("col-xl-6 col-sm-9 pl-0", "produit-search-bar"),
+            SearchBar("col-xl-6 col-sm-9 pl-0", "specialite-search-bar"),
             Button(
                 "RECHERCHER",
                 n_clicks=0,
@@ -71,7 +71,7 @@ def SearchDiv() -> Component:
                 className="col-xl-2 col-sm-2 button-text-bold",
                 color="secondary",
                 type="submit",
-                id="produit-rechercher-button",
+                id="specialite-rechercher-button",
             ),
         ],
         style={"margin-left": "20px", "margin-top": "2rem"},
@@ -79,7 +79,7 @@ def SearchDiv() -> Component:
     )
 
 
-def DescriptionProduit(specialite) -> Component:
+def DescriptionSpecialite(specialite) -> Component:
     substances_actives = ", ".join(
         SUBSTANCE_BY_SPECIALITE[specialite]["substances"]
     ).upper()
@@ -596,7 +596,7 @@ def Organes(specialite) -> Component:
     )
 
 
-def Produit(specialite) -> Component:
+def Specialite(specialite) -> Component:
     return Div(
         [
             SideMenu(
@@ -611,7 +611,7 @@ def Produit(specialite) -> Component:
             SearchDiv(),
             Div(
                 [
-                    DescriptionProduit(specialite),
+                    DescriptionSpecialite(specialite),
                     PatientsTraites(specialite),
                     CasDeclares(specialite),
                     Organes(specialite),
@@ -623,8 +623,8 @@ def Produit(specialite) -> Component:
 
 
 @app.callback(
-    dd.Output("produit-search-bar", "options"),
-    dd.Input("produit-search-bar", "search_value"),
+    dd.Output("specialite-search-bar", "options"),
+    dd.Input("specialite-search-bar", "search_value"),
 )
 def update_search_bar_options(search_value):
     if not search_value:
@@ -638,8 +638,8 @@ def update_search_bar_options(search_value):
 
 
 @app.callback(
-    dd.Output("produit-rechercher-button", "href"),
-    dd.Input("produit-search-bar", "value"),
+    dd.Output("specialite-rechercher-button", "href"),
+    dd.Input("specialite-search-bar", "value"),
 )
 def update_path(value):
     if value:

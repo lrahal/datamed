@@ -6,7 +6,7 @@ from dash_html_components import Div
 
 from .components.footer import Footer
 from .components.navbar import Navbar
-from .components.produit import Produit
+from .components.specialite import Specialite
 
 
 def Layout(parsed_url: Union[ParseResultBytes, ParseResult]) -> Component:
@@ -16,7 +16,7 @@ def Layout(parsed_url: Union[ParseResultBytes, ParseResult]) -> Component:
     return Div(
         [
             Navbar(),
-            Produit(specialite),
+            Specialite(specialite),
             Footer(),
         ],
         className="layout",
