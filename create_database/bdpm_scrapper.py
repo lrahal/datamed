@@ -49,7 +49,7 @@ def scrap_bdpm(cis_list: List, spe_by_cis: Dict) -> Dict:
             ):
                 continue
             else:
-                notice += ele.text.replace("\n", " ").strip().lower().capitalize()
+                notice += ele.text.replace("\n", " ").strip().lower().capitalize() + " "
         notice_dict[spe_by_cis[cis]] = notice
     return notice_dict
 
