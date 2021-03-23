@@ -20,5 +20,5 @@ def Layout(parsed_url: Union[ParseResultBytes, ParseResult]) -> Component:
             Footer(),
         ],
         className="layout",
-        id="layout_produit",
+        id="layout_specialite",
     )
