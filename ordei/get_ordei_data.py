@@ -54,7 +54,7 @@ def get_typ_med_data(
     med: str, list_prod_sa: pd.DataFrame
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     typ_med = list_prod_sa[list_prod_sa.medicament == med].typ_medicament.values[0]
-    if typ_med == 'Substance':
+    if typ_med == "Substance":
         data = bnpv_open_medic1418_sa_codex[
             bnpv_open_medic1418_sa_codex[TYP_MED_DICT[typ_med]] == med
         ]
@@ -62,7 +62,9 @@ def get_typ_med_data(
         data_soclong = bnpv_eff_soclong_sa_codex_open[
             bnpv_eff_soclong_sa_codex_open[TYP_MED_DICT[typ_med]] == med
         ]
-        data_soclong = data_soclong.rename(columns={TYP_MED_DICT[typ_med]: "medicament"})
+        data_soclong = data_soclong.rename(
+            columns={TYP_MED_DICT[typ_med]: "medicament"}
+        )
 
         data_notif = bnpv_notif_sa_codex_open[
             bnpv_notif_sa_codex_open[TYP_MED_DICT[typ_med]] == med
@@ -76,21 +78,23 @@ def get_typ_med_data(
     else:
         data = bnpv_open_medic1418_prod_codex[
             bnpv_open_medic1418_prod_codex[TYP_MED_DICT[typ_med]] == med
-            ]
+        ]
 
         data_soclong = bnpv_eff_soclong_prod_codex_open[
             bnpv_eff_soclong_prod_codex_open[TYP_MED_DICT[typ_med]] == med
-            ]
-        data_soclong = data_soclong.rename(columns={TYP_MED_DICT[typ_med]: "medicament"})
+        ]
+        data_soclong = data_soclong.rename(
+            columns={TYP_MED_DICT[typ_med]: "medicament"}
+        )
 
         data_notif = bnpv_notif_prod_codex_open[
             bnpv_notif_prod_codex_open[TYP_MED_DICT[typ_med]] == med
-            ]
+        ]
         data_notif = data_notif.rename(columns={TYP_MED_DICT[typ_med]: "medicament"})
 
         data_hlt = bnpv_eff_hlt_prod_codex_open[
             bnpv_eff_hlt_prod_codex_open[TYP_MED_DICT[typ_med]] == med
-            ]
+        ]
         data_hlt = data_hlt.rename(columns={TYP_MED_DICT[typ_med]: "medicament"})
     return data, data_soclong, data_notif, data_hlt
 
@@ -202,11 +206,8 @@ def main():
 
     med_dict = defaultdict(dict)
     for med in tqdm(list_prod_sa.medicament.unique()):
-        strat = "Ensemble"
 
-        data, data_soclong, data_notif, data_hlt = get_typ_med_data(
-            med, list_prod_sa
-        )
+        data, data_soclong, data_notif, data_hlt = get_typ_med_data(med, list_prod_sa)
 
         data_soclong = get_data_soclong(data_soclong)
 
@@ -234,22 +235,27 @@ def main():
         )
 
         data_sexe = (
-            data.groupby("sexe")
-            .agg({"n_cas": "sum", "n_conso": "sum"})
-            .reset_index()
+            data.groupby("sexe").agg({"n_cas": "sum", "n_conso": "sum"}).reset_index()
         )
+        if data_sexe.n_cas.sum() < 10:
+            data_sexe.loc[data_sexe.sexe == "Femmes", "n_cas"] = None
+            data_sexe.loc[data_sexe.sexe == "Hommes", "n_cas"] = None
+        data_sexe = data_sexe.where(pd.notnull(data_sexe), None)
 
         data_age = (
-            data.groupby("age")
-            .agg({"n_cas": "sum", "n_conso": "sum"})
-            .reset_index()
+            data.groupby("age").agg({"n_cas": "sum", "n_conso": "sum"}).reset_index()
         )
+        if data_age.n_cas.sum() < 10:
+            data_age.loc[data_age.age == "0-19 ans", "n_cas"] = None
+            data_age.loc[data_age.age == "20-59 ans", "n_cas"] = None
+            data_age.loc[data_age.age == "60 ans et plus", "n_cas"] = None
+        data_age = data_age.where(pd.notnull(data_age), None)
 
         data_annee = (
-            data.groupby("annee")
-            .agg({"n_cas": "sum", "n_conso": "sum"})
-            .reset_index()
+            data.groupby("annee").agg({"n_cas": "sum", "n_conso": "sum"}).reset_index()
         )
+        if data_annee.n_cas.min() < 10:
+            data_annee.n_cas = None
 
         med_dict = compute_med_dict(
             med,
@@ -262,5 +268,5 @@ def main():
             med_dict,
         )
 
-    with open("ordei/data/med_dict.json", "w") as outfile:
+    with open("./datamed_dash/data/med_dict.json", "w") as outfile:
         json.dump(med_dict, outfile)

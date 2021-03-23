@@ -142,7 +142,7 @@ def PieChart(specialite, var_1, var_2) -> Graph:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df = pd.DataFrame(MED_DICT[produit][var_1])
 
-    if var_2 == "n_cas" and df.n_cas.sum() < 10:
+    if var_2 == "n_cas" and df.n_cas.isnull().all():
         return NoData()
 
     else:
@@ -172,7 +172,7 @@ def CourbesAnnees(specialite) -> Graph:
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-    if df_annee.n_cas.min() >= 10:
+    if df_annee.n_cas.isnull().all():
         fig.add_trace(
             go.Scatter(
                 x=df_annee.annee,
@@ -448,7 +448,7 @@ def CasDeclares(specialite) -> Component:
     df = pd.DataFrame(MED_DICT[produit]["annee"])
     cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
 
-    if 0 < df.n_cas.sum() < 10:
+    if 0 <= df.n_cas.sum() < 10:
         cas_declares = "< 10"
     else:
         cas_declares = df.n_cas.sum()
