@@ -23,7 +23,7 @@
 }
 
 .box-highlight {
-    color: #00B3CC;
+    color: #00B3CC!important;
     margin-bottom: .5rem;
 }
 
@@ -31,8 +31,26 @@
     margin-top: 1rem;
 }
 
-.product-section {
+.specialite-section {
     margin-bottom: 12.5rem;
+}
+
+.specialite-section .heading-4{
+    color: #323232;
+}
+
+.specialite-section .caption-text{
+    color: #323232;
+}
+
+.specialite-section .small-text-bold{
+    margin-bottom: 1rem;
+    margin-top: 2.5rem;
+}
+
+.specialite-section .link{
+    color: #EF7D00;
+    text-decoration: underline;
 }
 
 #refresh-substances a {
