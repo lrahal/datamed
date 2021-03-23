@@ -17,7 +17,7 @@ from dash_bootstrap_components import (
     Table,
 )
 from dash_core_components import Graph
-from dash_html_components import Div, A, P, Img
+from dash_html_components import Div, A, P, Img, I
 from plotly.subplots import make_subplots
 from sm import SideMenu
 
@@ -87,38 +87,57 @@ def DescriptionSpecialite(specialite) -> Component:
         Div(
             [
                 Div(
-                    specialite,
-                    className="heading-4",
-                    id="Desc",
-                ),
-                Div(
-                    "SPÉCIALITÉ DE MÉDICAMENT",
-                    className="caption-text",
-                ),
-                Div("Substance(s) active(s)", className="small-text-bold"),
-                A(
-                    substances_actives,
-                    href="/",
-                    className="normal-text link",
-                    id="refresh-substances",
-                ),
-                Div(
-                    "Description",
-                    className="small-text-bold",
-                ),
-                P(
-                    "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
-                        ATC_BY_SPE[specialite]["nom_atc"],
-                        ATC_BY_SPE[specialite]["code_atc"],
+                    I(
+                        className="bi bi-book d-flex justify-content-center pt-3",
+                        style={"font-size": "3rem"},
                     ),
-                    className="normal-text",
+                    className="col-1",
                 ),
-                P(
-                    NOTICE_BY_SPE[specialite],
-                    className="normal-text mt-3",
+                Div(
+                    [
+                        Div(
+                            specialite,
+                            className="heading-4",
+                            id="Desc",
+                        ),
+                        Div(
+                            [
+                                Div(
+                                    "SPÉCIALITÉ DE MÉDICAMENT",
+                                    className="caption-text d-inline-block",
+                                ),
+                                I(
+                                    className="info-icon bi bi-info-circle d-inline-block"
+                                ),
+                            ]
+                        ),
+                        Div("Substance(s) active(s)", className="small-text-bold"),
+                        A(
+                            substances_actives,
+                            href="/",
+                            className="normal-text link",
+                            id="refresh-substances",
+                        ),
+                        Div(
+                            "Description",
+                            className="small-text-bold",
+                        ),
+                        P(
+                            "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
+                                ATC_BY_SPE[specialite]["nom_atc"],
+                                ATC_BY_SPE[specialite]["code_atc"],
+                            ),
+                            className="normal-text",
+                        ),
+                        P(
+                            NOTICE_BY_SPE[specialite],
+                            className="normal-text mt-3",
+                        ),
+                    ],
+                    className="col-11",
                 ),
             ],
-            className="description col-xl-8 col-sm-11",
+            className="description col-xl-8 col-sm-11 row",
         ),
         style={"margin-top": "31.5px"},
         className="specialite-section",
@@ -391,9 +410,15 @@ def PatientsTraites(specialite) -> Component:
     return Div(
         [
             Div(
-                "Patients traités",
-                className="section-title nav-title heading-4",
-                id="Pop",
+                [
+                    Div(
+                        "Patients traités",
+                        className="heading-4 d-inline-block",
+                        id="Pop",
+                    ),
+                    I(className="info-icon bi bi-info-circle d-inline-block"),
+                ],
+                className="section-title nav-title",
             ),
             Div(
                 [
@@ -461,9 +486,15 @@ def CasDeclares(specialite) -> Component:
     return Div(
         [
             Div(
-                "Cas déclarés d'effets indésirables",
-                className="section-title nav-title heading-4",
-                id="Effets",
+                [
+                    Div(
+                        "Cas déclarés d'effets indésirables",
+                        className="heading-4 d-inline-block",
+                        id="Effets",
+                    ),
+                    I(className="info-icon bi bi-info-circle d-inline-block"),
+                ],
+                className="section-title nav-title ",
             ),
             Div(
                 [
@@ -572,8 +603,14 @@ def Organes(specialite) -> Component:
     return Div(
         [
             Div(
-                "Effets indésirables par système d'organe",
-                className="section-title heading-4",
+                [
+                    Div(
+                        "Effets indésirables par système d'organe",
+                        className="heading-4 d-inline-block",
+                    ),
+                    I(className="info-icon bi bi-info-circle d-inline-block"),
+                ],
+                className="section-title",
             ),
             Div(
                 Div(
