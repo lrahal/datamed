@@ -17,9 +17,9 @@ def display_page(href):
     parsed_url = urlparse(href)
     pathname = parsed_url.path
 
-    if pathname == "/apps/app1":
+    if pathname == "/apps/accueil":
         return app1.layout
-    elif pathname == "/apps/app2":
+    elif pathname == "/apps/specialite":
         return app2.Layout(parsed_url)
     else:
         return app1.layout

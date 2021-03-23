@@ -96,4 +96,4 @@ def update_search_bar_options(search_value):
 )
 def update_path(value):
     if value:
-        return "/apps/app2?search=" + value
+        return "/apps/specialite?search=" + value
