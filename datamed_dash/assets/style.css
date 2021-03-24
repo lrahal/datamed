@@ -143,3 +143,9 @@
     padding-left: 10px;
     vertical-align: bottom;
 }
+
+.lock-icon {
+    font-size: 11px;
+    padding-left: 3px;
+    vertical-align: text-bottom;
+}

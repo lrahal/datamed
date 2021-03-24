@@ -1,14 +1,14 @@
 from typing import List
 
 from dash.development.base_component import Component
-from dash_html_components import Div, H3, Span, Img, H2, B
+from dash_html_components import Div, H3, Img, B, A
 
 
 def FooterElement(title: str, element_list: List[str]) -> Component:
-    text_element_list = [H2(title, className="heading-4 mb-4")] + [
-        Span(element, className="normal-text d-block mb-3") for element in element_list
+    text_element_list = [Div(title, className="heading-4 mb-4")] + [
+        Div(element, className="normal-text d-block mb-3") for element in element_list
     ]
-    return Div(text_element_list, className="footer-left-content")
+    return Div(text_element_list, className="footer-right-content")
 
 
 def Logos() -> Component:
@@ -24,7 +24,7 @@ def Logos() -> Component:
                 ]
             ),
             H3(
-                ["data.", B("ansm.sante.fr")],
+                ["data.", B("medicaments.gouv.fr")],
                 style={"color": "white", "margin-top": "20px"},
             ),
         ],
@@ -32,7 +32,7 @@ def Logos() -> Component:
     )
 
 
-def FooterLeft():
+def FooterRight():
     return Div(
         [
             FooterElement(
@@ -41,14 +41,22 @@ def FooterLeft():
             FooterElement(
                 "Partenaires",
                 [
-                    "ansm.sante.fr",
-                    "base-donnees-publique.medicaments.gouv.fr",
-                    "Etalab",
-                    "La DINUM",
+                    A("ansm.sante.fr", href="https://ansm.sante.fr/", className="link"),
+                    A(
+                        "base-donnees-publique.medicaments.gouv.fr",
+                        href="https://base-donnees-publique.medicaments.gouv.fr/",
+                        className="link",
+                    ),
+                    A("Etalab", href="https://www.etalab.gouv.fr/", className="link"),
+                    A(
+                        "La DINUM",
+                        href="https://www.numerique.gouv.fr/dinum/",
+                        className="link",
+                    ),
                 ],
             ),
         ],
-        className="footer-left",
+        className="footer-right",
     )
 
 
@@ -56,7 +64,7 @@ def Footer() -> Component:
     return Div(
         [
             Logos(),
-            FooterLeft(),
+            FooterRight(),
         ],
         className="footer",
     )

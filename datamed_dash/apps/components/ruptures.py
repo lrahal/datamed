@@ -65,7 +65,7 @@ def DescriptionRuptures() -> Component:
                             "stocks en cas de tension d’approvisionnement et de rupture. Retrouvez les différentes "
                             "formes et chiffres de signalements que l’Agence reçoit, et les actions mises en place "
                             "pour y remédier et maintenir ainsi l’alimentation des officines au niveau national.",
-                            className="normal-text",
+                            className="normal-text text-justify",
                         ),
                         Div(
                             "Avertissement",
@@ -78,7 +78,7 @@ def DescriptionRuptures() -> Component:
                             "erronnée et de divulgation de ces chiffres et/ou dans un contexte qui ne permettrait pas "
                             "leur lecture dans les conditions optimales. En cas de doute, veuillez nous contacter, "
                             "vous contribuerez directement à l’amélioration de l’information diffusée.",
-                            className="normal-text",
+                            className="normal-text text-justify",
                         ),
                         Div(
                             "Réutilisation des données",
@@ -98,7 +98,7 @@ def DescriptionRuptures() -> Component:
                             id="refresh-substances",
                         ),
                     ],
-                    className="col-11",
+                    className="col-11 pr-5",
                 ),
             ],
             className="description col-xl-8 col-sm-11 row",

@@ -1,6 +1,6 @@
 from dash.development.base_component import Component
 from dash_bootstrap_components import Card, CardImg, CardBody, CardLink
-from dash_html_components import Div, B
+from dash_html_components import Div, B, I
 
 
 def ExplorerHeader() -> Component:
@@ -30,7 +30,14 @@ def BddCard(
             CardBody(
                 [
                     Div(title, className="heading-6"),
-                    Div(["Open data : ", open_data], className="small-text"),
+                    Div(
+                        [
+                            "Open data : ",
+                            open_data,
+                            I(className="lock-icon bi bi-lock d-inline-block"),
+                        ],
+                        className="small-text",
+                    ),
                     Div(
                         [
                             Div(

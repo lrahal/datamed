@@ -131,10 +131,10 @@ def DescriptionSpecialite(specialite: str) -> Component:
                         ),
                         P(
                             NOTICE_BY_SPE[specialite],
-                            className="normal-text mt-3",
+                            className="normal-text text-justify mt-3",
                         ),
                     ],
-                    className="col-11",
+                    className="col-11 pr-5",
                 ),
             ],
             className="description col-xl-8 col-sm-11 row",
