@@ -1,28 +1,8 @@
-import json
-import zipfile
-from urllib.parse import urlparse, parse_qs
-
-import dash.dependencies as dd
-import pandas as pd
-import plotly.graph_objects as go
-from app import app
 from dash.development.base_component import Component
-from dash.exceptions import PreventUpdate
-from dash_bootstrap_components import (
-    Button,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Table,
-)
-from dash_core_components import Graph
-from dash_html_components import Div, A, P, Img, I
-from plotly.subplots import make_subplots
+from dash_html_components import Div, A, P, I
 from sm import SideMenu
 
-from .main_search import SearchBar
-
+from .specialite import SectionTitle, Indicateur
 
 PIE_COLORS = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
 BAR_CHART_COLORS = [
@@ -71,7 +51,7 @@ def DescriptionRuptures() -> Component:
                         Div("Bases de données exploitées", className="small-text-bold"),
                         A(
                             "TrustMed, États des lieux des laboratoires",
-                            href="/",
+                            href="/apps/ruptures",
                             className="normal-text link",
                             id="refresh-substances",
                         ),
@@ -105,9 +85,16 @@ def DescriptionRuptures() -> Component:
                             className="small-text-bold",
                         ),
                         A(
-                            "Analyse thématique, data.gouv.fr",
-                            href="/",
-                            className="normal-text link",
+                            "Analyse thématique",
+                            href="/apps/ruptures",
+                            className="normal-text link d-inline-block",
+                            id="refresh-substances",
+                        ),
+                        Div(", ", className="d-inline-block"),
+                        A(
+                            "data.gouv.fr",
+                            href="https://www.data.gouv.fr/",
+                            className="normal-text link d-inline-block",
                             id="refresh-substances",
                         ),
                     ],
@@ -117,7 +104,32 @@ def DescriptionRuptures() -> Component:
             className="description col-xl-8 col-sm-11 row",
         ),
         style={"margin-top": "31.5px"},
-        className="specialite-section",
+        className="topic-section",
+    )
+
+
+def NatureSignalements() -> Component:
+    return Div(
+        [
+            SectionTitle("Nombre et nature des signalements", "signalements"),
+            Div(
+                [
+                    Indicateur(
+                        1000,
+                        "ruptures/an",
+                        "Nombre unique d’ouvertures de dossiers, de l’ouverture à la fermeture",
+                        "box d-inline-block",
+                    ),
+                    Indicateur(
+                        7.56,
+                        "j",
+                        "Nombre de jours moyen de ruptures sur l’année 2020",
+                        "box d-inline-block"
+                    ),
+                ]
+            ),
+        ],
+        className="topic-section",
     )
 
 
@@ -136,10 +148,9 @@ def Ruptures() -> Component:
             Div(
                 [
                     DescriptionRuptures(),
+                    NatureSignalements(),
                 ]
             ),
         ],
         className="side-menu-container",
     )
-
-
