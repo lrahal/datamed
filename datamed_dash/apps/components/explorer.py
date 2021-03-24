@@ -1,6 +1,6 @@
 from dash.development.base_component import Component
+from dash_bootstrap_components import Card, CardImg, CardBody, CardLink
 from dash_html_components import Div, B
-from dash_bootstrap_components import Button, Card, CardImg, CardBody, CardLink
 
 
 def ExplorerHeader() -> Component:
