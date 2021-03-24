@@ -35,7 +35,7 @@ def Navbar() -> Component:
                     Div(
                         [
                             MenuItem("Analyses thématiques", "/"),
-                            MenuItem("Explorer", "/"),
+                            MenuItem("Explorer", "/apps/explorer"),
                             Div(className="vl mr-4"),
                             MenuItem("À propos", "/"),
                             Button(
