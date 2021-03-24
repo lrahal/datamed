@@ -1,7 +1,14 @@
 .explorer-header-container {
     position: relative;
-    padding: 100px 480px 100px 480px;
     background-color: #00B3CC;
+}
+
+.explorer-card {
+    width: 956px;
+    margin: 3rem auto 1.5rem auto;
+    flex-direction: row;
+    box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.2);
+    border: none;
 }
 
 .explorer-title {
@@ -9,11 +16,34 @@
     height: fit-content;
     color: #fff;
     margin: auto auto 3rem;
+    padding: 112px 0 0 0;
 }
 
 .explorer-text {
-    margin: auto;
     text-align: center;
     height: fit-content;
     color: #fff;
+    padding: 0 500px 180px 500px;
+}
+
+.explorer-card .link{
+    color: #A03189;
+    text-decoration: underline;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    letter-spacing: 1.25px;
+}
+
+.explorer-card .small-text{
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.explorer-card .button-text{
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.explorer-card .heading-6{
+    color: rgba(0, 0, 0, 0.87);
+;
 }

@@ -79,7 +79,7 @@ def SearchDiv() -> Component:
     )
 
 
-def DescriptionSpecialite(specialite) -> Component:
+def DescriptionSpecialite(specialite: str) -> Component:
     substances_actives = ", ".join(
         SUBSTANCE_BY_SPECIALITE[specialite]["substances"]
     ).upper()
@@ -131,16 +131,16 @@ def DescriptionSpecialite(specialite) -> Component:
                         ),
                         P(
                             NOTICE_BY_SPE[specialite],
-                            className="normal-text mt-3",
+                            className="normal-text text-justify mt-3",
                         ),
                     ],
-                    className="col-11",
+                    className="col-11 pr-5",
                 ),
             ],
             className="description col-xl-8 col-sm-11 row",
         ),
         style={"margin-top": "31.5px"},
-        className="specialite-section",
+        className="topic-section",
     )
 
 
@@ -162,7 +162,7 @@ def NoData() -> Div:
     )
 
 
-def PieChart(specialite, var_1, var_2) -> Graph:
+def PieChart(specialite: str, var_1: str, var_2: str) -> Graph:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df = pd.DataFrame(MED_DICT[produit][var_1])
 
@@ -190,7 +190,7 @@ def PieChart(specialite, var_1, var_2) -> Graph:
         )
 
 
-def CourbesAnnees(specialite) -> Graph:
+def CourbesAnnees(specialite: str) -> Graph:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df_annee = pd.DataFrame(MED_DICT[produit]["annee"])
 
@@ -249,7 +249,7 @@ def CourbesAnnees(specialite) -> Graph:
     )
 
 
-def BarNotif(specialite) -> Graph:
+def BarNotif(specialite: str) -> Graph:
     if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]:
         df_notif = pd.DataFrame(
             MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]
@@ -307,7 +307,7 @@ def BarNotif(specialite) -> Graph:
         return NoData()
 
 
-def BarSoc(specialite) -> Graph:
+def BarSoc(specialite: str) -> Graph:
     if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]:
         df_soc = pd.DataFrame(
             MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]
@@ -402,40 +402,53 @@ def HltModal() -> Modal:
     )
 
 
-def PatientsTraites(specialite) -> Component:
+def SectionTitle(title: str, side_menu_id: str) -> Component:
+    return Div(
+        [
+            Div(
+                title,
+                className="heading-4 d-inline-block",
+                id=side_menu_id,
+            ),
+            I(className="info-icon bi bi-info-circle d-inline-block"),
+        ],
+        className="section-title nav-title",
+    )
+
+
+def Indicateur(value, units: str, description: str, class_name: str) -> Component:
+    return Div(
+        [
+            Div(
+                value,
+                className="box-highlight heading-4 d-inline-block",
+            ),
+            Div(
+                units,
+                className="box-highlight heading-4 d-inline-block ml-2",
+            ),
+            Div(
+                description,
+                className="normal-text",
+            ),
+        ],
+        className=class_name,
+    )
+
+
+def PatientsTraites(specialite: str) -> Component:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df = pd.DataFrame(MED_DICT[produit]["annee"])
     patients_traites = round(df.n_conso.mean())
 
     return Div(
         [
-            Div(
-                [
-                    Div(
-                        "Patients traités",
-                        className="heading-4 d-inline-block",
-                        id="Pop",
-                    ),
-                    I(className="info-icon bi bi-info-circle d-inline-block"),
-                ],
-                className="section-title nav-title",
-            ),
-            Div(
-                [
-                    Div(
-                        patients_traites,
-                        className="box-highlight heading-4 d-inline-block",
-                    ),
-                    Div(
-                        "patients/an",
-                        className="box-highlight heading-4 d-inline-block ml-2",
-                    ),
-                    P(
-                        "Nombre moyen de patients traités par an sur la période 2014/2018",
-                        className="normal-text",
-                    ),
-                ],
-                className="box f-content d-block",
+            SectionTitle("Patients traités", "Pop"),
+            Indicateur(
+                patients_traites,
+                "patients/an",
+                "Nombre moyen de patients traités par an sur la période 2014/2018",
+                "box f-content d-block",
             ),
             Div(
                 [
@@ -469,11 +482,11 @@ def PatientsTraites(specialite) -> Component:
                 className="row no-gutters",
             ),
         ],
-        className="specialite-section",
+        className="topic-section",
     )
 
 
-def CasDeclares(specialite) -> Component:
+def CasDeclares(specialite: str) -> Component:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df = pd.DataFrame(MED_DICT[produit]["annee"])
     cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
@@ -485,54 +498,18 @@ def CasDeclares(specialite) -> Component:
 
     return Div(
         [
-            Div(
-                [
-                    Div(
-                        "Cas déclarés d'effets indésirables",
-                        className="heading-4 d-inline-block",
-                        id="Effets",
-                    ),
-                    I(className="info-icon bi bi-info-circle d-inline-block"),
-                ],
-                className="section-title nav-title ",
+            SectionTitle("Cas déclarés d'effets indésirables", "Effets"),
+            Indicateur(
+                cas_an,
+                "cas/an",
+                "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018",
+                "box d-inline-block",
             ),
-            Div(
-                [
-                    Div(
-                        [
-                            Div(
-                                cas_an,
-                                className="box-highlight heading-4 d-inline-block",
-                            ),
-                            Div(
-                                "cas/an",
-                                className="box-highlight heading-4 d-inline-block ml-2",
-                            ),
-                            Div(
-                                "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018",
-                                className="normal-text",
-                            ),
-                        ],
-                        className="box d-inline-block",
-                    ),
-                    Div(
-                        [
-                            Div(
-                                cas_declares,
-                                className="box-highlight heading-4 d-inline-block",
-                            ),
-                            Div(
-                                "cas déclarés",
-                                className="box-highlight heading-4 d-inline-block ml-2",
-                            ),
-                            Div(
-                                "Nombre de cas déclarés sur la période 2014/2018",
-                                className="normal-text",
-                            ),
-                        ],
-                        className="box d-inline-block",
-                    ),
-                ],
+            Indicateur(
+                cas_declares,
+                "cas déclarés",
+                "Nombre de cas déclarés sur la période 2014/2018",
+                "box d-inline-block",
             ),
             Div(
                 Div(
@@ -595,11 +572,11 @@ def CasDeclares(specialite) -> Component:
                 className="row",
             ),
         ],
-        className="specialite-section",
+        className="topic-section",
     )
 
 
-def Organes(specialite) -> Component:
+def Organes(specialite: str) -> Component:
     return Div(
         [
             Div(
@@ -629,11 +606,11 @@ def Organes(specialite) -> Component:
                 className="row",
             ),
         ],
-        className="specialite-section",
+        className="topic-section",
     )
 
 
-def Specialite(specialite) -> Component:
+def Specialite(specialite: str) -> Component:
     return Div(
         [
             SideMenu(
@@ -663,7 +640,7 @@ def Specialite(specialite) -> Component:
     dd.Output("specialite-search-bar", "options"),
     dd.Input("specialite-search-bar", "search_value"),
 )
-def update_search_bar_options(search_value):
+def update_search_bar_options(search_value: str):
     if not search_value:
         raise PreventUpdate
 
@@ -678,7 +655,7 @@ def update_search_bar_options(search_value):
     dd.Output("specialite-rechercher-button", "href"),
     dd.Input("specialite-search-bar", "value"),
 )
-def update_path(value):
+def update_path(value: str):
     if value:
         return "/apps/app2?search=" + value
 

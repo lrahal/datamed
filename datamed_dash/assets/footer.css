@@ -18,12 +18,16 @@
     float: left;
 }
 
-.footer-left {
+.footer-right {
     float: right;
     display: flex;
 }
 
-.footer-left-content {
+.footer-right-content {
     width: 350px;
+    color: #fff;
+}
+
+.footer .link {
     color: #fff;
 }

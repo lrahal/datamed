@@ -3,9 +3,9 @@ from dash_bootstrap_components import Card, CardImg, CardBody, CardLink
 from dash_html_components import Div, H4, Span, Iframe, P, Img
 
 
-def Indicateur(value: int, text: str, color: str, class_name: str) -> Component:
-    return Span(
-        [Span(str(value), style={"color": color}), text],
+def IndicateurGrid(value: int, text: str, color: str, class_name: str) -> Component:
+    return Div(
+        [Span(str(value), style={"color": color}, className="large-text"), text],
         className=class_name,
     )
 
@@ -16,7 +16,7 @@ def RuptureCard():
             CardImg(src="/assets/pills.jpg", top=True),
             CardBody(
                 [
-                    Span(
+                    Div(
                         "Qu'est-ce qu'une rupture ?",
                         className="heading-6 card-title mb-0",
                     ),
@@ -51,19 +51,19 @@ def DonneesUne() -> Component:
                     ),
                     Div(
                         [
-                            Indicateur(
+                            IndicateurGrid(
                                 265,
                                 " ruptures de médicaments",
                                 "#EF7D00",
                                 "two grid-content normal-text",
                             ),
-                            Indicateur(
+                            IndicateurGrid(
                                 10,
                                 " pays fabriquent du paracétamol",
                                 "#EF7D00",
                                 "three grid-content normal-text",
                             ),
-                            Indicateur(
+                            IndicateurGrid(
                                 1921,
                                 " effets indésirables vaccin COVID 19",
                                 "#EF7D00",
@@ -81,19 +81,19 @@ def DonneesUne() -> Component:
                             ),
                             Div(
                                 [
-                                    Indicateur(
+                                    IndicateurGrid(
                                         265,
                                         " ruptures de médicaments",
                                         "#00B3CC",
                                         "d-block normal-text",
                                     ),
-                                    Indicateur(
+                                    IndicateurGrid(
                                         35,
                                         " importations ce mois-ci",
                                         "#00B3CC",
                                         "d-block normal-text",
                                     ),
-                                    Indicateur(
+                                    IndicateurGrid(
                                         65,
                                         " réapprovisionnements",
                                         "#00B3CC",
