@@ -140,7 +140,7 @@ def DescriptionSpecialite(specialite) -> Component:
             className="description col-xl-8 col-sm-11 row",
         ),
         style={"margin-top": "31.5px"},
-        className="specialite-section",
+        className="topic-section",
     )
 
 
@@ -402,6 +402,40 @@ def HltModal() -> Modal:
     )
 
 
+def SectionTitle(title, side_menu_id) -> Component:
+    return Div(
+        [
+            Div(
+                title,
+                className="heading-4 d-inline-block",
+                id=side_menu_id,
+            ),
+            I(className="info-icon bi bi-info-circle d-inline-block"),
+        ],
+        className="section-title nav-title",
+    )
+
+
+def Indicateur(value, units: str, description: str, class_name: str) -> Component:
+    return Div(
+        [
+            Div(
+                value,
+                className="box-highlight heading-4 d-inline-block",
+            ),
+            Div(
+                units,
+                className="box-highlight heading-4 d-inline-block ml-2",
+            ),
+            Div(
+                description,
+                className="normal-text",
+            ),
+        ],
+        className=class_name,
+    )
+
+
 def PatientsTraites(specialite) -> Component:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df = pd.DataFrame(MED_DICT[produit]["annee"])
@@ -409,33 +443,12 @@ def PatientsTraites(specialite) -> Component:
 
     return Div(
         [
-            Div(
-                [
-                    Div(
-                        "Patients traités",
-                        className="heading-4 d-inline-block",
-                        id="Pop",
-                    ),
-                    I(className="info-icon bi bi-info-circle d-inline-block"),
-                ],
-                className="section-title nav-title",
-            ),
-            Div(
-                [
-                    Div(
-                        patients_traites,
-                        className="box-highlight heading-4 d-inline-block",
-                    ),
-                    Div(
-                        "patients/an",
-                        className="box-highlight heading-4 d-inline-block ml-2",
-                    ),
-                    P(
-                        "Nombre moyen de patients traités par an sur la période 2014/2018",
-                        className="normal-text",
-                    ),
-                ],
-                className="box f-content d-block",
+            SectionTitle("Patients traités", "Pop"),
+            Indicateur(
+                patients_traites,
+                "patients/an",
+                "Nombre moyen de patients traités par an sur la période 2014/2018",
+                "box f-content d-block",
             ),
             Div(
                 [
@@ -469,7 +482,7 @@ def PatientsTraites(specialite) -> Component:
                 className="row no-gutters",
             ),
         ],
-        className="specialite-section",
+        className="topic-section",
     )
 
 
@@ -485,54 +498,18 @@ def CasDeclares(specialite) -> Component:
 
     return Div(
         [
-            Div(
-                [
-                    Div(
-                        "Cas déclarés d'effets indésirables",
-                        className="heading-4 d-inline-block",
-                        id="Effets",
-                    ),
-                    I(className="info-icon bi bi-info-circle d-inline-block"),
-                ],
-                className="section-title nav-title ",
+            SectionTitle("Cas déclarés d'effets indésirables", "Effets"),
+            Indicateur(
+                cas_an,
+                "cas/an",
+                "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018",
+                "box d-inline-block",
             ),
-            Div(
-                [
-                    Div(
-                        [
-                            Div(
-                                cas_an,
-                                className="box-highlight heading-4 d-inline-block",
-                            ),
-                            Div(
-                                "cas/an",
-                                className="box-highlight heading-4 d-inline-block ml-2",
-                            ),
-                            Div(
-                                "Taux de déclaration pour 100 000 patients traités sur la période 2014/2018",
-                                className="normal-text",
-                            ),
-                        ],
-                        className="box d-inline-block",
-                    ),
-                    Div(
-                        [
-                            Div(
-                                cas_declares,
-                                className="box-highlight heading-4 d-inline-block",
-                            ),
-                            Div(
-                                "cas déclarés",
-                                className="box-highlight heading-4 d-inline-block ml-2",
-                            ),
-                            Div(
-                                "Nombre de cas déclarés sur la période 2014/2018",
-                                className="normal-text",
-                            ),
-                        ],
-                        className="box d-inline-block",
-                    ),
-                ],
+            Indicateur(
+                cas_declares,
+                "cas déclarés",
+                "Nombre de cas déclarés sur la période 2014/2018",
+                "box d-inline-block",
             ),
             Div(
                 Div(
@@ -595,7 +572,7 @@ def CasDeclares(specialite) -> Component:
                 className="row",
             ),
         ],
-        className="specialite-section",
+        className="topic-section",
     )
 
 
@@ -629,7 +606,7 @@ def Organes(specialite) -> Component:
                 className="row",
             ),
         ],
-        className="specialite-section",
+        className="topic-section",
     )
 
 
