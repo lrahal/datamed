@@ -61,6 +61,25 @@ for col in columns:
         print(a)
 
 
+# In[8]:
+
+
+for col in columns:
+    a = df[df[col].apply(lambda x: "legacy" in x if x else False)][col].tolist()
+    if a :
+        print(a)
+
+
+# In[9]:
+
+
+for col in columns:
+    print(col)
+    print(df[df[col].apply(lambda x: "legacy pharmaceuticals switzerland gmbh" in x if x else False)][col])
+    print(df[df[col].apply(lambda x: "legacy pharmaceuticals switzerland gmbh" in x if x else False)].denomination_specialite)
+    print('---------------------------------------')
+
+
 # In[ ]:
 
 
