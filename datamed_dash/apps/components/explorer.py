@@ -13,7 +13,7 @@ def ExplorerHeader() -> Component:
             Div(
                 "L’Agence Nationale de Sécurité du Médicament et des "
                 "Produits de Santé met à votre disposition une sélection de ses "
-                "bases de données. Laissez-vous guider par ses modalités d’utilisation",
+                "bases de données. Laissez-vous guider par ses modalités d’utilisation.",
                 className="explorer-text large-text",
             ),
         ],
@@ -21,7 +21,7 @@ def ExplorerHeader() -> Component:
     )
 
 
-def BddCard(src_img, title, open_data, body, source_bdd) -> Card:
+def BddCard(src_img, title, open_data, body, source_bdd, href) -> Card:
     return Card(
         [
             CardImg(src=src_img, style={"width": "270px", "height": "240px"}),
@@ -37,7 +37,7 @@ def BddCard(src_img, title, open_data, body, source_bdd) -> Card:
                             ),
                             Div(
                                 [
-                                    B("Source de données :"),
+                                    B("Source de données : "),
                                     source_bdd,
                                 ],
                                 className="button-text d-inline-block col-6",
@@ -47,16 +47,14 @@ def BddCard(src_img, title, open_data, body, source_bdd) -> Card:
                     ),
                     CardLink(
                         "DÉCOUVRIR LE JEU DE DONNÉES",
-                        href="/apps/ruptures",
+                        href=href,
                         className="normal-text link",
-                        id="link-donnees-ruptures",
                     ),
                 ],
                 className="px-4",
             ),
         ],
         className="explorer-card",
-        style={"width": "956px"},
     )
 
 
@@ -65,12 +63,22 @@ def Explorer() -> Component:
         [
             ExplorerHeader(),
             BddCard(
-                "/assets/screen.jpg",
+                "/assets/ansm_entree.svg",
                 "Cartographie des sites de fabrication",
                 "Non",
                 "Surveillez les ruptures de stock et trouvez des alternatives thérapeutiques en fonction du profil du "
                 "patient concerné.",
-                "ANSM, Base de données publique des médicaments",
+                "État des lieux des laboratoires pharmaceutiques (ANSM)",
+                "/apps/ruptures",
+            ),
+            BddCard(
+                "/assets/pills_2.svg",
+                "Observatoire des ruptures de stock",
+                "Non",
+                "Découvrez les indicateurs observés par les agents de l’ANSM pour anticiper les ruptures de stock et "
+                "les actions mises en place pour y pallier.",
+                "TrustMed (ANSM)",
+                "/apps/explorer",
             ),
         ]
     )
