@@ -79,7 +79,7 @@ def SearchDiv() -> Component:
     )
 
 
-def DescriptionSpecialite(specialite) -> Component:
+def DescriptionSpecialite(specialite: str) -> Component:
     substances_actives = ", ".join(
         SUBSTANCE_BY_SPECIALITE[specialite]["substances"]
     ).upper()
@@ -162,7 +162,7 @@ def NoData() -> Div:
     )
 
 
-def PieChart(specialite, var_1, var_2) -> Graph:
+def PieChart(specialite: str, var_1: str, var_2: str) -> Graph:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df = pd.DataFrame(MED_DICT[produit][var_1])
 
@@ -190,7 +190,7 @@ def PieChart(specialite, var_1, var_2) -> Graph:
         )
 
 
-def CourbesAnnees(specialite) -> Graph:
+def CourbesAnnees(specialite: str) -> Graph:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df_annee = pd.DataFrame(MED_DICT[produit]["annee"])
 
@@ -249,7 +249,7 @@ def CourbesAnnees(specialite) -> Graph:
     )
 
 
-def BarNotif(specialite) -> Graph:
+def BarNotif(specialite: str) -> Graph:
     if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]:
         df_notif = pd.DataFrame(
             MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]
@@ -307,7 +307,7 @@ def BarNotif(specialite) -> Graph:
         return NoData()
 
 
-def BarSoc(specialite) -> Graph:
+def BarSoc(specialite: str) -> Graph:
     if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]:
         df_soc = pd.DataFrame(
             MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]
@@ -402,7 +402,7 @@ def HltModal() -> Modal:
     )
 
 
-def SectionTitle(title, side_menu_id) -> Component:
+def SectionTitle(title: str, side_menu_id: str) -> Component:
     return Div(
         [
             Div(
@@ -436,7 +436,7 @@ def Indicateur(value, units: str, description: str, class_name: str) -> Componen
     )
 
 
-def PatientsTraites(specialite) -> Component:
+def PatientsTraites(specialite: str) -> Component:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df = pd.DataFrame(MED_DICT[produit]["annee"])
     patients_traites = round(df.n_conso.mean())
@@ -486,7 +486,7 @@ def PatientsTraites(specialite) -> Component:
     )
 
 
-def CasDeclares(specialite) -> Component:
+def CasDeclares(specialite: str) -> Component:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df = pd.DataFrame(MED_DICT[produit]["annee"])
     cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
@@ -576,7 +576,7 @@ def CasDeclares(specialite) -> Component:
     )
 
 
-def Organes(specialite) -> Component:
+def Organes(specialite: str) -> Component:
     return Div(
         [
             Div(
@@ -610,7 +610,7 @@ def Organes(specialite) -> Component:
     )
 
 
-def Specialite(specialite) -> Component:
+def Specialite(specialite: str) -> Component:
     return Div(
         [
             SideMenu(
@@ -640,7 +640,7 @@ def Specialite(specialite) -> Component:
     dd.Output("specialite-search-bar", "options"),
     dd.Input("specialite-search-bar", "search_value"),
 )
-def update_search_bar_options(search_value):
+def update_search_bar_options(search_value: str):
     if not search_value:
         raise PreventUpdate
 
@@ -655,7 +655,7 @@ def update_search_bar_options(search_value):
     dd.Output("specialite-rechercher-button", "href"),
     dd.Input("specialite-search-bar", "value"),
 )
-def update_path(value):
+def update_path(value: str):
     if value:
         return "/apps/app2?search=" + value
 

@@ -55,12 +55,6 @@
     text-decoration: underline;
 }
 
-.info-icon {
-    font-size: 1.5rem;
-    padding-left: 10px;
-    vertical-align: text-bottom;
-}
-
 #refresh-substances a {
     color: #FFF;
     background-color: #252525;
