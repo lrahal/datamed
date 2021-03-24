@@ -21,7 +21,9 @@ def ExplorerHeader() -> Component:
     )
 
 
-def BddCard(src_img, title, open_data, body, source_bdd, href) -> Card:
+def BddCard(
+    src_img: str, title: str, open_data: str, body: str, source_bdd: str, href: str
+) -> Card:
     return Card(
         [
             CardImg(src=src_img, style={"width": "270px", "height": "240px"}),
@@ -58,6 +60,18 @@ def BddCard(src_img, title, open_data, body, source_bdd, href) -> Card:
     )
 
 
+def Modalites() -> Component:
+    return Div(
+        [
+            Div(
+                "Modalités d'utilisation",
+                className="heading-4 text-center",
+            )
+        ],
+        style={"margin-top": "376px"},
+    )
+
+
 def Explorer() -> Component:
     return Div(
         [
@@ -80,5 +94,6 @@ def Explorer() -> Component:
                 "TrustMed (ANSM)",
                 "/apps/explorer",
             ),
+            Modalites(),
         ]
     )
