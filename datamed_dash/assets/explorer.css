@@ -1,0 +1,19 @@
+.explorer-header-container {
+    position: relative;
+    padding: 100px 480px 100px 480px;
+    background-color: #00B3CC;
+}
+
+.explorer-title {
+    text-align: center;
+    height: fit-content;
+    color: #fff;
+    margin: auto auto 3rem;
+}
+
+.explorer-text {
+    margin: auto;
+    text-align: center;
+    height: fit-content;
+    color: #fff;
+}
