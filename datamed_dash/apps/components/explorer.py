@@ -83,7 +83,7 @@ def Explorer() -> Component:
                 "Surveillez les ruptures de stock et trouvez des alternatives thérapeutiques en fonction du profil du "
                 "patient concerné.",
                 "État des lieux des laboratoires pharmaceutiques (ANSM)",
-                "/apps/ruptures",
+                "/apps/explorer",
             ),
             BddCard(
                 "/assets/pills_2.svg",
@@ -92,7 +92,7 @@ def Explorer() -> Component:
                 "Découvrez les indicateurs observés par les agents de l’ANSM pour anticiper les ruptures de stock et "
                 "les actions mises en place pour y pallier.",
                 "TrustMed (ANSM)",
-                "/apps/explorer",
+                "/apps/ruptures",
             ),
             Modalites(),
         ]
