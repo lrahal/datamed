@@ -4,6 +4,14 @@
     background-color: #00B3CC;
 }
 
+.explorer-card {
+    width: fit-content;
+    margin: 3rem auto 1.5rem auto;
+    flex-direction: row;
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.24);
+    border: none;
+}
+
 .explorer-title {
     text-align: center;
     height: fit-content;
@@ -16,4 +24,26 @@
     text-align: center;
     height: fit-content;
     color: #fff;
+}
+
+.explorer-card .link{
+    color: #A03189;
+    text-decoration: underline;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    letter-spacing: 1.25px;
+}
+
+.explorer-card .small-text{
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.explorer-card .button-text{
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.explorer-card .heading-6{
+    color: rgba(0, 0, 0, 0.87);
+;
 }
