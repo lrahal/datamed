@@ -1,8 +1,24 @@
+import json
+from app import app
+from dash.exceptions import PreventUpdate
+
+import dash.dependencies as dd
+import pandas as pd
+import plotly.graph_objects as go
 from dash.development.base_component import Component
+from dash_core_components import Graph
+from dash_bootstrap_components import Select
 from dash_html_components import Div, A, P, I
 from sm import SideMenu
 
 from .specialite import SectionTitle, Indicateur
+from ..constants.colors import BAR_CHART_COLORS
+from ..constants.layouts import BAR_LAYOUT
+
+INITIAL_YEAR = "2020"
+
+with open("data/ruptures_by_atc_by_annee.json") as f:
+    RUPTURES_ATC_DICT = json.load(f)
 
 
 def DescriptionRuptures() -> Component:
@@ -98,24 +114,79 @@ def NatureSignalements() -> Component:
     return Div(
         [
             SectionTitle("Nombre et nature des signalements", "signalements"),
+            Indicateur(
+                10,
+                "ruptures/an",
+                "Nombre d’ouvertures de dossiers, de l’ouverture à la fermeture",
+                "box d-inline-block",
+            ),
+            Indicateur(
+                7.56,
+                "j",
+                "Nombre de jours moyen de ruptures sur l’année 2020",
+                "box d-inline-block",
+            ),
             Div(
                 [
-                    Indicateur(
-                        1000,
-                        "ruptures/an",
-                        "Nombre unique d’ouvertures de dossiers, de l’ouverture à la fermeture",
-                        "box d-inline-block",
+                    Div(
+                        Div(
+                            [
+                                Div(
+                                    [
+                                        Div(
+                                            "Nombre de signalements par classe thérapeutique",
+                                            className="normal-text d-inline-block",
+                                        ),
+                                        Select(
+                                            id="annee-dropdown",
+                                            value=INITIAL_YEAR,
+                                            options=[
+                                                {"label": y, "value": y} for y in range(2014, 2021)
+                                            ],
+                                            className="d-inline-block",
+                                            style={"float": "right", "width": "auto"}
+                                        ),
+                                    ],
+                                ),
+                                AtcBar(),
+                            ],
+                            className="box",
+                        ),
+                        className="col-xl-8",
                     ),
-                    Indicateur(
-                        7.56,
-                        "j",
-                        "Nombre de jours moyen de ruptures sur l’année 2020",
-                        "box d-inline-block"
-                    ),
-                ]
+                ],
+                className="row",
             ),
         ],
         className="topic-section",
+    )
+
+
+def compute_signal_by_atc_by_year(year):
+    df = (
+        pd.DataFrame.from_dict(RUPTURES_ATC_DICT[year], orient="index")
+        .reset_index()
+        .rename(columns={"index": "nom_atc", 0: "nb_signal"})
+        .head(10)
+    )
+
+    fig = go.Figure(
+        go.Bar(
+            y=df.nom_atc,
+            x=df.nb_signal,
+            orientation="h",
+            marker=dict(color=BAR_CHART_COLORS),
+        )
+    )
+    fig.update_layout(BAR_LAYOUT)
+    return fig
+
+
+def AtcBar() -> Graph:
+    fig = compute_signal_by_atc_by_year(INITIAL_YEAR)
+    return Graph(
+        figure=fig, className="img-card", responsive=True, style={"height": "500px"},
+        id="atc-bar-chart"
     )
 
 
@@ -140,3 +211,14 @@ def Ruptures() -> Component:
         ],
         className="side-menu-container",
     )
+
+
+@app.callback(
+    dd.Output("atc-bar-chart", "figure"),
+    dd.Input("annee-dropdown", "value"),
+)
+def update_figure(value: str):
+    print("here " + str(value))
+    if not value:
+        raise PreventUpdate
+    return compute_signal_by_atc_by_year(value)
