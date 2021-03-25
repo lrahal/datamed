@@ -557,7 +557,7 @@ def update_search_bar_options(search_value: str):
         raise PreventUpdate
 
     search_value = search_value.lower()
-    values_list = [v for v in SPE_LIST if search_value in v.lower()][:10]
+    values_list = [v for v in SPE_LIST if v.lower().startswith(search_value)][:10]
     return [
         {"label": v[:90] + "..." if len(v) > 90 else v, "value": v} for v in values_list
     ]
