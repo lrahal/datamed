@@ -1,6 +1,6 @@
 import dash_core_components as dcc
 from dash.development.base_component import Component
-from dash_bootstrap_components import Button, DropdownMenu, DropdownMenuItem
+from dash_bootstrap_components import Button
 from dash_html_components import Div, Img, Span, A, B
 
 
