@@ -1,6 +1,6 @@
 from dash.development.base_component import Component
 from dash_bootstrap_components import Card, CardImg, CardBody, CardLink
-from dash_html_components import Div, H4, Span, Iframe, P, Img
+from dash_html_components import Div, Span, Iframe, P, Img
 
 
 def IndicateurGrid(value: int, text: str, color: str, class_name: str) -> Component:
