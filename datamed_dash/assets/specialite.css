@@ -55,6 +55,11 @@
     text-decoration: underline;
 }
 
+.input-group-content {
+    flex: 1 1 auto;
+    width: 1%;
+}
+
 #refresh-substances a {
     color: #FFF;
     background-color: #252525;
