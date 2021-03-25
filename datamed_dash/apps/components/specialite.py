@@ -48,6 +48,29 @@ BAR_CHART_COLORS = [
     "rgba(51,194,214,1)",
     "rgba(102,209,224,1)",
 ]
+BAR_LAYOUT = {
+    "xaxis": dict(
+        showgrid=False,
+        showline=False,
+        showticklabels=False,
+        zeroline=False,
+    ),
+    "yaxis": dict(
+        showgrid=False,
+        showline=False,
+        zeroline=False,
+        autorange="reversed",
+        ticks="outside",
+        tickcolor="white",
+        ticklen=1,
+    ),
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": dict(l=0, r=0, t=0, b=0),
+    "barmode": "group",
+    "bargap": 0.10,
+    "bargroupgap": 0.0,
+    "font": {"size": 12, "color": "black"},
+}
 
 file_sub_by_spe = open("./data/substance_by_specialite.json", "r")
 SUBSTANCE_BY_SPECIALITE = json.loads(file_sub_by_spe.read())
@@ -190,42 +213,35 @@ def PieChart(specialite: str, var_1: str, var_2: str) -> Graph:
         )
 
 
+def SingleCurve(x: pd.Series, y: pd.Series, name: str, color: str) -> go.Scatter:
+    return go.Scatter(
+        x=x,
+        y=y,
+        mode="lines",
+        name=name,
+        line={
+            "shape": "spline",
+            "smoothing": 1,
+            "width": 4,
+            "color": color,
+        },
+    )
+
+
 def CourbesAnnees(specialite: str) -> Graph:
     produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
     df_annee = pd.DataFrame(MED_DICT[produit]["annee"])
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-    if df_annee.n_cas.isnull().all():
+    if not df_annee.n_cas.isnull().all():
         fig.add_trace(
-            go.Scatter(
-                x=df_annee.annee,
-                y=df_annee.n_cas,
-                mode="lines",
-                name="Cas déclarés",
-                line={
-                    "shape": "spline",
-                    "smoothing": 1,
-                    "width": 4,
-                    "color": "#BFAACB",
-                },
-            ),
+            SingleCurve(df_annee.annee, df_annee.n_cas, "Cas déclarés", PIE_COLORS[1]),
             secondary_y=False,
         )
 
     fig.add_trace(
-        go.Scatter(
-            x=df_annee.annee,
-            y=df_annee.n_conso,
-            mode="lines",
-            name="Patients traités",
-            line={
-                "shape": "spline",
-                "smoothing": 1,
-                "width": 4,
-                "color": "#5E2A7E",
-            },
-        ),
+        SingleCurve(df_annee.annee, df_annee.n_conso, "Patients traités", PIE_COLORS[2]),
         secondary_y=True,
     )
 
@@ -233,6 +249,7 @@ def CourbesAnnees(specialite: str) -> Graph:
     fig.update_yaxes(title_text="Nombre de patients traités", secondary_y=True)
 
     fig.update_xaxes(nticks=len(df_annee))
+
     fig.update_layout(
         xaxis_showgrid=False,
         yaxis_showgrid=True,
@@ -260,46 +277,11 @@ def BarNotif(specialite: str) -> Graph:
                 y=df_notif.typ_notif,
                 x=df_notif.n_decla,
                 orientation="h",
-                marker=dict(
-                    color=[
-                        "rgba(51,171,102,1)",
-                        "rgba(102,192,140,1)",
-                        "rgba(153,213,179,1)",
-                        "rgba(204,234,217,1)",
-                        "rgba(191,213,60,1)",
-                        "rgba(207,223,109,1)",
-                        "rgba(239,244,206,1)",
-                    ]
-                ),
+                marker=dict(color=BAR_CHART_COLORS),
             )
         )
 
-        fig.update_layout(
-            xaxis=dict(
-                showgrid=False,
-                showline=False,
-                showticklabels=False,
-                zeroline=False,
-            ),
-            yaxis=dict(
-                showgrid=False,
-                showline=False,
-                zeroline=False,
-                autorange="reversed",
-                ticks="outside",
-                tickcolor="white",
-                ticklen=1,
-            ),
-            plot_bgcolor="rgba(0,0,0,0)",
-            margin=dict(l=0, r=0, t=0, b=0),
-            barmode="group",
-            bargap=0.10,
-            bargroupgap=0.0,
-            font={"size": 12, "color": "black"},
-            legend=dict(
-                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
-            ),
-        )
+        fig.update_layout(BAR_LAYOUT)
         return Graph(
             figure=fig, className="img-card", responsive=True, style={"height": "328px"}
         )
@@ -319,46 +301,11 @@ def BarSoc(specialite: str) -> Graph:
                 y=df_soc.soc_long,
                 x=df_soc.n_decla_eff,
                 orientation="h",
-                marker=dict(
-                    color=[
-                        "rgba(51,171,102,1)",
-                        "rgba(102,192,140,1)",
-                        "rgba(153,213,179,1)",
-                        "rgba(204,234,217,1)",
-                        "rgba(191,213,60,1)",
-                        "rgba(207,223,109,1)",
-                        "rgba(223,234,157,1)",
-                        "rgba(239,244,206,1)",
-                        "rgba(51,194,214,1)",
-                        "rgba(102,209,224,1)",
-                    ]
-                ),
+                marker=dict(color=BAR_CHART_COLORS),
             )
         )
 
-        fig.update_layout(
-            xaxis=dict(
-                showgrid=False,
-                showline=False,
-                showticklabels=False,
-                zeroline=False,
-            ),
-            yaxis=dict(
-                showgrid=False,
-                showline=False,
-                zeroline=False,
-                autorange="reversed",
-                ticks="outside",
-                tickcolor="white",
-                ticklen=1,
-            ),
-            plot_bgcolor="rgba(0,0,0,0)",
-            margin=dict(l=0, r=0, t=0, b=0),
-            barmode="group",
-            bargap=0.10,
-            bargroupgap=0.0,
-            font={"size": 12, "color": "black"},
-        )
+        fig.update_layout(BAR_LAYOUT)
 
         return Div(
             [
@@ -416,7 +363,7 @@ def SectionTitle(title: str, side_menu_id: str) -> Component:
     )
 
 
-def Indicateur(value, units: str, description: str, class_name: str) -> Component:
+def Indicateur(value: float, units: str, description: str, class_name: str) -> Component:
     return Div(
         [
             Div(
@@ -657,7 +604,7 @@ def update_search_bar_options(search_value: str):
 )
 def update_path(value: str):
     if value:
-        return "/apps/app2?search=" + value
+        return "/apps/specialite?search=" + value
 
 
 @app.callback(
