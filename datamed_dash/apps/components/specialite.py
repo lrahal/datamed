@@ -65,6 +65,7 @@ def SearchDiv() -> Component:
         ],
         style={"margin-left": "20px", "margin-top": "2rem"},
         className="row",
+        id="Desc",
     )
 
 
@@ -87,7 +88,6 @@ def DescriptionSpecialite(specialite: str) -> Component:
                         Div(
                             specialite,
                             className="heading-4",
-                            id="Desc",
                         ),
                         Div(
                             [
@@ -127,7 +127,7 @@ def DescriptionSpecialite(specialite: str) -> Component:
                     style={"padding-left": "70px"}
                 ),
             ],
-            className="description col-xl-8 col-lg-11 row no-gutters",
+            className="description col-xl-8 row no-gutters",
         ),
         style={"margin-top": "31.5px"},
         className="topic-section",
