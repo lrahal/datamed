@@ -4,7 +4,7 @@ import dash.dependencies as dd
 from app import app
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
-from dash_bootstrap_components import Button, Row, Col
+from dash_bootstrap_components import Button
 from dash_core_components import Dropdown
 from dash_html_components import Div, Span, Form
 
@@ -21,20 +21,13 @@ def MainSearchTitle() -> Component:
 
 
 def SearchBar(search_bar_class_names: str, search_bar_id: str) -> Component:
-    return Row(
-        [
-            Col(
-                Form(
-                    Dropdown(
-                        id=search_bar_id,
-                        placeholder="Médicament",
-                        className="normal-text main-dropdown",
-                    ),
-                    autoComplete="off",
-                )
-            ),
-        ],
-        no_gutters=True,
+    return Form(
+        Dropdown(
+            id=search_bar_id,
+            placeholder="Médicament",
+            className="normal-text main-dropdown",
+        ),
+        autoComplete="off",
         className=search_bar_class_names,
     )
 
