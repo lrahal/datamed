@@ -4,20 +4,6 @@ from sm import SideMenu
 
 from .specialite import SectionTitle, Indicateur
 
-PIE_COLORS = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
-BAR_CHART_COLORS = [
-    "rgba(51,171,102,1)",
-    "rgba(102,192,140,1)",
-    "rgba(153,213,179,1)",
-    "rgba(204,234,217,1)",
-    "rgba(191,213,60,1)",
-    "rgba(207,223,109,1)",
-    "rgba(223,234,157,1)",
-    "rgba(239,244,206,1)",
-    "rgba(51,194,214,1)",
-    "rgba(102,209,224,1)",
-]
-
 
 def DescriptionRuptures() -> Component:
     return Div(

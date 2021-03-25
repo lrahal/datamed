@@ -22,6 +22,8 @@ from plotly.subplots import make_subplots
 from sm import SideMenu
 
 from .main_search import SearchBar
+from ..constants.colors import PIE_COLORS, BAR_CHART_COLORS
+from ..constants.layouts import BAR_LAYOUT
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -34,43 +36,6 @@ with zipfile.ZipFile("./data/notice_by_spe.json.zip", "r") as z:
     with z.open(filename) as f:
         data = f.read()
         NOTICE_BY_SPE = json.loads(data.decode("utf-8"))
-
-PIE_COLORS = ["#DFD4E5", "#BFAACB", "#5E2A7E"]
-BAR_CHART_COLORS = [
-    "rgba(51,171,102,1)",
-    "rgba(102,192,140,1)",
-    "rgba(153,213,179,1)",
-    "rgba(204,234,217,1)",
-    "rgba(191,213,60,1)",
-    "rgba(207,223,109,1)",
-    "rgba(223,234,157,1)",
-    "rgba(239,244,206,1)",
-    "rgba(51,194,214,1)",
-    "rgba(102,209,224,1)",
-]
-BAR_LAYOUT = {
-    "xaxis": dict(
-        showgrid=False,
-        showline=False,
-        showticklabels=False,
-        zeroline=False,
-    ),
-    "yaxis": dict(
-        showgrid=False,
-        showline=False,
-        zeroline=False,
-        autorange="reversed",
-        ticks="outside",
-        tickcolor="white",
-        ticklen=1,
-    ),
-    "plot_bgcolor": "rgba(0,0,0,0)",
-    "margin": dict(l=0, r=0, t=0, b=0),
-    "barmode": "group",
-    "bargap": 0.10,
-    "bargroupgap": 0.0,
-    "font": {"size": 12, "color": "black"},
-}
 
 file_sub_by_spe = open("./data/substance_by_specialite.json", "r")
 SUBSTANCE_BY_SPECIALITE = json.loads(file_sub_by_spe.read())
