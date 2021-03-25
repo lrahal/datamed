@@ -50,20 +50,28 @@ ATC_BY_SPE = json.loads(file_atc_by_spe.read())
 
 def SearchDiv() -> Component:
     return Div(
-        [
-            SearchBar("col-xl-6 col-sm-9 pl-0", "specialite-search-bar"),
-            Button(
-                "RECHERCHER",
-                n_clicks=0,
-                outline=True,
-                className="col-xl-2 col-sm-2 button-text-bold",
-                color="secondary",
-                type="submit",
-                id="specialite-rechercher-button",
-                style={"min-width": "fit-content"},
-            ),
-        ],
-        style={"margin-left": "20px", "margin-top": "2rem"},
+        Div(
+            [
+                SearchBar("input-group-content mr-3 pl-0", "specialite-search-bar"),
+                Div(
+                    Div(
+                        Button(
+                            "RECHERCHER",
+                            n_clicks=0,
+                            outline=True,
+                            className="button-text-bold",
+                            color="secondary",
+                            type="submit",
+                            id="specialite-rechercher-button",
+                            style={"min-width": "fit-content"},
+                        )
+                    ),
+                    className="input-group-append",
+                ),
+            ],
+            className="input-group col-xl-8",
+        ),
+        style={"padding-left": "20px", "margin-top": "2rem"},
         className="row",
         id="Desc",
     )
@@ -75,62 +83,65 @@ def DescriptionSpecialite(specialite: str) -> Component:
     ).upper()
     return Div(
         Div(
-            [
-                Div(
-                    I(
-                        className="bi bi-book d-flex justify-content-center pt-3",
-                        style={"font-size": "3rem"},
+            Div(
+                [
+                    Div(
+                        I(
+                            className="bi bi-book d-flex justify-content-center pt-3",
+                            style={"font-size": "3rem"},
+                        ),
+                        className="position-absolute",
                     ),
-                    className="position-absolute",
-                ),
-                Div(
-                    [
-                        Div(
-                            specialite,
-                            className="heading-4",
-                        ),
-                        Div(
-                            [
-                                Div(
-                                    "SPÉCIALITÉ DE MÉDICAMENT",
-                                    className="caption-text d-inline-block",
-                                ),
-                                I(
-                                    className="info-icon bi bi-info-circle d-inline-block"
-                                ),
-                            ]
-                        ),
-                        Div("Substance(s) active(s)", className="small-text-bold"),
-                        A(
-                            substances_actives,
-                            href="/",
-                            className="normal-text link",
-                            id="refresh-substances",
-                        ),
-                        Div(
-                            "Description",
-                            className="small-text-bold",
-                        ),
-                        P(
-                            "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
-                                ATC_BY_SPE[specialite]["nom_atc"],
-                                ATC_BY_SPE[specialite]["code_atc"],
+                    Div(
+                        [
+                            Div(
+                                specialite,
+                                className="heading-4",
                             ),
-                            className="normal-text",
-                        ),
-                        P(
-                            NOTICE_BY_SPE[specialite],
-                            className="normal-text text-justify mt-3",
-                        ),
-                    ],
-                    className="pr-5",
-                    style={"padding-left": "70px"}
-                ),
-            ],
-            className="description col-xl-8 row no-gutters",
+                            Div(
+                                [
+                                    Div(
+                                        "SPÉCIALITÉ DE MÉDICAMENT",
+                                        className="caption-text d-inline-block",
+                                    ),
+                                    I(
+                                        className="info-icon bi bi-info-circle d-inline-block"
+                                    ),
+                                ]
+                            ),
+                            Div("Substance(s) active(s)", className="small-text-bold"),
+                            A(
+                                substances_actives,
+                                href="/",
+                                className="normal-text link",
+                                id="refresh-substances",
+                            ),
+                            Div(
+                                "Description",
+                                className="small-text-bold",
+                            ),
+                            P(
+                                "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
+                                    ATC_BY_SPE[specialite]["nom_atc"],
+                                    ATC_BY_SPE[specialite]["code_atc"],
+                                ),
+                                className="normal-text",
+                            ),
+                            P(
+                                NOTICE_BY_SPE[specialite],
+                                className="normal-text text-justify mt-3",
+                            ),
+                        ],
+                        className="pr-5",
+                        style={"padding-left": "70px"},
+                    ),
+                ],
+                className="description",
+            ),
+            className="col-xl-8",
         ),
         style={"margin-top": "31.5px"},
-        className="topic-section",
+        className="topic-section row no-gutters",
     )
 
 
@@ -209,7 +220,9 @@ def CourbesAnnees(specialite: str) -> Graph:
         )
 
     fig.add_trace(
-        SingleCurve(df_annee.annee, df_annee.n_conso, "Patients traités", PIE_COLORS[2]),
+        SingleCurve(
+            df_annee.annee, df_annee.n_conso, "Patients traités", PIE_COLORS[2]
+        ),
         secondary_y=True,
     )
 
@@ -331,7 +344,9 @@ def SectionTitle(title: str, side_menu_id: str) -> Component:
     )
 
 
-def Indicateur(value: float, units: str, description: str, class_name: str) -> Component:
+def Indicateur(
+    value: float, units: str, description: str, class_name: str
+) -> Component:
     return Div(
         [
             Div(
