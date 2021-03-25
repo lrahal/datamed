@@ -125,7 +125,7 @@ def DescriptionSpecialite(specialite: str) -> Component:
                     className="col-11 pr-5",
                 ),
             ],
-            className="description col-xl-8 col-sm-11 row",
+            className="description col-xl-8 col-sm-11 row no-gutters",
         ),
         style={"margin-top": "31.5px"},
         className="topic-section",
@@ -166,6 +166,7 @@ def PieChart(specialite: str, var_1: str, var_2: str) -> Graph:
                 marker_colors=PIE_COLORS,
             )
         ).update_layout(
+            hovermode=False,
             margin=dict(t=0, b=0, l=0, r=0),
             legend=dict(
                 orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
@@ -219,6 +220,7 @@ def CourbesAnnees(specialite: str) -> Graph:
         xaxis_showgrid=False,
         yaxis_showgrid=True,
         yaxis2_showgrid=False,
+        hovermode="x unified",
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(t=0, b=0, l=0, r=0),
         font={"size": 12, "color": "black"},
@@ -245,7 +247,6 @@ def BarNotif(specialite: str) -> Graph:
                 marker=dict(color=BAR_CHART_COLORS),
             )
         )
-
         fig.update_layout(BAR_LAYOUT)
         return Graph(
             figure=fig, className="img-card", responsive=True, style={"height": "328px"}
