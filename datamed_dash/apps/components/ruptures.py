@@ -1,13 +1,13 @@
 import json
-from app import app
-from dash.exceptions import PreventUpdate
 
 import dash.dependencies as dd
 import pandas as pd
 import plotly.graph_objects as go
+from app import app
 from dash.development.base_component import Component
-from dash_core_components import Graph
+from dash.exceptions import PreventUpdate
 from dash_bootstrap_components import Select
+from dash_core_components import Graph
 from dash_html_components import Div, A, P, I
 from sm import SideMenu
 
