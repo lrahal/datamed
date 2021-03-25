@@ -355,11 +355,11 @@ def SectionTitle(title: str, side_menu_id: str) -> Component:
             Div(
                 title,
                 className="heading-4 d-inline-block",
-                id=side_menu_id,
             ),
             I(className="info-icon bi bi-info-circle d-inline-block"),
         ],
         className="section-title nav-title",
+        id=side_menu_id,
     )
 
 
