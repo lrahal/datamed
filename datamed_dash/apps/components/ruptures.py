@@ -61,8 +61,8 @@ def DescriptionRuptures() -> Component:
                         ),
                         P(
                             "L’ANSM a pour mission d’observer tout au long de l’année l’état des ruptures de stock "
-                            "de médicaments présents dans les circuits Ville et Hôpital et s’assurer du maintien des "
-                            "stocks en cas de tension d’approvisionnement et de rupture. Retrouvez les différentes "
+                            "de médicaments présents dans les circuits Ville et Hôpital et de s’assurer du maintien "
+                            "des stocks en cas de tension d’approvisionnement et de rupture. Retrouvez les différentes "
                             "formes et chiffres de signalements que l’Agence reçoit, et les actions mises en place "
                             "pour y remédier et maintenir ainsi l’alimentation des officines au niveau national.",
                             className="normal-text text-justify",
@@ -73,11 +73,11 @@ def DescriptionRuptures() -> Component:
                         ),
                         P(
                             "Les chiffres présentés ici ont pour but d’ouvrir les données au grand public afin de "
-                            "communiquer les actions de l’Agence. Leur interprétation et diffusion est soumise à de "
-                            "strictes réglementations. L’Agence ne se tient pas responsable en cas d’interprétation "
-                            "erronnée et de divulgation de ces chiffres et/ou dans un contexte qui ne permettrait pas "
+                            "communiquer les actions de l’Agence. Leur interprétation et leur diffusion est soumise à "
+                            "des réglementations strictes. L’Agence ne se tient pas responsable en cas d’interprétation"
+                            " erronée et de divulgation de ces chiffres, dans un contexte qui ne permettrait pas "
                             "leur lecture dans les conditions optimales. En cas de doute, veuillez nous contacter, "
-                            "vous contribuerez directement à l’amélioration de l’information diffusée.",
+                            "vous contribuerez alors directement à l’amélioration de l’information diffusée.",
                             className="normal-text text-justify",
                         ),
                         Div(
