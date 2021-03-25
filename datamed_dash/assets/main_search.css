@@ -7,6 +7,7 @@
 
 .main-search {
     width: fit-content;
+    width: -moz-fit-content;
     padding: 60px 200px;
     background: #fff;
     box-shadow: 0 4px 4px rgba(0, 0, 0, 0.24);
