@@ -11,6 +11,15 @@
     border: none;
 }
 
+.explorer-card .card-body{
+    padding-bottom: 0!important;
+}
+
+.explorer-card .card-link{
+    position: absolute;
+    bottom: 20px;
+}
+
 .explorer-title {
     text-align: center;
     height: fit-content;

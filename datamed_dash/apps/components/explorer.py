@@ -42,7 +42,7 @@ def BddCard(
                         [
                             Div(
                                 body,
-                                className="button-text d-inline-block col-6",
+                                className="button-text d-inline-block text-justify col-6",
                             ),
                             Div(
                                 [
@@ -84,22 +84,22 @@ def Explorer() -> Component:
         [
             ExplorerHeader(),
             BddCard(
-                "/assets/ansm_entree.svg",
-                "Cartographie des sites de fabrication",
-                "Non",
-                "Surveillez les ruptures de stock et trouvez des alternatives thérapeutiques en fonction du profil du "
-                "patient concerné.",
-                "État des lieux des laboratoires pharmaceutiques (ANSM)",
-                "/apps/explorer",
-            ),
-            BddCard(
                 "/assets/pills_2.svg",
                 "Observatoire des ruptures de stock",
                 "Non",
-                "Découvrez les indicateurs observés par les agents de l’ANSM pour anticiper les ruptures de stock et "
-                "les actions mises en place pour y pallier.",
+                "Renseignez-vous sur le statut des ruptures de stock de médicaments et trouvez des "
+                "alternatives thérapeutiques au traitement du patient en fonction de son profil.",
                 "TrustMed (ANSM)",
                 "/apps/ruptures",
+            ),
+            BddCard(
+                "/assets/ansm_entree.svg",
+                "Cartographie des sites de fabrication",
+                "Non",
+                "Découvrez les indicateurs utilisés par les agents de l’ANSM pour anticiper "
+                "les ruptures de stock et les actions mises en place pour y pallier.",
+                "État des lieux des laboratoires pharmaceutiques (ANSM)",
+                "/apps/explorer",
             ),
             Modalites(),
         ]
