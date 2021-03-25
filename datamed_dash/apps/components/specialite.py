@@ -60,6 +60,7 @@ def SearchDiv() -> Component:
                 color="secondary",
                 type="submit",
                 id="specialite-rechercher-button",
+                style={"min-width": "fit-content"},
             ),
         ],
         style={"margin-left": "20px", "margin-top": "2rem"},
@@ -79,7 +80,7 @@ def DescriptionSpecialite(specialite: str) -> Component:
                         className="bi bi-book d-flex justify-content-center pt-3",
                         style={"font-size": "3rem"},
                     ),
-                    className="col-1",
+                    className="position-absolute",
                 ),
                 Div(
                     [
@@ -122,10 +123,11 @@ def DescriptionSpecialite(specialite: str) -> Component:
                             className="normal-text text-justify mt-3",
                         ),
                     ],
-                    className="col-11 pr-5",
+                    className="pr-5",
+                    style={"padding-left": "70px"}
                 ),
             ],
-            className="description col-xl-8 col-sm-11 row no-gutters",
+            className="description col-xl-8 col-lg-11 row no-gutters",
         ),
         style={"margin-top": "31.5px"},
         className="topic-section",
