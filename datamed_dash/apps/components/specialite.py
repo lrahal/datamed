@@ -23,7 +23,7 @@ from sm import SideMenu
 
 from .main_search import SearchBar
 from ..constants.colors import PIE_COLORS, BAR_CHART_COLORS
-from ..constants.layouts import BAR_LAYOUT
+from ..constants.layouts import BAR_LAYOUT, CURVE_LAYOUT, PIE_LAYOUT
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -178,13 +178,7 @@ def PieChart(specialite: str, var_1: str, var_2: str) -> Graph:
                 name="Répartition par {} des patients traités".format(var_1),
                 marker_colors=PIE_COLORS,
             )
-        ).update_layout(
-            hovermode=False,
-            margin=dict(t=0, b=0, l=0, r=0),
-            legend=dict(
-                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
-            ),
-        )
+        ).update_layout(PIE_LAYOUT)
         return Graph(
             figure=fig,
             className="img-card",
@@ -213,7 +207,7 @@ def CourbesAnnees(specialite: str) -> Graph:
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-    if not df_annee.n_cas.isnull().all():
+    if df_annee.n_cas.min() >= 10:
         fig.add_trace(
             SingleCurve(df_annee.annee, df_annee.n_cas, "Cas déclarés", PIE_COLORS[1]),
             secondary_y=False,
@@ -231,16 +225,7 @@ def CourbesAnnees(specialite: str) -> Graph:
 
     fig.update_xaxes(nticks=len(df_annee))
 
-    fig.update_layout(
-        xaxis_showgrid=False,
-        yaxis_showgrid=True,
-        yaxis2_showgrid=False,
-        hovermode="x unified",
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(t=0, b=0, l=0, r=0),
-        font={"size": 12, "color": "black"},
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    )
+    fig.update_layout(CURVE_LAYOUT)
     return Graph(
         figure=fig,
         className="img-card",
@@ -512,7 +497,7 @@ def Organes(specialite: str) -> Component:
             Div(
                 [
                     Div(
-                        "Effets indésirables par système d'organe",
+                        "Effets indésirables par système d'organes",
                         className="heading-4 d-inline-block",
                     ),
                     I(className="info-icon bi bi-info-circle d-inline-block"),
@@ -524,7 +509,7 @@ def Organes(specialite: str) -> Component:
                     Div(
                         [
                             P(
-                                "Effets indésirables les plus déclarés par système d'organe",
+                                "Effets indésirables les plus déclarés par système d'organes",
                                 className="normal-text",
                             ),
                             BarSoc(specialite),
