@@ -25,7 +25,7 @@ from .main_search import SearchBar
 from ..constants.colors import PIE_COLORS, BAR_CHART_COLORS
 from ..constants.layouts import BAR_LAYOUT, CURVE_LAYOUT, PIE_LAYOUT
 
-with zipfile.ZipFile("./data/med_dict_new.json.zip", "r") as z:
+with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
     with z.open(filename) as f:
         data = f.read()
