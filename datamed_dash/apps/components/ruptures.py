@@ -9,6 +9,7 @@ from dash.exceptions import PreventUpdate
 from dash_bootstrap_components import Select
 from dash_core_components import Graph
 from dash_html_components import Div, A, P, I
+from plotly.subplots import make_subplots
 from sm import SideMenu
 
 from .specialite import SectionTitle, Indicateur
@@ -19,6 +20,9 @@ INITIAL_YEAR = "2020"
 
 with open("data/ruptures_by_atc_by_annee.json") as f:
     RUPTURES_ATC_DICT = json.load(f)
+
+with open("data/ventes_by_atc_by_annee.json") as f:
+    VENTES_ATC_DICT = json.load(f)
 
 
 def DescriptionRuptures() -> Component:
@@ -171,14 +175,58 @@ def compute_signal_by_atc_by_year(year: str) -> go.Figure:
         .rename(columns={"index": "nom_atc", 0: "nb_signal"})
         .head(10)
     )
+    atc_list = list(df.nom_atc.unique())
 
-    fig = go.Figure(
+    fig = make_subplots(1, 2)
+    fig.add_trace(
         go.Bar(
             y=df.nom_atc,
             x=df.nb_signal,
             orientation="h",
             marker=dict(color=BAR_CHART_COLORS),
+            name="Nombre de signalements",
         )
+    )
+
+    if year in ["2017", "2018", "2019"]:
+        # Dictionnaire des ventes uniquement pour les 10 premières ATC
+        ventes_dict = {k: v for k, v in VENTES_ATC_DICT[year].items() if k in atc_list}
+        df_ventes = (
+            pd.DataFrame.from_dict(ventes_dict, orient="index")
+            .reset_index()
+            .rename(columns={"index": "nom_atc"})
+        )
+
+        # Réindexer les ventes dans le même ordre que les ruptures
+        # pour que la courbe n'aille pas dans tous les sens
+        df_ventes = df_ventes.set_index("nom_atc")
+        df_ventes = df_ventes.reindex(index=df["nom_atc"])
+        df_ventes = df_ventes.reset_index()
+
+        fig.add_trace(
+            go.Scatter(
+                x=df_ventes.total / 10 ** 6,
+                y=df_ventes.nom_atc,
+                line={
+                    "shape": "spline",
+                    "smoothing": 1,
+                    "width": 4,
+                    "color": "#00B3CC",
+                },
+                mode="lines",
+                name="Volume de ventes (en millions)",
+            ),
+            row=1,
+            col=1,
+        )
+
+    BAR_LAYOUT.update(
+        {
+            "legend": dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+            ),
+            "hovermode": "y unified",
+        }
     )
     fig.update_layout(BAR_LAYOUT)
     return fig
