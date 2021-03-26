@@ -512,7 +512,7 @@ def Organes(specialite: str) -> Component:
             Div(
                 [
                     Div(
-                        "Effets indésirables par système d'organe",
+                        "Effets indésirables par système d'organes",
                         className="heading-4 d-inline-block",
                     ),
                     I(className="info-icon bi bi-info-circle d-inline-block"),
@@ -524,7 +524,7 @@ def Organes(specialite: str) -> Component:
                     Div(
                         [
                             P(
-                                "Effets indésirables les plus déclarés par système d'organe",
+                                "Effets indésirables les plus déclarés par système d'organes",
                                 className="normal-text",
                             ),
                             BarSoc(specialite),
