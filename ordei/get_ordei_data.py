@@ -254,8 +254,6 @@ def main():
         data_annee = (
             data.groupby("annee").agg({"n_cas": "sum", "n_conso": "sum"}).reset_index()
         )
-        if data_annee.n_cas.min() < 10:
-            data_annee.n_cas = None
 
         med_dict = compute_med_dict(
             med,
