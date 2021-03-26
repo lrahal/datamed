@@ -25,7 +25,7 @@ from .main_search import SearchBar
 from ..constants.colors import PIE_COLORS, BAR_CHART_COLORS
 from ..constants.layouts import BAR_LAYOUT, CURVE_LAYOUT, PIE_LAYOUT
 
-with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
+with zipfile.ZipFile("./data/med_dict_new.json.zip", "r") as z:
     filename = z.namelist()[0]
     with z.open(filename) as f:
         data = f.read()
@@ -207,7 +207,7 @@ def CourbesAnnees(specialite: str) -> Graph:
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-    if not df_annee.n_cas.isnull().all():
+    if df_annee.n_cas.min() >= 10:
         fig.add_trace(
             SingleCurve(df_annee.annee, df_annee.n_cas, "Cas déclarés", PIE_COLORS[1]),
             secondary_y=False,
