@@ -141,12 +141,14 @@ def NatureSignalements() -> Component:
                                             id="annee-dropdown",
                                             value=INITIAL_YEAR,
                                             options=[
-                                                {"label": y, "value": y} for y in range(2014, 2021)
+                                                {"label": y, "value": y}
+                                                for y in range(2014, 2021)
                                             ],
-                                            className="d-inline-block",
-                                            style={"float": "right", "width": "auto"}
+                                            className="graph-select-input d-inline-block",
+                                            style={"float": "right"},
                                         ),
                                     ],
+                                    style={"margin-bottom": "24px"},
                                 ),
                                 AtcBar(),
                             ],
@@ -162,7 +164,7 @@ def NatureSignalements() -> Component:
     )
 
 
-def compute_signal_by_atc_by_year(year):
+def compute_signal_by_atc_by_year(year: str) -> go.Figure:
     df = (
         pd.DataFrame.from_dict(RUPTURES_ATC_DICT[year], orient="index")
         .reset_index()
@@ -185,8 +187,11 @@ def compute_signal_by_atc_by_year(year):
 def AtcBar() -> Graph:
     fig = compute_signal_by_atc_by_year(INITIAL_YEAR)
     return Graph(
-        figure=fig, className="img-card", responsive=True, style={"height": "500px"},
-        id="atc-bar-chart"
+        figure=fig,
+        className="img-card",
+        responsive=True,
+        style={"height": "500px"},
+        id="atc-bar-chart",
     )
 
 
@@ -218,7 +223,6 @@ def Ruptures() -> Component:
     dd.Input("annee-dropdown", "value"),
 )
 def update_figure(value: str):
-    print("here " + str(value))
     if not value:
         raise PreventUpdate
     return compute_signal_by_atc_by_year(value)
