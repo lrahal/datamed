@@ -40,9 +40,8 @@ with zipfile.ZipFile("./data/notice_by_spe.json.zip", "r") as z:
 file_sub_by_spe = open("./data/substance_by_specialite.json", "r")
 SUBSTANCE_BY_SPECIALITE = json.loads(file_sub_by_spe.read())
 
-file_liste_spe = open("./data/liste_specialites.json", "r")
-SPE_DICT = json.loads(file_liste_spe.read())
-SPE_LIST = list(set(SPE_DICT.keys()))
+file_liste_spe_sa = open("./data/spe_sa_dict.json", "r")
+SPE_SA_DICT = json.loads(file_liste_spe_sa.read())
 
 file_atc_by_spe = open("./data/atc_by_spe.json", "r")
 ATC_BY_SPE = json.loads(file_atc_by_spe.read())
@@ -77,72 +76,117 @@ def SearchDiv() -> Component:
     )
 
 
-def DescriptionSpecialite(specialite: str) -> Component:
-    substances_actives = ", ".join(
-        SUBSTANCE_BY_SPECIALITE[specialite]["substances"]
-    ).upper()
-    return Div(
-        Div(
+def DescriptionSpecialite(selected_med: str) -> Component:
+    if SPE_SA_DICT[selected_med] == 'spécialité':
+        substances_actives = ", ".join(
+            SUBSTANCE_BY_SPECIALITE[selected_med]["substances"]
+        ).upper()
+        return Div(
             Div(
-                [
-                    Div(
-                        I(
-                            className="bi bi-book d-flex justify-content-center pt-3",
-                            style={"font-size": "3rem"},
+                Div(
+                    [
+                        Div(
+                            I(
+                                className="bi bi-book d-flex justify-content-center pt-3",
+                                style={"font-size": "3rem"},
+                            ),
+                            className="position-absolute",
                         ),
-                        className="position-absolute",
-                    ),
-                    Div(
-                        [
-                            Div(
-                                specialite,
-                                className="heading-4",
-                            ),
-                            Div(
-                                [
-                                    Div(
-                                        "SPÉCIALITÉ DE MÉDICAMENT",
-                                        className="caption-text d-inline-block",
-                                    ),
-                                    I(
-                                        className="info-icon bi bi-info-circle d-inline-block"
-                                    ),
-                                ]
-                            ),
-                            Div("Substance(s) active(s)", className="small-text-bold"),
-                            A(
-                                substances_actives,
-                                href="/",
-                                className="normal-text link",
-                                id="refresh-substances",
-                            ),
-                            Div(
-                                "Description",
-                                className="small-text-bold",
-                            ),
-                            P(
-                                "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
-                                    ATC_BY_SPE[specialite]["nom_atc"],
-                                    ATC_BY_SPE[specialite]["code_atc"],
+                        Div(
+                            [
+                                Div(
+                                    selected_med,
+                                    className="heading-4",
                                 ),
-                                className="normal-text",
-                            ),
-                            P(
-                                NOTICE_BY_SPE[specialite],
-                                className="normal-text text-justify mt-3",
-                            ),
-                        ],
-                        className="pr-5",
-                        style={"padding-left": "70px"},
-                    ),
-                ],
-                className="description",
+                                Div(
+                                    [
+                                        Div(
+                                            "SPÉCIALITÉ DE MÉDICAMENT",
+                                            className="caption-text d-inline-block",
+                                        ),
+                                        I(
+                                            className="info-icon bi bi-info-circle d-inline-block"
+                                        ),
+                                    ]
+                                ),
+                                Div(
+                                    "Substance(s) active(s)",
+                                    className="small-text-bold",
+                                ),
+                                A(
+                                    substances_actives,
+                                    href="/",
+                                    className="normal-text link",
+                                    id="refresh-substances",
+                                ),
+                                Div(
+                                    "Description",
+                                    className="small-text-bold",
+                                ),
+                                P(
+                                    "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
+                                        ATC_BY_SPE[selected_med]["nom_atc"],
+                                        ATC_BY_SPE[selected_med]["code_atc"],
+                                    ),
+                                    className="normal-text",
+                                ),
+                                P(
+                                    NOTICE_BY_SPE[selected_med],
+                                    className="normal-text text-justify mt-3",
+                                ),
+                            ],
+                            className="pr-5",
+                            style={"padding-left": "70px"},
+                        ),
+                    ],
+                    className="description",
+                ),
+                className="col-xl-8",
             ),
-            className="col-xl-8",
-        ),
-        style={"margin-top": "31.5px"},
-        className="topic-section row no-gutters",
-    )
+            style={"margin-top": "31.5px"},
+            className="topic-section row no-gutters",
+        )
+    else:
+        return Div(
+            Div(
+                Div(
+                    [
+                        Div(
+                            I(
+                                className="bi bi-book d-flex justify-content-center pt-3",
+                                style={"font-size": "3rem"},
+                            ),
+                            className="position-absolute",
+                        ),
+                        Div(
+                            [
+                                Div(
+                                    selected_med,
+                                    className="heading-4",
+                                ),
+                                Div(
+                                    [
+                                        Div(
+                                            "SPÉCIALITÉ DE MÉDICAMENT",
+                                            className="caption-text d-inline-block",
+                                        ),
+                                        I(
+                                            className="info-icon bi bi-info-circle d-inline-block"
+                                        ),
+                                    ]
+                                ),
+                            ],
+                            className="pr-5",
+                            style={"padding-left": "70px"},
+                        ),
+                    ],
+                    className="description",
+                ),
+                className="col-xl-8",
+            ),
+            style={"margin-top": "31.5px"},
+            className="topic-section row no-gutters",
+        )
 
 
 def NoData() -> Div:
@@ -163,9 +207,8 @@ def NoData() -> Div:
     )
 
 
-def PieChart(specialite: str, var_1: str, var_2: str) -> Graph:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df = pd.DataFrame(MED_DICT[produit][var_1])
+def PieChart(medicament: str, var_1: str, var_2: str) -> Graph:
+    df = pd.DataFrame(MED_DICT[medicament][var_1])
 
     if var_2 == "n_cas" and df.n_cas.isnull().all():
         return NoData()
@@ -201,9 +244,8 @@ def SingleCurve(x: pd.Series, y: pd.Series, name: str, color: str) -> go.Scatter
     )
 
 
-def CourbesAnnees(specialite: str) -> Graph:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df_annee = pd.DataFrame(MED_DICT[produit]["annee"])
+def CourbesAnnees(medicament: str) -> Graph:
+    df_annee = pd.DataFrame(MED_DICT[medicament]["annee"])
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
@@ -233,11 +275,9 @@ def CourbesAnnees(specialite: str) -> Graph:
     )
 
 
-def BarNotif(specialite: str) -> Graph:
-    if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]:
-        df_notif = pd.DataFrame(
-            MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]
-        )
+def BarNotif(medicament: str) -> Graph:
+    if MED_DICT[medicament]["notif"]:
+        df_notif = pd.DataFrame(MED_DICT[medicament]["notif"])
 
         fig = go.Figure(
             go.Bar(
@@ -255,11 +295,9 @@ def BarNotif(specialite: str) -> Graph:
         return NoData()
 
 
-def BarSoc(specialite: str) -> Graph:
-    if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]:
-        df_soc = pd.DataFrame(
-            MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]
-        )
+def BarSoc(medicament: str) -> Graph:
+    if MED_DICT[medicament]["soclong"]:
+        df_soc = pd.DataFrame(MED_DICT[medicament]["soclong"])
         df_soc = df_soc.head(10)
 
         fig = go.Figure(
@@ -351,9 +389,13 @@ def Indicateur(
     )
 
 
-def PatientsTraites(specialite: str) -> Component:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df = pd.DataFrame(MED_DICT[produit]["annee"])
+def PatientsTraites(selected_med: str) -> Component:
+    if SPE_SA_DICT[selected_med] == 'spécialité':
+        medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
+    else:
+        medicament = selected_med
+
+    df = pd.DataFrame(MED_DICT[medicament]["annee"])
     patients_traites = round(df.n_conso.mean())
 
     return Div(
@@ -374,7 +416,7 @@ def PatientsTraites(specialite: str) -> Component:
                                     "Répartition par sexe des patients traités",
                                     className="normal-text",
                                 ),
-                                PieChart(specialite, "sexe", "n_conso"),
+                                PieChart(medicament, "sexe", "n_conso"),
                             ],
                             className="box",
                         ),
@@ -387,7 +429,7 @@ def PatientsTraites(specialite: str) -> Component:
                                     "Répartition par âge des patients traités",
                                     className="normal-text",
                                 ),
-                                PieChart(specialite, "age", "n_conso"),
+                                PieChart(medicament, "age", "n_conso"),
                             ],
                             className="box",
                         ),
@@ -401,9 +443,13 @@ def PatientsTraites(specialite: str) -> Component:
     )
 
 
-def CasDeclares(specialite: str) -> Component:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df = pd.DataFrame(MED_DICT[produit]["annee"])
+def CasDeclares(selected_med: str) -> Component:
+    if SPE_SA_DICT[selected_med] == 'spécialité':
+        medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
+    else:
+        medicament = selected_med
+
+    df = pd.DataFrame(MED_DICT[medicament]["annee"])
     cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
 
     if 0 <= df.n_cas.sum() < 10:
@@ -434,7 +480,7 @@ def CasDeclares(specialite: str) -> Component:
                                 "Nombre de cas déclarés d'effets indésirables et patients traités par année",
                                 className="normal-text",
                             ),
-                            CourbesAnnees(specialite),
+                            CourbesAnnees(medicament),
                         ],
                         className="box",
                     ),
@@ -451,7 +497,7 @@ def CasDeclares(specialite: str) -> Component:
                                     "Répartition par sexe des cas déclarés",
                                     className="normal-text",
                                 ),
-                                PieChart(specialite, "sexe", "n_cas"),
+                                PieChart(medicament, "sexe", "n_cas"),
                             ],
                             className="box",
                         ),
@@ -464,7 +510,7 @@ def CasDeclares(specialite: str) -> Component:
                                     "Répartition par âge des cas déclarés",
                                     className="normal-text",
                                 ),
-                                PieChart(specialite, "age", "n_cas"),
+                                PieChart(medicament, "age", "n_cas"),
                             ],
                             className="box",
                         ),
@@ -477,7 +523,7 @@ def CasDeclares(specialite: str) -> Component:
                                     "Répartition par type de notificateur",
                                     className="normal-text",
                                 ),
-                                BarNotif(specialite),
+                                BarNotif(medicament),
                             ],
                             className="box",
                         ),
@@ -491,7 +537,11 @@ def CasDeclares(specialite: str) -> Component:
     )
 
 
-def Organes(specialite: str) -> Component:
+def Organes(selected_med: str) -> Component:
+    if SPE_SA_DICT[selected_med] == 'spécialité':
+        medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
+    else:
+        medicament = selected_med
     return Div(
         [
             Div(
@@ -512,7 +562,7 @@ def Organes(specialite: str) -> Component:
                                 "Effets indésirables les plus déclarés par système d'organes",
                                 className="normal-text",
                             ),
-                            BarSoc(specialite),
+                            BarSoc(medicament),
                         ],
                         className="box",
                     ),
@@ -525,7 +575,7 @@ def Organes(specialite: str) -> Component:
     )
 
 
-def Specialite(specialite: str) -> Component:
+def Specialite(selected_med: str) -> Component:
     return Div(
         [
             SideMenu(
@@ -540,10 +590,10 @@ def Specialite(specialite: str) -> Component:
             SearchDiv(),
             Div(
                 [
-                    DescriptionSpecialite(specialite),
-                    PatientsTraites(specialite),
-                    CasDeclares(specialite),
-                    Organes(specialite),
+                    DescriptionSpecialite(selected_med),
+                    PatientsTraites(selected_med),
+                    CasDeclares(selected_med),
+                    Organes(selected_med),
                 ]
             ),
         ],
@@ -560,7 +610,7 @@ def update_search_bar_options(search_value: str):
         raise PreventUpdate
 
     search_value = search_value.lower()
-    values_list = [v for v in SPE_LIST if v.lower().startswith(search_value)][:10]
+    values_list = [v for v in SPE_SA_DICT.keys() if v.lower().startswith(search_value)]
     return [
         {"label": v[:90] + "..." if len(v) > 90 else v, "value": v} for v in values_list
     ]
@@ -601,11 +651,14 @@ def update_callback(
     if selected_soc_has_changed:
         parsed_url = urlparse(href)
         query = parse_qs(parsed_url.query)
-        specialite = query["search"][0]
+        selected_med = query["search"][0]
 
-        df_hlt = pd.DataFrame(
-            MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["hlt"]
-        )
+        if SPE_SA_DICT[selected_med] == "spécialité":
+            medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
+        else:
+            medicament = selected_med
+
+        df_hlt = pd.DataFrame(MED_DICT[medicament]["hlt"])
         df_hlt = df_hlt.rename(
             columns={"effet_hlt": "Détail des effets rapportés par nombre décroissant"}
         )

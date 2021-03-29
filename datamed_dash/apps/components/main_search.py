@@ -8,9 +8,8 @@ from dash_bootstrap_components import Button
 from dash_core_components import Dropdown
 from dash_html_components import Div, Span, Form
 
-file_liste_spe = open("./data/liste_specialites.json", "r")
-SPE_DICT = json.loads(file_liste_spe.read())
-SPE_LIST = list(set(SPE_DICT.keys()))
+file_liste_spe_sa = open("./data/spe_sa_dict.json", "r")
+SPE_SA_DICT = json.loads(file_liste_spe_sa.read())
 
 
 def MainSearchTitle() -> Component:
@@ -77,7 +76,7 @@ def update_search_bar_options(search_value):
         raise PreventUpdate
 
     search_value = search_value.lower()
-    values_list = [v for v in SPE_LIST if v.lower().startswith(search_value)][:10]
+    values_list = [v for v in SPE_SA_DICT.keys() if v.lower().startswith(search_value)]
     return [
         {"label": v[:50] + "..." if len(v) > 50 else v, "value": v} for v in values_list
     ]
