@@ -1,0 +1,7 @@
+include sm/sm.min.js
+include sm/sm.min.js.map
+include sm/metadata.json
+include sm/package-info.json
+include README.md
+include LICENSE
+include package.json

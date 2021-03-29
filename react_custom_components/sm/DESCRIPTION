@@ -1,0 +1,13 @@
+Package: sm
+Title: Side Menu for data.ansm dashboard
+Version: 0.0.1
+Description: Side Menu for data.ansm dashboard
+Depends: R (>= 3.0.2)
+Imports: 
+Suggests: 
+License: MIT + file LICENSE
+URL: https://github.com/lrahal/sm
+BugReports: https://github.com/lrahal/sm/issues
+Encoding: UTF-8
+LazyData: true
+KeepSource: true
