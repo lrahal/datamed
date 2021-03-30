@@ -76,7 +76,10 @@ def update_search_bar_options(search_value):
         raise PreventUpdate
 
     search_value = search_value.lower()
+
     values_list = [v for v in SPE_SA_DICT.keys() if v.lower().startswith(search_value)]
+    values_list.sort()
+    values_list = sorted(values_list, key=len)
     return [
         {"label": v[:50] + "..." if len(v) > 50 else v, "value": v} for v in values_list
     ]

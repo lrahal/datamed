@@ -77,7 +77,7 @@ def SearchDiv() -> Component:
 
 
 def DescriptionSpecialite(selected_med: str) -> Component:
-    if SPE_SA_DICT[selected_med] == 'spécialité':
+    if SPE_SA_DICT[selected_med] == "spécialité":
         substances_actives = ", ".join(
             SUBSTANCE_BY_SPECIALITE[selected_med]["substances"]
         ).upper()
@@ -390,7 +390,7 @@ def Indicateur(
 
 
 def PatientsTraites(selected_med: str) -> Component:
-    if SPE_SA_DICT[selected_med] == 'spécialité':
+    if SPE_SA_DICT[selected_med] == "spécialité":
         medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
     else:
         medicament = selected_med
@@ -444,7 +444,7 @@ def PatientsTraites(selected_med: str) -> Component:
 
 
 def CasDeclares(selected_med: str) -> Component:
-    if SPE_SA_DICT[selected_med] == 'spécialité':
+    if SPE_SA_DICT[selected_med] == "spécialité":
         medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
     else:
         medicament = selected_med
@@ -538,7 +538,7 @@ def CasDeclares(selected_med: str) -> Component:
 
 
 def Organes(selected_med: str) -> Component:
-    if SPE_SA_DICT[selected_med] == 'spécialité':
+    if SPE_SA_DICT[selected_med] == "spécialité":
         medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
     else:
         medicament = selected_med
@@ -610,7 +610,10 @@ def update_search_bar_options(search_value: str):
         raise PreventUpdate
 
     search_value = search_value.lower()
+
     values_list = [v for v in SPE_SA_DICT.keys() if v.lower().startswith(search_value)]
+    values_list.sort()
+    values_list = sorted(values_list, key=len)
     return [
         {"label": v[:90] + "..." if len(v) > 90 else v, "value": v} for v in values_list
     ]
