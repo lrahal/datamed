@@ -16,6 +16,7 @@ from dash_bootstrap_components import (
     ModalBody,
     ModalFooter,
     Table,
+    Tooltip,
 )
 from dash_core_components import Graph
 from dash_html_components import Div, A, P, Img, I
@@ -102,7 +103,18 @@ def SpecialiteDiv(selected_med: str, substances_actives: str) -> Component:
                                         className="caption-text d-inline-block",
                                     ),
                                     I(
-                                        className="info-icon bi bi-info-circle d-inline-block"
+                                        className="info-icon bi bi-info-circle d-inline-block",
+                                        id="specialite-info-icon",
+                                    ),
+                                    Tooltip(
+                                        "Les médicaments peuvent être regroupés suivant différents niveaux de "
+                                        "précision (du plus au moins précis) : la présentation (Doliprane "
+                                        "1000 mg, comprimé, boîte de 8 comprimés), la spécialité (Doliprane "
+                                        "1000 mg, comprimé), le produit (Doliprane), la substance active "
+                                        "(Paracétamol). La spécialité d’un médicament est donc caractérisée par "
+                                        "une dénomination spéciale (Doliprane) et un conditionnement "
+                                        "particulier (1000 mg, comprimé).",
+                                        target="specialite-info-icon",
                                     ),
                                 ]
                             ),
@@ -147,62 +159,67 @@ def SpecialiteDiv(selected_med: str, substances_actives: str) -> Component:
 
 def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
     return Div(
+        Div(
             Div(
-                Div(
-                    [
-                        Div(
-                            I(
-                                className="bi bi-book d-flex justify-content-center pt-3",
-                                style={"font-size": "3rem"},
+                [
+                    Div(
+                        I(
+                            className="bi bi-book d-flex justify-content-center pt-3",
+                            style={"font-size": "3rem"},
+                        ),
+                        className="position-absolute",
+                    ),
+                    Div(
+                        [
+                            Div(
+                                selected_med,
+                                className="heading-4",
                             ),
-                            className="position-absolute",
-                        ),
-                        Div(
-                            [
-                                Div(
-                                    selected_med,
-                                    className="heading-4",
-                                ),
-                                Div(
-                                    [
-                                        Div(
-                                            "SUBSTANCE ACTIVE",
-                                            className="caption-text d-inline-block",
-                                        ),
-                                        I(
-                                            className="info-icon bi bi-info-circle d-inline-block"
-                                        ),
-                                    ]
-                                ),
-                                # dash_table.DataTable(
-                                #     id="table-wrapper",
-                                #     columns=[{"name": i, "id": i} for i in df.columns],
-                                #     data=df.to_dict("records"),
-                                # ),
-                                Table.from_dataframe(
-                                    spe_dataframe,
-                                    striped=True,
-                                    bordered=False,
-                                    borderless=True,
-                                    hover=True,
-                                    responsive=True,
-                                    # page_current=0,
-                                    # page_size=5,
-                                    # page_action="custom",
-                                    className="mt-5",
-                                ),
-                            ],
-                            className="pr-5",
-                            style={"padding-left": "70px"},
-                        ),
-                    ],
-                    className="description",
-                ),
-                className="col-xl-8",
+                            Div(
+                                [
+                                    Div(
+                                        "SUBSTANCE ACTIVE",
+                                        className="caption-text d-inline-block",
+                                    ),
+                                    I(
+                                        className="info-icon bi bi-info-circle d-inline-block",
+                                        id="substance-info-icon",
+                                    ),
+                                    Tooltip(
+                                        "Coucou",
+                                        target="substance-info-icon",
+                                    ),
+                                ]
+                            ),
+                            # dash_table.DataTable(
+                            #     id="table-wrapper",
+                            #     columns=[{"name": i, "id": i} for i in df.columns],
+                            #     data=df.to_dict("records"),
+                            # ),
+                            Table.from_dataframe(
+                                spe_dataframe,
+                                striped=True,
+                                bordered=False,
+                                borderless=True,
+                                hover=True,
+                                responsive=True,
+                                # page_current=0,
+                                # page_size=5,
+                                # page_action="custom",
+                                className="mt-5",
+                            ),
+                        ],
+                        className="pr-5",
+                        style={"padding-left": "70px"},
+                    ),
+                ],
+                className="description",
             ),
-            style={"margin-top": "31.5px"},
-            className="topic-section row no-gutters",
-        )
+            className="col-xl-8",
+        ),
+        style={"margin-top": "31.5px"},
+        className="topic-section row no-gutters",
+    )
 
 
 def DescriptionSpecialite(selected_med: str) -> Component:
