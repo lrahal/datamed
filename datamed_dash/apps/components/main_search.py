@@ -1,4 +1,5 @@
 import json
+from urllib.parse import urlencode, quote_plus
 
 import dash.dependencies as dd
 from app import app
@@ -91,4 +92,4 @@ def update_search_bar_options(search_value):
 )
 def update_path(value):
     if value:
-        return "/apps/specialite?search=" + value
+        return "/apps/specialite?" + urlencode({"search": quote_plus(value)})

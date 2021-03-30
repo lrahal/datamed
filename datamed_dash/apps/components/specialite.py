@@ -1,6 +1,6 @@
 import json
 import zipfile
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, urlencode, quote_plus
 
 import dash.dependencies as dd
 import pandas as pd
@@ -625,7 +625,7 @@ def update_search_bar_options(search_value: str):
 )
 def update_path(value: str):
     if value:
-        return "/apps/specialite?search=" + value
+        return "/apps/specialite?" + urlencode({"search": quote_plus(value)})
 
 
 @app.callback(
