@@ -1,8 +1,9 @@
 import json
 import zipfile
-from urllib.parse import urlparse, parse_qs, urlencode, quote_plus
+from urllib.parse import urlparse, parse_qs, urlencode, quote_plus, unquote_plus
 
 import dash.dependencies as dd
+import dash_table
 import pandas as pd
 import plotly.graph_objects as go
 from app import app
@@ -15,6 +16,7 @@ from dash_bootstrap_components import (
     ModalBody,
     ModalFooter,
     Table,
+    Tooltip,
 )
 from dash_core_components import Graph
 from dash_html_components import Div, A, P, Img, I
@@ -76,117 +78,170 @@ def SearchDiv() -> Component:
     )
 
 
+def SpecialiteDiv(selected_med: str, substances_actives: str) -> Component:
+    return Div(
+        Div(
+            Div(
+                [
+                    Div(
+                        I(
+                            className="bi bi-book d-flex justify-content-center pt-3",
+                            style={"font-size": "3rem"},
+                        ),
+                        className="position-absolute",
+                    ),
+                    Div(
+                        [
+                            Div(
+                                selected_med,
+                                className="heading-4",
+                            ),
+                            Div(
+                                [
+                                    Div(
+                                        "SPÉCIALITÉ DE MÉDICAMENT",
+                                        className="caption-text d-inline-block",
+                                    ),
+                                    I(
+                                        className="info-icon bi bi-info-circle d-inline-block",
+                                        id="specialite-info-icon",
+                                    ),
+                                    Tooltip(
+                                        "Les médicaments peuvent être regroupés suivant différents niveaux de "
+                                        "précision (du plus au moins précis) : la présentation (Doliprane "
+                                        "1000 mg, comprimé, boîte de 8 comprimés), la spécialité (Doliprane "
+                                        "1000 mg, comprimé), le produit (Doliprane), la substance active "
+                                        "(Paracétamol). La spécialité d’un médicament est donc caractérisée par "
+                                        "une dénomination spéciale (Doliprane) et un conditionnement "
+                                        "particulier (1000 mg, comprimé).",
+                                        target="specialite-info-icon",
+                                    ),
+                                ]
+                            ),
+                            Div(
+                                "Substance(s) active(s)",
+                                className="small-text-bold",
+                            ),
+                            A(
+                                substances_actives,
+                                href="/",
+                                className="normal-text link",
+                                id="refresh-substances",
+                            ),
+                            Div(
+                                "Description",
+                                className="small-text-bold",
+                            ),
+                            P(
+                                "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
+                                    ATC_BY_SPE[selected_med]["nom_atc"],
+                                    ATC_BY_SPE[selected_med]["code_atc"],
+                                ),
+                                className="normal-text",
+                            ),
+                            P(
+                                NOTICE_BY_SPE[selected_med],
+                                className="normal-text text-justify mt-3",
+                            ),
+                        ],
+                        className="pr-5",
+                        style={"padding-left": "70px"},
+                    ),
+                ],
+                className="description",
+            ),
+            className="col-xl-8",
+        ),
+        style={"margin-top": "31.5px"},
+        className="topic-section row no-gutters",
+    )
+
+
+def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
+    return Div(
+        Div(
+            Div(
+                [
+                    Div(
+                        I(
+                            className="bi bi-book d-flex justify-content-center pt-3",
+                            style={"font-size": "3rem"},
+                        ),
+                        className="position-absolute",
+                    ),
+                    Div(
+                        [
+                            Div(
+                                selected_med,
+                                className="heading-4",
+                            ),
+                            Div(
+                                [
+                                    Div(
+                                        "SUBSTANCE ACTIVE",
+                                        className="caption-text d-inline-block",
+                                    ),
+                                    I(
+                                        className="info-icon bi bi-info-circle d-inline-block",
+                                        id="substance-info-icon",
+                                    ),
+                                    Tooltip(
+                                        "Coucou",
+                                        target="substance-info-icon",
+                                    ),
+                                ]
+                            ),
+                            # dash_table.DataTable(
+                            #     id="table-wrapper",
+                            #     columns=[{"name": i, "id": i} for i in df.columns],
+                            #     data=df.to_dict("records"),
+                            # ),
+                            Table.from_dataframe(
+                                spe_dataframe,
+                                striped=True,
+                                bordered=False,
+                                borderless=True,
+                                hover=True,
+                                responsive=True,
+                                # page_current=0,
+                                # page_size=5,
+                                # page_action="custom",
+                                className="mt-5",
+                            ),
+                        ],
+                        className="pr-5",
+                        style={"padding-left": "70px"},
+                    ),
+                ],
+                className="description",
+            ),
+            className="col-xl-8",
+        ),
+        style={"margin-top": "31.5px"},
+        className="topic-section row no-gutters",
+    )
+
+
 def DescriptionSpecialite(selected_med: str) -> Component:
     if SPE_SA_DICT[selected_med] == "spécialité":
         substances_actives = ", ".join(
             SUBSTANCE_BY_SPECIALITE[selected_med]["substances"]
         ).upper()
-        return Div(
-            Div(
-                Div(
-                    [
-                        Div(
-                            I(
-                                className="bi bi-book d-flex justify-content-center pt-3",
-                                style={"font-size": "3rem"},
-                            ),
-                            className="position-absolute",
-                        ),
-                        Div(
-                            [
-                                Div(
-                                    selected_med,
-                                    className="heading-4",
-                                ),
-                                Div(
-                                    [
-                                        Div(
-                                            "SPÉCIALITÉ DE MÉDICAMENT",
-                                            className="caption-text d-inline-block",
-                                        ),
-                                        I(
-                                            className="info-icon bi bi-info-circle d-inline-block"
-                                        ),
-                                    ]
-                                ),
-                                Div(
-                                    "Substance(s) active(s)",
-                                    className="small-text-bold",
-                                ),
-                                A(
-                                    substances_actives,
-                                    href="/",
-                                    className="normal-text link",
-                                    id="refresh-substances",
-                                ),
-                                Div(
-                                    "Description",
-                                    className="small-text-bold",
-                                ),
-                                P(
-                                    "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
-                                        ATC_BY_SPE[selected_med]["nom_atc"],
-                                        ATC_BY_SPE[selected_med]["code_atc"],
-                                    ),
-                                    className="normal-text",
-                                ),
-                                P(
-                                    NOTICE_BY_SPE[selected_med],
-                                    className="normal-text text-justify mt-3",
-                                ),
-                            ],
-                            className="pr-5",
-                            style={"padding-left": "70px"},
-                        ),
-                    ],
-                    className="description",
-                ),
-                className="col-xl-8",
-            ),
-            style={"margin-top": "31.5px"},
-            className="topic-section row no-gutters",
-        )
+        return SpecialiteDiv(selected_med, substances_actives)
     else:
-        return Div(
-            Div(
-                Div(
-                    [
-                        Div(
-                            I(
-                                className="bi bi-book d-flex justify-content-center pt-3",
-                                style={"font-size": "3rem"},
-                            ),
-                            className="position-absolute",
-                        ),
-                        Div(
-                            [
-                                Div(
-                                    selected_med,
-                                    className="heading-4",
-                                ),
-                                Div(
-                                    [
-                                        Div(
-                                            "SPÉCIALITÉ DE MÉDICAMENT",
-                                            className="caption-text d-inline-block",
-                                        ),
-                                        I(
-                                            className="info-icon bi bi-info-circle d-inline-block"
-                                        ),
-                                    ]
-                                ),
-                            ],
-                            className="pr-5",
-                            style={"padding-left": "70px"},
-                        ),
-                    ],
-                    className="description",
-                ),
-                className="col-xl-8",
-            ),
-            style={"margin-top": "31.5px"},
-            className="topic-section row no-gutters",
+        selected_med_spe_list = [
+            k
+            for k, values in SUBSTANCE_BY_SPECIALITE.items()
+            for v in values["substances"]
+            if selected_med in v
+        ]
+        selected_med_spe_list.sort()
+
+        df = pd.DataFrame(
+            selected_med_spe_list[:10],
+            columns=["Spécialités de médicaments contenant du {}".format(selected_med)],
         )
+        return SubstanceDiv(selected_med, df)
 
 
 def NoData() -> Div:
@@ -652,7 +707,7 @@ def update_callback(
     selected_soc_has_changed = selected_soc != previous_selected_soc
 
     if selected_soc_has_changed:
-        parsed_url = urlparse(href)
+        parsed_url = urlparse(unquote_plus(href))
         query = parse_qs(parsed_url.query)
         selected_med = query["search"][0]
 
