@@ -175,12 +175,16 @@ def SpecialiteDiv(selected_med: str, substances_list) -> Component:
                                     A(
                                         "Afficher le RCP",
                                         href=rcp_link,
+                                        target="_blank",
+                                        rel="noopener noreferrer",
                                         className="normal-text link d-inline-block",
                                         id="refresh-substances",
                                     ),
                                     A(
                                         "Afficher la notice",
                                         href=notice_link,
+                                        target="_blank",
+                                        rel="noopener noreferrer",
                                         className="normal-text link d-inline-block ml-5",
                                         id="refresh-substances",
                                     ),
