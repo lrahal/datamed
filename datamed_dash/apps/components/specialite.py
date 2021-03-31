@@ -18,6 +18,7 @@ from dash_bootstrap_components import (
     ModalFooter,
     Table,
     Tooltip,
+    Jumbotron,
 )
 from dash_core_components import Graph
 from dash_html_components import Div, A, P, Img, I
@@ -489,8 +490,19 @@ def Indicateur(
 def PatientsTraites(selected_med: str) -> Component:
     if SPE_SA_DICT[selected_med] == "spécialité":
         medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
+        jumbotron = Jumbotron(
+                [
+                    Div("Note d'attention", className="display-3"),
+                    Div(
+                        "Les données affichées ci-dessous sont l'agrégations des données de "
+                        "toutes les spécialités de médicament rattachées au produit : [{}]".format(medicament),
+                    ),
+                ],
+                className="patients-traites-jumbotron",
+            )
     else:
         medicament = selected_med
+        jumbotron = []
 
     df = pd.DataFrame(MED_DICT[medicament]["annee"])
     patients_traites = round(df.n_conso.mean())
@@ -509,8 +521,25 @@ def PatientsTraites(selected_med: str) -> Component:
 
     return Div(
         [
-            SectionTitle(
-                "Patients traités", "patients-traites-info-icon", tooltip_text, "Pop"
+            jumbotron,
+            Div(
+                [
+                    Div(
+                        "Patients traités",
+                        className="heading-4 d-inline-block",
+                    ),
+                    I(
+                        className="info-icon bi bi-info-circle d-inline-block",
+                        id="patients-traites-info-icon",
+                    ),
+                    Tooltip(
+                        tooltip_text,
+                        target="patients-traites-info-icon",
+                        placement="right",
+                    ),
+                ],
+                className="section-title",
+                id="Pop",
             ),
             Indicateur(
                 patients_traites,

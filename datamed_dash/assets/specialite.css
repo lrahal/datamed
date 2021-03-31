@@ -60,6 +60,11 @@
     width: 1%;
 }
 
+.patients-traites-jumbotron {
+    width: fit-content;
+    margin: 0 20px 20px 20px;
+}
+
 #refresh-substances a {
     color: #FFF;
     background-color: #252525;
