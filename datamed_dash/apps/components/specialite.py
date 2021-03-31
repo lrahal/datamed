@@ -1,5 +1,6 @@
 import json
 import zipfile
+from typing import List
 from urllib.parse import urlparse, parse_qs, urlencode, quote_plus, unquote_plus
 
 import dash.dependencies as dd
@@ -78,12 +79,14 @@ def SearchDiv() -> Component:
     )
 
 
-def SubstanceLink(substances_list):
+def SubstanceLinks(substances_list: List[str]) -> Component:
     return Div(
         [
             A(
                 sa.upper(),
-                href="/apps/specialite?{}".format(urlencode({"search": quote_plus(sa)})),
+                href="/apps/specialite?{}".format(
+                    urlencode({"search": quote_plus(sa)})
+                ),
                 className="normal-text link d-block",
                 id="refresh-substances",
             )
@@ -140,7 +143,7 @@ def SpecialiteDiv(selected_med: str, substances_list) -> Component:
                                 "Substance(s) active(s)",
                                 className="small-text-bold",
                             ),
-                            SubstanceLink(substances_list),
+                            SubstanceLinks(substances_list),
                             Div(
                                 "Description",
                                 className="small-text-bold",
@@ -816,3 +819,22 @@ def update_callback(
         )
     else:
         return False, "", "", ""
+
+
+@app.callback(
+    dd.Output("url", "href"),
+    dd.Input("substance-specialite-table", "active_cell"),
+    dd.State("substance-specialite-table", "data"),
+)
+def getActiveCell(active_cell, data):
+    if active_cell:
+        col = active_cell["column_id"]
+        row = active_cell["row"]
+        cellData = data[row][col]
+        print(col)
+        print(row)
+        print(cellData)
+        print(data)
+        return "/apps/specialite?" + urlencode({"search": quote_plus(cellData)})
+    else:
+        raise PreventUpdate
