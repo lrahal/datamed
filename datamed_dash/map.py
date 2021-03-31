@@ -1,7 +1,25 @@
+import os
+
 import folium
 import pandas as pd
+from sqlalchemy import create_engine
 
-from create_database.models import connect_db
+# load environment variables
+HOSTNAME = "localhost"
+DBNAME = "fab_sites"
+UNAME = "root"
+MYSQL_PWD = os.environ.get("MYSQL_PWD")
+
+
+def connect_db():
+    # create db create_engine
+    return create_engine(
+        "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
+            host=HOSTNAME, db=DBNAME, user=UNAME, pw=MYSQL_PWD
+        ),
+        echo=False,
+    )
+
 
 engine = connect_db()  # establish connection
 connection = engine.connect()
@@ -86,7 +104,7 @@ def get_dataframe() -> pd.DataFrame:
 def get_map(df_api_by_country: pd.DataFrame, atc2: str, voie: str):
     state_geo = "world-countries.json"
 
-    m = folium.Map(location=[48, 2], zoom_start=4)
+    m = folium.Map(location=[48, 2], zoom_start=4, scrollWheelZoom=False)
 
     # Add the color for the choropleth:
     folium.Choropleth(
@@ -147,4 +165,4 @@ def get_map(df_api_by_country: pd.DataFrame, atc2: str, voie: str):
 
     folium.LayerControl().add_to(m)
 
-    m.save("map.html")
+    m.save("assets/map.html")
