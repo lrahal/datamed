@@ -491,15 +491,18 @@ def PatientsTraites(selected_med: str) -> Component:
     if SPE_SA_DICT[selected_med] == "spécialité":
         medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
         jumbotron = Jumbotron(
-                [
-                    Div("Note d'attention", className="display-3"),
-                    Div(
-                        "Les données affichées ci-dessous sont l'agrégations des données de "
-                        "toutes les spécialités de médicament rattachées au produit : [{}]".format(medicament),
+            [
+                Div("Note d'attention", className="medium-text"),
+                Div(
+                    "Les données affichées ci-dessous sont l'agrégations des données de "
+                    "toutes les spécialités de médicament rattachées au produit : [{}]".format(
+                        medicament
                     ),
-                ],
-                className="patients-traites-jumbotron",
-            )
+                    className="normal-text mt-3",
+                ),
+            ],
+            className="patients-traites-jumbotron",
+        )
     else:
         medicament = selected_med
         jumbotron = []
