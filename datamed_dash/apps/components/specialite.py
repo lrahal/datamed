@@ -831,10 +831,6 @@ def getActiveCell(active_cell, data):
         col = active_cell["column_id"]
         row = active_cell["row"]
         cellData = data[row][col]
-        print(col)
-        print(row)
-        print(cellData)
-        print(data)
         return "/apps/specialite?" + urlencode({"search": quote_plus(cellData)})
     else:
         raise PreventUpdate
