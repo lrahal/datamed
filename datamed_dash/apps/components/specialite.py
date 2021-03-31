@@ -209,6 +209,17 @@ def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
                                     ),
                                 ]
                             ),
+                            Div(
+                                "Spécialités de médicaments contenant : {}".format(
+                                    selected_med
+                                ),
+                                className="medium-text mt-5",
+                            ),
+                            Div(
+                                "{} médicaments identifiés".format(len(spe_dataframe)),
+                                className="normal-text mt-3",
+                                style={"color": "#33C2D6"},
+                            ),
                             dash_table.DataTable(
                                 id="substance-specialite-table",
                                 columns=[
@@ -216,7 +227,6 @@ def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
                                 ],
                                 data=spe_dataframe.to_dict("records"),
                                 page_size=10,
-                                page_action="native",
                                 style_as_list_view=True,
                                 style_table={"overflowX": "auto"},
                                 style_cell={
@@ -229,24 +239,8 @@ def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
                                     "lineHeight": "16px",
                                     "textAlign": "left",
                                 },
-                                style_header={
-                                    "backgroundColor": "white",
-                                    "fontWeight": "600",
-                                    "fontSize": "12px",
-                                    "font-family": "Roboto",
-                                    "lineHeight": "16px",
-                                    "textAlign": "left",
-                                },
+                                style_header={"display": "none"},
                             ),
-                            # Table.from_dataframe(
-                            #     spe_dataframe,
-                            #     striped=True,
-                            #     bordered=False,
-                            #     borderless=True,
-                            #     hover=True,
-                            #     responsive=True,
-                            #     className="mt-5",
-                            # ),
                         ],
                         className="pr-5",
                         style={"padding-left": "70px"},
@@ -831,10 +825,6 @@ def getActiveCell(active_cell, data):
         col = active_cell["column_id"]
         row = active_cell["row"]
         cellData = data[row][col]
-        print(col)
-        print(row)
-        print(cellData)
-        print(data)
         return "/apps/specialite?" + urlencode({"search": quote_plus(cellData)})
     else:
         raise PreventUpdate
