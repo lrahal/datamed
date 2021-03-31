@@ -80,11 +80,11 @@ def update_search_bar_options(search_value):
     search_value = search_value.lower()
 
     values_list = [v for v in SPE_SA_DICT.keys() if v.lower().startswith(search_value)]
-        if (len(values_list)<10):
-            values_list = values_list + [v for v in SPE_LIST if search_value in v.lower()][:(10-len(values_list))]
+    if (len(values_list)<10):
+        values_list = values_list + [v for v in SPE_SA_DICT.keys() if search_value in v.lower()][:(10-len(values_list))]
     values_list.sort()
     values_list = sorted(values_list, key=len)
-    
+
     return [
         {"label": v[:50] + "..." if len(v) > 50 else v, "value": v} for v in values_list
     ]
