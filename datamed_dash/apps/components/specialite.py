@@ -186,28 +186,51 @@ def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
                                         id="substance-info-icon",
                                     ),
                                     Tooltip(
-                                        "Coucou",
+                                        "Composant d'une spécialité pharmaceutique reconnu "
+                                        "comme possédant des propriétés thérapeutiques.",
                                         target="substance-info-icon",
+                                        placement="right",
                                     ),
                                 ]
                             ),
-                            # dash_table.DataTable(
-                            #     id="table-wrapper",
-                            #     columns=[{"name": i, "id": i} for i in df.columns],
-                            #     data=df.to_dict("records"),
-                            # ),
-                            Table.from_dataframe(
-                                spe_dataframe,
-                                striped=True,
-                                bordered=False,
-                                borderless=True,
-                                hover=True,
-                                responsive=True,
-                                # page_current=0,
-                                # page_size=5,
-                                # page_action="custom",
-                                className="mt-5",
+                            dash_table.DataTable(
+                                id="substance-specialite-table",
+                                columns=[
+                                    {"name": i, "id": i} for i in spe_dataframe.columns
+                                ],
+                                data=spe_dataframe.to_dict("records"),
+                                page_size=10,
+                                page_action="native",
+                                style_as_list_view=True,
+                                style_table={"overflowX": "auto"},
+                                style_cell={
+                                    "height": "40px",
+                                },
+                                style_data={
+                                    "fontSize": "12px",
+                                    "fontWeight": "400",
+                                    "font-family": "Roboto",
+                                    "lineHeight": "16px",
+                                    "textAlign": "left",
+                                },
+                                style_header={
+                                    "backgroundColor": "white",
+                                    "fontWeight": "600",
+                                    "fontSize": "12px",
+                                    "font-family": "Roboto",
+                                    "lineHeight": "16px",
+                                    "textAlign": "left",
+                                },
                             ),
+                            # Table.from_dataframe(
+                            #     spe_dataframe,
+                            #     striped=True,
+                            #     bordered=False,
+                            #     borderless=True,
+                            #     hover=True,
+                            #     responsive=True,
+                            #     className="mt-5",
+                            # ),
                         ],
                         className="pr-5",
                         style={"padding-left": "70px"},
@@ -238,8 +261,8 @@ def DescriptionSpecialite(selected_med: str) -> Component:
         selected_med_spe_list.sort()
 
         df = pd.DataFrame(
-            selected_med_spe_list[:10],
-            columns=["Spécialités de médicaments contenant du {}".format(selected_med)],
+            selected_med_spe_list,
+            columns=["Spécialités de médicaments contenant : {}".format(selected_med)],
         )
         return SubstanceDiv(selected_med, df)
 
