@@ -106,6 +106,16 @@ def SpecialiteDiv(selected_med: str, substances_list) -> Component:
         "une dénomination spéciale (Doliprane) et un conditionnement "
         "particulier (1000 mg, comprimé)."
     )
+    rcp_link = (
+        "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
+        + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
+        + "&typedoc=R"
+    )
+    notice_link = (
+        "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
+        + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
+        + "&typedoc=N"
+    )
     return Div(
         Div(
             Div(
@@ -159,6 +169,23 @@ def SpecialiteDiv(selected_med: str, substances_list) -> Component:
                             P(
                                 NOTICE_BY_SPE[selected_med],
                                 className="normal-text text-justify mt-3",
+                            ),
+                            Div(
+                                [
+                                    A(
+                                        "Afficher le RCP",
+                                        href=rcp_link,
+                                        className="normal-text link d-inline-block",
+                                        id="refresh-substances",
+                                    ),
+                                    A(
+                                        "Afficher la notice",
+                                        href=notice_link,
+                                        className="normal-text link d-inline-block ml-5",
+                                        id="refresh-substances",
+                                    ),
+                                ],
+                                style={"margin-top": "34px"},
                             ),
                         ],
                         className="pr-5",
