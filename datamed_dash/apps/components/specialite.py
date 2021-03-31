@@ -264,7 +264,7 @@ def BarNotif(specialite: str) -> Graph:
         )
         fig.update_layout(BAR_LAYOUT)
         return Graph(
-            figure=fig, className="img-card", responsive=True, style={"height": "328px"}
+            figure=fig, className="img-card", responsive=True, style={"height": str(len(df_notif.typ_notif)*50)+"px"}
         )
     else:
         return NoData()
@@ -297,7 +297,7 @@ def BarSoc(specialite: str) -> Graph:
                         responsive=True,
                         clear_on_unhover=True,
                         id="soc-bar-chart",
-                        style={"height": "472px"},
+                        style={"height": str(len(df_soc.n_decla_eff)*50)+"px"}
                     ),
                     id="soc-chart-container",
                 ),

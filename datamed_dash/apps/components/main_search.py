@@ -26,6 +26,7 @@ def SearchBar(search_bar_class_names: str, search_bar_id: str) -> Component:
             id=search_bar_id,
             placeholder="Médicament",
             className="normal-text main-dropdown",
+            style = {'background-color': '#E8E8E8'}
         ),
         autoComplete="off",
         className=search_bar_class_names,
@@ -78,6 +79,9 @@ def update_search_bar_options(search_value):
 
     search_value = search_value.lower()
     values_list = [v for v in SPE_LIST if v.lower().startswith(search_value)][:10]
+    if (len(values_list)<10):
+        values_list = values_list + [v for v in SPE_LIST if search_value in v.lower()][:(10-len(values_list))]
+
     return [
         {"label": v[:50] + "..." if len(v) > 50 else v, "value": v} for v in values_list
     ]
