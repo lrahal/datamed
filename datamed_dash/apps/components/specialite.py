@@ -186,28 +186,51 @@ def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
                                         id="substance-info-icon",
                                     ),
                                     Tooltip(
-                                        "Coucou",
+                                        "Composant d'une spécialité pharmaceutique reconnu "
+                                        "comme possédant des propriétés thérapeutiques.",
                                         target="substance-info-icon",
+                                        placement="right",
                                     ),
                                 ]
                             ),
-                            # dash_table.DataTable(
-                            #     id="table-wrapper",
-                            #     columns=[{"name": i, "id": i} for i in df.columns],
-                            #     data=df.to_dict("records"),
-                            # ),
-                            Table.from_dataframe(
-                                spe_dataframe,
-                                striped=True,
-                                bordered=False,
-                                borderless=True,
-                                hover=True,
-                                responsive=True,
-                                # page_current=0,
-                                # page_size=5,
-                                # page_action="custom",
-                                className="mt-5",
+                            dash_table.DataTable(
+                                id="substance-specialite-table",
+                                columns=[
+                                    {"name": i, "id": i} for i in spe_dataframe.columns
+                                ],
+                                data=spe_dataframe.to_dict("records"),
+                                page_size=10,
+                                page_action="native",
+                                style_as_list_view=True,
+                                style_table={"overflowX": "auto"},
+                                style_cell={
+                                    "height": "40px",
+                                },
+                                style_data={
+                                    "fontSize": "12px",
+                                    "fontWeight": "400",
+                                    "font-family": "Roboto",
+                                    "lineHeight": "16px",
+                                    "textAlign": "left",
+                                },
+                                style_header={
+                                    "backgroundColor": "white",
+                                    "fontWeight": "600",
+                                    "fontSize": "12px",
+                                    "font-family": "Roboto",
+                                    "lineHeight": "16px",
+                                    "textAlign": "left",
+                                },
                             ),
+                            # Table.from_dataframe(
+                            #     spe_dataframe,
+                            #     striped=True,
+                            #     bordered=False,
+                            #     borderless=True,
+                            #     hover=True,
+                            #     responsive=True,
+                            #     className="mt-5",
+                            # ),
                         ],
                         className="pr-5",
                         style={"padding-left": "70px"},
@@ -238,8 +261,8 @@ def DescriptionSpecialite(selected_med: str) -> Component:
         selected_med_spe_list.sort()
 
         df = pd.DataFrame(
-            selected_med_spe_list[:10],
-            columns=["Spécialités de médicaments contenant du {}".format(selected_med)],
+            selected_med_spe_list,
+            columns=["Spécialités de médicaments contenant : {}".format(selected_med)],
         )
         return SubstanceDiv(selected_med, df)
 
@@ -408,14 +431,21 @@ def HltModal() -> Modal:
     )
 
 
-def SectionTitle(title: str, side_menu_id: str) -> Component:
+def SectionTitle(
+    title: str, icon_id: str, tooltip_text: str, side_menu_id: str
+) -> Component:
     return Div(
         [
             Div(
                 title,
                 className="heading-4 d-inline-block",
             ),
-            I(className="info-icon bi bi-info-circle d-inline-block"),
+            I(className="info-icon bi bi-info-circle d-inline-block", id=icon_id),
+            Tooltip(
+                tooltip_text,
+                target=icon_id,
+                placement="right",
+            ),
         ],
         className="section-title nav-title",
         id=side_menu_id,
@@ -441,6 +471,7 @@ def Indicateur(
             ),
         ],
         className=class_name,
+        style={"max-width": "390px"}
     )
 
 
@@ -453,9 +484,23 @@ def PatientsTraites(selected_med: str) -> Component:
     df = pd.DataFrame(MED_DICT[medicament]["annee"])
     patients_traites = round(df.n_conso.mean())
 
+    tooltip_text = (
+        "Nombre de patients par présentation ayant eu au moins un remboursement dans l’année cumulé par "
+        "produit/substance active. Estimations obtenues à partir des données Open-Medic ("
+        "https://www.etalab.gouv.fr/licence-ouverte-open-licence) portant sur l’usage du médicament, "
+        "délivré en pharmacie de ville en 2014 à 2018 et remboursé par l’Assurance Maladie. Pour plus "
+        "d’informations, consultez : http://open-data-assurance-maladie.ameli.fr/medicaments/index.php "
+        "Attention : Les patients étant restitués par présentation dans les données Open Medic, ils sont "
+        "comptabilisés autant de fois qu’ils ont eu de remboursements de présentations différentes d’un même"
+        " produit/substance active. Les indicateurs restitués pourraient être surestimés pour certains "
+        "médicaments."
+    )
+
     return Div(
         [
-            SectionTitle("Patients traités", "Pop"),
+            SectionTitle(
+                "Patients traités", "patients-traites-info-icon", tooltip_text, "Pop"
+            ),
             Indicateur(
                 patients_traites,
                 "patients/an",
@@ -512,9 +557,26 @@ def CasDeclares(selected_med: str) -> Component:
     else:
         cas_declares = df.n_cas.sum()
 
+    tooltip_text = (
+        "Nombre de cas notifiés d’effets indésirables (EI) en France estimé à partir des données de la Base "
+        "Nationale de PharmacoVigilance (BNPV). La BNPV est alimentée par les centres régionaux de pharmacovigilance"
+        " qui sont notifiés par les professionnels de santé ou par les patients et association agréées via un "
+        "portail dédié : XX. Sont notifiés les EI que le patient ou son entourage suspecte d’être liés à l’utilisation "
+        "d’un ou plusieurs médicaments et les mésusages, abus ou erreurs médicamenteuses. Il s’agit de cas évalués et "
+        "validés par un comité d’experts. Pour plus d’informations, consultez : "
+        "https://ansm.sante.fr/page/la-surveillance-renforcee-des-medicaments Attention : Les cas déclarés par produit "
+        "ne tiennent pas compte de cas potentiels déclarés au niveau de la substance active "
+        "(environ 20% des observations)."
+    )
+
     return Div(
         [
-            SectionTitle("Cas déclarés d'effets indésirables", "Effets"),
+            SectionTitle(
+                "Cas déclarés d'effets indésirables",
+                "cas-declares-info-icon",
+                tooltip_text,
+                "Effets",
+            ),
             Indicateur(
                 cas_an,
                 "cas/an",
@@ -597,17 +659,20 @@ def Organes(selected_med: str) -> Component:
         medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
     else:
         medicament = selected_med
+
+    tooltip_text = (
+        "Systèmes d’organes (SOC) avec le plus d’effets indésirables déclarés. En cliquant sur les barres latérales, "
+        "vous pourrez connaître le détail des EI déclarés pour chaque SOC. Attention : un cas n'est comptabilisé "
+        "qu’une seule fois par SOC en cas de plusieurs EI affectant le même SOC. Un cas peut en revanche être "
+        "comptabilisé sur plusieurs SOC différents (en fonction des EI déclarés)."
+    )
     return Div(
         [
-            Div(
-                [
-                    Div(
-                        "Effets indésirables par système d'organes",
-                        className="heading-4 d-inline-block",
-                    ),
-                    I(className="info-icon bi bi-info-circle d-inline-block"),
-                ],
-                className="section-title",
+            SectionTitle(
+                "Effets indésirables par système d'organes",
+                "organes-info-icon",
+                tooltip_text,
+                "",
             ),
             Div(
                 Div(

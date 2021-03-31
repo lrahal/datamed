@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from app import app
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
-from dash_bootstrap_components import Select
+from dash_bootstrap_components import Select, Tooltip
 from dash_core_components import Graph
 from dash_html_components import Div, A, P, I
 from plotly.subplots import make_subplots
@@ -26,6 +26,11 @@ with open("data/ventes_by_atc_by_annee.json") as f:
 
 
 def DescriptionRuptures() -> Component:
+    tooltip_text = (
+        "La base de données des ruptures de stock recense les médicaments d’intérêt thérapeutique majeur "
+        "faisant actuellement l’objet de difficultés d’approvisionnement et pour lesquels, il n’y a pas "
+        "d’alternative thérapeutique disponible sur le marché français."
+    )
     return Div(
         Div(
             [
@@ -50,7 +55,13 @@ def DescriptionRuptures() -> Component:
                                     className="caption-text d-inline-block",
                                 ),
                                 I(
-                                    className="info-icon bi bi-info-circle d-inline-block"
+                                    className="info-icon bi bi-info-circle d-inline-block",
+                                    id="bdd-ruptures-info-icon",
+                                ),
+                                Tooltip(
+                                    tooltip_text,
+                                    target="bdd-ruptures-info-icon",
+                                    placement="right",
                                 ),
                             ]
                         ),
@@ -115,9 +126,15 @@ def DescriptionRuptures() -> Component:
 
 
 def NatureSignalements() -> Component:
+    tooltip_text = ""
     return Div(
         [
-            SectionTitle("Nombre et nature des signalements", "signalements"),
+            SectionTitle(
+                "Nombre et nature des signalements",
+                "nature-signalements-info-icon",
+                tooltip_text,
+                "signalements",
+            ),
             Indicateur(
                 10,
                 "ruptures/an",
