@@ -1,5 +1,6 @@
 import json
 import zipfile
+from typing import List
 from urllib.parse import urlparse, parse_qs, urlencode, quote_plus, unquote_plus
 
 import dash.dependencies as dd
@@ -78,7 +79,32 @@ def SearchDiv() -> Component:
     )
 
 
-def SpecialiteDiv(selected_med: str, substances_actives: str) -> Component:
+def SubstanceLinks(substances_list: List[str]) -> Component:
+    return Div(
+        [
+            A(
+                sa.upper(),
+                href="/apps/specialite?{}".format(
+                    urlencode({"search": quote_plus(sa)})
+                ),
+                className="normal-text link d-block",
+                id="refresh-substances",
+            )
+            for sa in substances_list
+        ]
+    )
+
+
+def SpecialiteDiv(selected_med: str, substances_list) -> Component:
+    tooltip_text = (
+        "Les médicaments peuvent être regroupés suivant différents niveaux de "
+        "précision (du plus au moins précis) : la présentation (Doliprane "
+        "1000 mg, comprimé, boîte de 8 comprimés), la spécialité (Doliprane "
+        "1000 mg, comprimé), le produit (Doliprane), la substance active "
+        "(Paracétamol). La spécialité d’un médicament est donc caractérisée par "
+        "une dénomination spéciale (Doliprane) et un conditionnement "
+        "particulier (1000 mg, comprimé)."
+    )
     return Div(
         Div(
             Div(
@@ -107,14 +133,9 @@ def SpecialiteDiv(selected_med: str, substances_actives: str) -> Component:
                                         id="specialite-info-icon",
                                     ),
                                     Tooltip(
-                                        "Les médicaments peuvent être regroupés suivant différents niveaux de "
-                                        "précision (du plus au moins précis) : la présentation (Doliprane "
-                                        "1000 mg, comprimé, boîte de 8 comprimés), la spécialité (Doliprane "
-                                        "1000 mg, comprimé), le produit (Doliprane), la substance active "
-                                        "(Paracétamol). La spécialité d’un médicament est donc caractérisée par "
-                                        "une dénomination spéciale (Doliprane) et un conditionnement "
-                                        "particulier (1000 mg, comprimé).",
+                                        tooltip_text,
                                         target="specialite-info-icon",
+                                        placement="right",
                                     ),
                                 ]
                             ),
@@ -122,12 +143,7 @@ def SpecialiteDiv(selected_med: str, substances_actives: str) -> Component:
                                 "Substance(s) active(s)",
                                 className="small-text-bold",
                             ),
-                            A(
-                                substances_actives,
-                                href="/",
-                                className="normal-text link",
-                                id="refresh-substances",
-                            ),
+                            SubstanceLinks(substances_list),
                             Div(
                                 "Description",
                                 className="small-text-bold",
@@ -250,7 +266,8 @@ def DescriptionSpecialite(selected_med: str) -> Component:
         substances_actives = ", ".join(
             SUBSTANCE_BY_SPECIALITE[selected_med]["substances"]
         ).upper()
-        return SpecialiteDiv(selected_med, substances_actives)
+        substances_list = SUBSTANCE_BY_SPECIALITE[selected_med]["substances"]
+        return SpecialiteDiv(selected_med, substances_list)
     else:
         selected_med_spe_list = [
             k
@@ -471,7 +488,7 @@ def Indicateur(
             ),
         ],
         className=class_name,
-        style={"max-width": "390px"}
+        style={"max-width": "390px"},
     )
 
 
@@ -802,3 +819,22 @@ def update_callback(
         )
     else:
         return False, "", "", ""
+
+
+@app.callback(
+    dd.Output("url", "href"),
+    dd.Input("substance-specialite-table", "active_cell"),
+    dd.State("substance-specialite-table", "data"),
+)
+def getActiveCell(active_cell, data):
+    if active_cell:
+        col = active_cell["column_id"]
+        row = active_cell["row"]
+        cellData = data[row][col]
+        print(col)
+        print(row)
+        print(cellData)
+        print(data)
+        return "/apps/specialite?" + urlencode({"search": quote_plus(cellData)})
+    else:
+        raise PreventUpdate
