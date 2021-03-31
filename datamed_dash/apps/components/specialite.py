@@ -227,7 +227,6 @@ def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
                                 ],
                                 data=spe_dataframe.to_dict("records"),
                                 page_size=10,
-                                page_action="native",
                                 style_as_list_view=True,
                                 style_table={"overflowX": "auto"},
                                 style_cell={
