@@ -106,6 +106,16 @@ def SpecialiteDiv(selected_med: str, substances_list) -> Component:
         "une dénomination spéciale (Doliprane) et un conditionnement "
         "particulier (1000 mg, comprimé)."
     )
+    rcp_link = (
+        "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
+        + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
+        + "&typedoc=R"
+    )
+    notice_link = (
+        "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
+        + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
+        + "&typedoc=N"
+    )
     return Div(
         Div(
             Div(
@@ -159,6 +169,23 @@ def SpecialiteDiv(selected_med: str, substances_list) -> Component:
                             P(
                                 NOTICE_BY_SPE[selected_med],
                                 className="normal-text text-justify mt-3",
+                            ),
+                            Div(
+                                [
+                                    A(
+                                        "Afficher le RCP",
+                                        href=rcp_link,
+                                        className="normal-text link d-inline-block",
+                                        id="refresh-substances",
+                                    ),
+                                    A(
+                                        "Afficher la notice",
+                                        href=notice_link,
+                                        className="normal-text link d-inline-block ml-5",
+                                        id="refresh-substances",
+                                    ),
+                                ],
+                                style={"margin-top": "34px"},
                             ),
                         ],
                         className="pr-5",
@@ -490,16 +517,22 @@ def Indicateur(
 def PatientsTraites(selected_med: str) -> Component:
     if SPE_SA_DICT[selected_med] == "spécialité":
         medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
-        jumbotron = Jumbotron(
+        jumbotron = Div(
+            Jumbotron(
                 [
-                    Div("Note d'attention", className="display-3"),
+                    Div("Note d'attention", className="medium-text"),
                     Div(
                         "Les données affichées ci-dessous sont l'agrégations des données de "
-                        "toutes les spécialités de médicament rattachées au produit : [{}]".format(medicament),
+                        "toutes les spécialités de médicament rattachées au produit : [{}]".format(
+                            medicament
+                        ),
+                        className="normal-text mt-3",
                     ),
                 ],
-                className="patients-traites-jumbotron",
-            )
+                className="col-xl-8 p-3 mb-2",
+            ),
+            className="row patients-traites-jumbotron",
+        )
     else:
         medicament = selected_med
         jumbotron = []
