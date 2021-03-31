@@ -1,8 +1,10 @@
 import json
 import zipfile
-from urllib.parse import urlparse, parse_qs
+from typing import List
+from urllib.parse import urlparse, parse_qs, urlencode, quote_plus, unquote_plus
 
 import dash.dependencies as dd
+import dash_table
 import pandas as pd
 import plotly.graph_objects as go
 from app import app
@@ -15,6 +17,8 @@ from dash_bootstrap_components import (
     ModalBody,
     ModalFooter,
     Table,
+    Tooltip,
+    Jumbotron,
 )
 from dash_core_components import Graph
 from dash_html_components import Div, A, P, Img, I
@@ -23,7 +27,7 @@ from sm import SideMenu
 
 from .main_search import SearchBar
 from ..constants.colors import PIE_COLORS, BAR_CHART_COLORS
-from ..constants.layouts import BAR_LAYOUT
+from ..constants.layouts import BAR_LAYOUT, CURVE_LAYOUT, PIE_LAYOUT
 
 with zipfile.ZipFile("./data/med_dict.json.zip", "r") as z:
     filename = z.namelist()[0]
@@ -40,9 +44,8 @@ with zipfile.ZipFile("./data/notice_by_spe.json.zip", "r") as z:
 file_sub_by_spe = open("./data/substance_by_specialite.json", "r")
 SUBSTANCE_BY_SPECIALITE = json.loads(file_sub_by_spe.read())
 
-file_liste_spe = open("./data/liste_specialites.json", "r")
-SPE_DICT = json.loads(file_liste_spe.read())
-SPE_LIST = list(set(SPE_DICT.keys()))
+file_liste_spe_sa = open("./data/spe_sa_dict.json", "r")
+SPE_SA_DICT = json.loads(file_liste_spe_sa.read())
 
 file_atc_by_spe = open("./data/atc_by_spe.json", "r")
 ATC_BY_SPE = json.loads(file_atc_by_spe.read())
@@ -77,10 +80,32 @@ def SearchDiv() -> Component:
     )
 
 
-def DescriptionSpecialite(specialite: str) -> Component:
-    substances_actives = ", ".join(
-        SUBSTANCE_BY_SPECIALITE[specialite]["substances"]
-    ).upper()
+def SubstanceLinks(substances_list: List[str]) -> Component:
+    return Div(
+        [
+            A(
+                sa.upper(),
+                href="/apps/specialite?{}".format(
+                    urlencode({"search": quote_plus(sa)})
+                ),
+                className="normal-text link d-block",
+                id="refresh-substances",
+            )
+            for sa in substances_list
+        ]
+    )
+
+
+def SpecialiteDiv(selected_med: str, substances_list) -> Component:
+    tooltip_text = (
+        "Les médicaments peuvent être regroupés suivant différents niveaux de "
+        "précision (du plus au moins précis) : la présentation (Doliprane "
+        "1000 mg, comprimé, boîte de 8 comprimés), la spécialité (Doliprane "
+        "1000 mg, comprimé), le produit (Doliprane), la substance active "
+        "(Paracétamol). La spécialité d’un médicament est donc caractérisée par "
+        "une dénomination spéciale (Doliprane) et un conditionnement "
+        "particulier (1000 mg, comprimé)."
+    )
     return Div(
         Div(
             Div(
@@ -95,7 +120,7 @@ def DescriptionSpecialite(specialite: str) -> Component:
                     Div(
                         [
                             Div(
-                                specialite,
+                                selected_med,
                                 className="heading-4",
                             ),
                             Div(
@@ -105,30 +130,34 @@ def DescriptionSpecialite(specialite: str) -> Component:
                                         className="caption-text d-inline-block",
                                     ),
                                     I(
-                                        className="info-icon bi bi-info-circle d-inline-block"
+                                        className="info-icon bi bi-info-circle d-inline-block",
+                                        id="specialite-info-icon",
+                                    ),
+                                    Tooltip(
+                                        tooltip_text,
+                                        target="specialite-info-icon",
+                                        placement="right",
                                     ),
                                 ]
                             ),
-                            Div("Substance(s) active(s)", className="small-text-bold"),
-                            A(
-                                substances_actives,
-                                href="/",
-                                className="normal-text link",
-                                id="refresh-substances",
+                            Div(
+                                "Substance(s) active(s)",
+                                className="small-text-bold",
                             ),
+                            SubstanceLinks(substances_list),
                             Div(
                                 "Description",
                                 className="small-text-bold",
                             ),
                             P(
                                 "Classe ATC (Anatomique, Thérapeutique et Chimique) : {} ({})".format(
-                                    ATC_BY_SPE[specialite]["nom_atc"],
-                                    ATC_BY_SPE[specialite]["code_atc"],
+                                    ATC_BY_SPE[selected_med]["nom_atc"],
+                                    ATC_BY_SPE[selected_med]["code_atc"],
                                 ),
                                 className="normal-text",
                             ),
                             P(
-                                NOTICE_BY_SPE[specialite],
+                                NOTICE_BY_SPE[selected_med],
                                 className="normal-text text-justify mt-3",
                             ),
                         ],
@@ -143,6 +172,111 @@ def DescriptionSpecialite(specialite: str) -> Component:
         style={"margin-top": "31.5px"},
         className="topic-section row no-gutters",
     )
+
+
+def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
+    return Div(
+        Div(
+            Div(
+                [
+                    Div(
+                        I(
+                            className="bi bi-book d-flex justify-content-center pt-3",
+                            style={"font-size": "3rem"},
+                        ),
+                        className="position-absolute",
+                    ),
+                    Div(
+                        [
+                            Div(
+                                selected_med,
+                                className="heading-4",
+                            ),
+                            Div(
+                                [
+                                    Div(
+                                        "SUBSTANCE ACTIVE",
+                                        className="caption-text d-inline-block",
+                                    ),
+                                    I(
+                                        className="info-icon bi bi-info-circle d-inline-block",
+                                        id="substance-info-icon",
+                                    ),
+                                    Tooltip(
+                                        "Composant d'une spécialité pharmaceutique reconnu "
+                                        "comme possédant des propriétés thérapeutiques.",
+                                        target="substance-info-icon",
+                                        placement="right",
+                                    ),
+                                ]
+                            ),
+                            Div(
+                                "Spécialités de médicaments contenant : {}".format(
+                                    selected_med
+                                ),
+                                className="medium-text mt-5",
+                            ),
+                            Div(
+                                "{} médicaments identifiés".format(len(spe_dataframe)),
+                                className="normal-text mt-3",
+                                style={"color": "#33C2D6"},
+                            ),
+                            dash_table.DataTable(
+                                id="substance-specialite-table",
+                                columns=[
+                                    {"name": i, "id": i} for i in spe_dataframe.columns
+                                ],
+                                data=spe_dataframe.to_dict("records"),
+                                page_size=10,
+                                style_as_list_view=True,
+                                style_table={"overflowX": "auto"},
+                                style_cell={
+                                    "height": "40px",
+                                },
+                                style_data={
+                                    "fontSize": "12px",
+                                    "fontWeight": "400",
+                                    "font-family": "Roboto",
+                                    "lineHeight": "16px",
+                                    "textAlign": "left",
+                                },
+                                style_header={"display": "none"},
+                            ),
+                        ],
+                        className="pr-5",
+                        style={"padding-left": "70px"},
+                    ),
+                ],
+                className="description",
+            ),
+            className="col-xl-8",
+        ),
+        style={"margin-top": "31.5px"},
+        className="topic-section row no-gutters",
+    )
+
+
+def DescriptionSpecialite(selected_med: str) -> Component:
+    if SPE_SA_DICT[selected_med] == "spécialité":
+        substances_actives = ", ".join(
+            SUBSTANCE_BY_SPECIALITE[selected_med]["substances"]
+        ).upper()
+        substances_list = SUBSTANCE_BY_SPECIALITE[selected_med]["substances"]
+        return SpecialiteDiv(selected_med, substances_list)
+    else:
+        selected_med_spe_list = [
+            k
+            for k, values in SUBSTANCE_BY_SPECIALITE.items()
+            for v in values["substances"]
+            if selected_med in v
+        ]
+        selected_med_spe_list.sort()
+
+        df = pd.DataFrame(
+            selected_med_spe_list,
+            columns=["Spécialités de médicaments contenant : {}".format(selected_med)],
+        )
+        return SubstanceDiv(selected_med, df)
 
 
 def NoData() -> Div:
@@ -163,9 +297,8 @@ def NoData() -> Div:
     )
 
 
-def PieChart(specialite: str, var_1: str, var_2: str) -> Graph:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df = pd.DataFrame(MED_DICT[produit][var_1])
+def PieChart(medicament: str, var_1: str, var_2: str) -> Graph:
+    df = pd.DataFrame(MED_DICT[medicament][var_1])
 
     if var_2 == "n_cas" and df.n_cas.isnull().all():
         return NoData()
@@ -178,13 +311,7 @@ def PieChart(specialite: str, var_1: str, var_2: str) -> Graph:
                 name="Répartition par {} des patients traités".format(var_1),
                 marker_colors=PIE_COLORS,
             )
-        ).update_layout(
-            hovermode=False,
-            margin=dict(t=0, b=0, l=0, r=0),
-            legend=dict(
-                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
-            ),
-        )
+        ).update_layout(PIE_LAYOUT)
         return Graph(
             figure=fig,
             className="img-card",
@@ -207,13 +334,12 @@ def SingleCurve(x: pd.Series, y: pd.Series, name: str, color: str) -> go.Scatter
     )
 
 
-def CourbesAnnees(specialite: str) -> Graph:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df_annee = pd.DataFrame(MED_DICT[produit]["annee"])
+def CourbesAnnees(medicament: str) -> Graph:
+    df_annee = pd.DataFrame(MED_DICT[medicament]["annee"])
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-    if not df_annee.n_cas.isnull().all():
+    if df_annee.n_cas.min() >= 10:
         fig.add_trace(
             SingleCurve(df_annee.annee, df_annee.n_cas, "Cas déclarés", PIE_COLORS[1]),
             secondary_y=False,
@@ -231,16 +357,7 @@ def CourbesAnnees(specialite: str) -> Graph:
 
     fig.update_xaxes(nticks=len(df_annee))
 
-    fig.update_layout(
-        xaxis_showgrid=False,
-        yaxis_showgrid=True,
-        yaxis2_showgrid=False,
-        hovermode="x unified",
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(t=0, b=0, l=0, r=0),
-        font={"size": 12, "color": "black"},
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    )
+    fig.update_layout(CURVE_LAYOUT)
     return Graph(
         figure=fig,
         className="img-card",
@@ -248,11 +365,9 @@ def CourbesAnnees(specialite: str) -> Graph:
     )
 
 
-def BarNotif(specialite: str) -> Graph:
-    if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]:
-        df_notif = pd.DataFrame(
-            MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["notif"]
-        )
+def BarNotif(medicament: str) -> Graph:
+    if MED_DICT[medicament]["notif"]:
+        df_notif = pd.DataFrame(MED_DICT[medicament]["notif"])
 
         fig = go.Figure(
             go.Bar(
@@ -270,11 +385,9 @@ def BarNotif(specialite: str) -> Graph:
         return NoData()
 
 
-def BarSoc(specialite: str) -> Graph:
-    if MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]:
-        df_soc = pd.DataFrame(
-            MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["soclong"]
-        )
+def BarSoc(medicament: str) -> Graph:
+    if MED_DICT[medicament]["soclong"]:
+        df_soc = pd.DataFrame(MED_DICT[medicament]["soclong"])
         df_soc = df_soc.head(10)
 
         fig = go.Figure(
@@ -330,14 +443,21 @@ def HltModal() -> Modal:
     )
 
 
-def SectionTitle(title: str, side_menu_id: str) -> Component:
+def SectionTitle(
+    title: str, icon_id: str, tooltip_text: str, side_menu_id: str
+) -> Component:
     return Div(
         [
             Div(
                 title,
                 className="heading-4 d-inline-block",
             ),
-            I(className="info-icon bi bi-info-circle d-inline-block"),
+            I(className="info-icon bi bi-info-circle d-inline-block", id=icon_id),
+            Tooltip(
+                tooltip_text,
+                target=icon_id,
+                placement="right",
+            ),
         ],
         className="section-title nav-title",
         id=side_menu_id,
@@ -363,17 +483,64 @@ def Indicateur(
             ),
         ],
         className=class_name,
+        style={"max-width": "390px"},
     )
 
 
-def PatientsTraites(specialite: str) -> Component:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df = pd.DataFrame(MED_DICT[produit]["annee"])
+def PatientsTraites(selected_med: str) -> Component:
+    if SPE_SA_DICT[selected_med] == "spécialité":
+        medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
+        jumbotron = Jumbotron(
+                [
+                    Div("Note d'attention", className="display-3"),
+                    Div(
+                        "Les données affichées ci-dessous sont l'agrégations des données de "
+                        "toutes les spécialités de médicament rattachées au produit : [{}]".format(medicament),
+                    ),
+                ],
+                className="patients-traites-jumbotron",
+            )
+    else:
+        medicament = selected_med
+        jumbotron = []
+
+    df = pd.DataFrame(MED_DICT[medicament]["annee"])
     patients_traites = round(df.n_conso.mean())
+
+    tooltip_text = (
+        "Nombre de patients par présentation ayant eu au moins un remboursement dans l’année cumulé par "
+        "produit/substance active. Estimations obtenues à partir des données Open-Medic ("
+        "https://www.etalab.gouv.fr/licence-ouverte-open-licence) portant sur l’usage du médicament, "
+        "délivré en pharmacie de ville en 2014 à 2018 et remboursé par l’Assurance Maladie. Pour plus "
+        "d’informations, consultez : http://open-data-assurance-maladie.ameli.fr/medicaments/index.php "
+        "Attention : Les patients étant restitués par présentation dans les données Open Medic, ils sont "
+        "comptabilisés autant de fois qu’ils ont eu de remboursements de présentations différentes d’un même"
+        " produit/substance active. Les indicateurs restitués pourraient être surestimés pour certains "
+        "médicaments."
+    )
 
     return Div(
         [
-            SectionTitle("Patients traités", "Pop"),
+            jumbotron,
+            Div(
+                [
+                    Div(
+                        "Patients traités",
+                        className="heading-4 d-inline-block",
+                    ),
+                    I(
+                        className="info-icon bi bi-info-circle d-inline-block",
+                        id="patients-traites-info-icon",
+                    ),
+                    Tooltip(
+                        tooltip_text,
+                        target="patients-traites-info-icon",
+                        placement="right",
+                    ),
+                ],
+                className="section-title",
+                id="Pop",
+            ),
             Indicateur(
                 patients_traites,
                 "patients/an",
@@ -389,7 +556,7 @@ def PatientsTraites(specialite: str) -> Component:
                                     "Répartition par sexe des patients traités",
                                     className="normal-text",
                                 ),
-                                PieChart(specialite, "sexe", "n_conso"),
+                                PieChart(medicament, "sexe", "n_conso"),
                             ],
                             className="box",
                         ),
@@ -402,7 +569,7 @@ def PatientsTraites(specialite: str) -> Component:
                                     "Répartition par âge des patients traités",
                                     className="normal-text",
                                 ),
-                                PieChart(specialite, "age", "n_conso"),
+                                PieChart(medicament, "age", "n_conso"),
                             ],
                             className="box",
                         ),
@@ -416,9 +583,13 @@ def PatientsTraites(specialite: str) -> Component:
     )
 
 
-def CasDeclares(specialite: str) -> Component:
-    produit = SUBSTANCE_BY_SPECIALITE[specialite]["produit"]
-    df = pd.DataFrame(MED_DICT[produit]["annee"])
+def CasDeclares(selected_med: str) -> Component:
+    if SPE_SA_DICT[selected_med] == "spécialité":
+        medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
+    else:
+        medicament = selected_med
+
+    df = pd.DataFrame(MED_DICT[medicament]["annee"])
     cas_an = round(df.n_cas.sum() / df.n_conso.sum() * 100000)
 
     if 0 <= df.n_cas.sum() < 10:
@@ -426,9 +597,26 @@ def CasDeclares(specialite: str) -> Component:
     else:
         cas_declares = df.n_cas.sum()
 
+    tooltip_text = (
+        "Nombre de cas notifiés d’effets indésirables (EI) en France estimé à partir des données de la Base "
+        "Nationale de PharmacoVigilance (BNPV). La BNPV est alimentée par les centres régionaux de pharmacovigilance"
+        " qui sont notifiés par les professionnels de santé ou par les patients et association agréées via un "
+        "portail dédié : XX. Sont notifiés les EI que le patient ou son entourage suspecte d’être liés à l’utilisation "
+        "d’un ou plusieurs médicaments et les mésusages, abus ou erreurs médicamenteuses. Il s’agit de cas évalués et "
+        "validés par un comité d’experts. Pour plus d’informations, consultez : "
+        "https://ansm.sante.fr/page/la-surveillance-renforcee-des-medicaments Attention : Les cas déclarés par produit "
+        "ne tiennent pas compte de cas potentiels déclarés au niveau de la substance active "
+        "(environ 20% des observations)."
+    )
+
     return Div(
         [
-            SectionTitle("Cas déclarés d'effets indésirables", "Effets"),
+            SectionTitle(
+                "Cas déclarés d'effets indésirables",
+                "cas-declares-info-icon",
+                tooltip_text,
+                "Effets",
+            ),
             Indicateur(
                 cas_an,
                 "cas/an",
@@ -449,7 +637,7 @@ def CasDeclares(specialite: str) -> Component:
                                 "Nombre de cas déclarés d'effets indésirables et patients traités par année",
                                 className="normal-text",
                             ),
-                            CourbesAnnees(specialite),
+                            CourbesAnnees(medicament),
                         ],
                         className="box",
                     ),
@@ -466,7 +654,7 @@ def CasDeclares(specialite: str) -> Component:
                                     "Répartition par sexe des cas déclarés",
                                     className="normal-text",
                                 ),
-                                PieChart(specialite, "sexe", "n_cas"),
+                                PieChart(medicament, "sexe", "n_cas"),
                             ],
                             className="box",
                         ),
@@ -479,7 +667,7 @@ def CasDeclares(specialite: str) -> Component:
                                     "Répartition par âge des cas déclarés",
                                     className="normal-text",
                                 ),
-                                PieChart(specialite, "age", "n_cas"),
+                                PieChart(medicament, "age", "n_cas"),
                             ],
                             className="box",
                         ),
@@ -492,7 +680,7 @@ def CasDeclares(specialite: str) -> Component:
                                     "Répartition par type de notificateur",
                                     className="normal-text",
                                 ),
-                                BarNotif(specialite),
+                                BarNotif(medicament),
                             ],
                             className="box",
                         ),
@@ -506,28 +694,35 @@ def CasDeclares(specialite: str) -> Component:
     )
 
 
-def Organes(specialite: str) -> Component:
+def Organes(selected_med: str) -> Component:
+    if SPE_SA_DICT[selected_med] == "spécialité":
+        medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
+    else:
+        medicament = selected_med
+
+    tooltip_text = (
+        "Systèmes d’organes (SOC) avec le plus d’effets indésirables déclarés. En cliquant sur les barres latérales, "
+        "vous pourrez connaître le détail des EI déclarés pour chaque SOC. Attention : un cas n'est comptabilisé "
+        "qu’une seule fois par SOC en cas de plusieurs EI affectant le même SOC. Un cas peut en revanche être "
+        "comptabilisé sur plusieurs SOC différents (en fonction des EI déclarés)."
+    )
     return Div(
         [
-            Div(
-                [
-                    Div(
-                        "Effets indésirables par système d'organe",
-                        className="heading-4 d-inline-block",
-                    ),
-                    I(className="info-icon bi bi-info-circle d-inline-block"),
-                ],
-                className="section-title",
+            SectionTitle(
+                "Effets indésirables par système d'organes",
+                "organes-info-icon",
+                tooltip_text,
+                "",
             ),
             Div(
                 Div(
                     Div(
                         [
                             P(
-                                "Effets indésirables les plus déclarés par système d'organe",
+                                "Effets indésirables les plus déclarés par système d'organes",
                                 className="normal-text",
                             ),
-                            BarSoc(specialite),
+                            BarSoc(medicament),
                         ],
                         className="box",
                     ),
@@ -540,7 +735,7 @@ def Organes(specialite: str) -> Component:
     )
 
 
-def Specialite(specialite: str) -> Component:
+def Specialite(selected_med: str) -> Component:
     return Div(
         [
             SideMenu(
@@ -555,10 +750,10 @@ def Specialite(specialite: str) -> Component:
             SearchDiv(),
             Div(
                 [
-                    DescriptionSpecialite(specialite),
-                    PatientsTraites(specialite),
-                    CasDeclares(specialite),
-                    Organes(specialite),
+                    DescriptionSpecialite(selected_med),
+                    PatientsTraites(selected_med),
+                    CasDeclares(selected_med),
+                    Organes(selected_med),
                 ]
             ),
         ],
@@ -575,7 +770,10 @@ def update_search_bar_options(search_value: str):
         raise PreventUpdate
 
     search_value = search_value.lower()
-    values_list = [v for v in SPE_LIST if v.lower().startswith(search_value)][:10]
+
+    values_list = [v for v in SPE_SA_DICT.keys() if v.lower().startswith(search_value)]
+    values_list.sort()
+    values_list = sorted(values_list, key=len)
     return [
         {"label": v[:90] + "..." if len(v) > 90 else v, "value": v} for v in values_list
     ]
@@ -587,7 +785,7 @@ def update_search_bar_options(search_value: str):
 )
 def update_path(value: str):
     if value:
-        return "/apps/specialite?search=" + value
+        return "/apps/specialite?" + urlencode({"search": quote_plus(value)})
 
 
 @app.callback(
@@ -614,13 +812,16 @@ def update_callback(
     selected_soc_has_changed = selected_soc != previous_selected_soc
 
     if selected_soc_has_changed:
-        parsed_url = urlparse(href)
+        parsed_url = urlparse(unquote_plus(href))
         query = parse_qs(parsed_url.query)
-        specialite = query["search"][0]
+        selected_med = query["search"][0]
 
-        df_hlt = pd.DataFrame(
-            MED_DICT[SUBSTANCE_BY_SPECIALITE[specialite]["produit"]]["hlt"]
-        )
+        if SPE_SA_DICT[selected_med] == "spécialité":
+            medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
+        else:
+            medicament = selected_med
+
+        df_hlt = pd.DataFrame(MED_DICT[medicament]["hlt"])
         df_hlt = df_hlt.rename(
             columns={"effet_hlt": "Détail des effets rapportés par nombre décroissant"}
         )
@@ -641,3 +842,18 @@ def update_callback(
         )
     else:
         return False, "", "", ""
+
+
+@app.callback(
+    dd.Output("url", "href"),
+    dd.Input("substance-specialite-table", "active_cell"),
+    dd.State("substance-specialite-table", "data"),
+)
+def getActiveCell(active_cell, data):
+    if active_cell:
+        col = active_cell["column_id"]
+        row = active_cell["row"]
+        cellData = data[row][col]
+        return "/apps/specialite?" + urlencode({"search": quote_plus(cellData)})
+    else:
+        raise PreventUpdate

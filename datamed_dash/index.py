@@ -1,4 +1,4 @@
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote_plus
 
 import dash_core_components as dcc
 import dash_html_components as html
@@ -14,7 +14,7 @@ app.layout = html.Div(
 
 @app.callback(Output("page-content", "children"), Input("url", "href"))
 def display_page(href):
-    parsed_url = urlparse(href)
+    parsed_url = urlparse(unquote_plus(href))
     pathname = parsed_url.path
 
     if pathname == "/apps/accueil":

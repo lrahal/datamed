@@ -11,12 +11,12 @@ from .components.specialite import Specialite
 
 def Layout(parsed_url: Union[ParseResultBytes, ParseResult]) -> Component:
     query = parse_qs(parsed_url.query)
-    specialite = query["search"][0]
+    selected_med = query["search"][0]
 
     return Div(
         [
             Navbar(),
-            Specialite(specialite),
+            Specialite(selected_med),
             Footer(),
         ],
         className="layout",

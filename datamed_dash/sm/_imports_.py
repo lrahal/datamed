@@ -1,5 +1,3 @@
 from .SideMenu import SideMenu
 
-__all__ = [
-    "SideMenu"
-]
+__all__ = ["SideMenu"]

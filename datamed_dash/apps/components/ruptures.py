@@ -6,9 +6,10 @@ import plotly.graph_objects as go
 from app import app
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
-from dash_bootstrap_components import Select
+from dash_bootstrap_components import Select, Tooltip
 from dash_core_components import Graph
 from dash_html_components import Div, A, P, I
+from plotly.subplots import make_subplots
 from sm import SideMenu
 
 from .specialite import SectionTitle, Indicateur
@@ -20,8 +21,16 @@ INITIAL_YEAR = "2020"
 with open("data/ruptures_by_atc_by_annee.json") as f:
     RUPTURES_ATC_DICT = json.load(f)
 
+with open("data/ventes_by_atc_by_annee.json") as f:
+    VENTES_ATC_DICT = json.load(f)
+
 
 def DescriptionRuptures() -> Component:
+    tooltip_text = (
+        "La base de données des ruptures de stock recense les médicaments d’intérêt thérapeutique majeur "
+        "faisant actuellement l’objet de difficultés d’approvisionnement et pour lesquels, il n’y a pas "
+        "d’alternative thérapeutique disponible sur le marché français."
+    )
     return Div(
         Div(
             [
@@ -46,7 +55,13 @@ def DescriptionRuptures() -> Component:
                                     className="caption-text d-inline-block",
                                 ),
                                 I(
-                                    className="info-icon bi bi-info-circle d-inline-block"
+                                    className="info-icon bi bi-info-circle d-inline-block",
+                                    id="bdd-ruptures-info-icon",
+                                ),
+                                Tooltip(
+                                    tooltip_text,
+                                    target="bdd-ruptures-info-icon",
+                                    placement="right",
                                 ),
                             ]
                         ),
@@ -111,9 +126,15 @@ def DescriptionRuptures() -> Component:
 
 
 def NatureSignalements() -> Component:
+    tooltip_text = ""
     return Div(
         [
-            SectionTitle("Nombre et nature des signalements", "signalements"),
+            SectionTitle(
+                "Nombre et nature des signalements",
+                "nature-signalements-info-icon",
+                tooltip_text,
+                "signalements",
+            ),
             Indicateur(
                 10,
                 "ruptures/an",
@@ -141,12 +162,14 @@ def NatureSignalements() -> Component:
                                             id="annee-dropdown",
                                             value=INITIAL_YEAR,
                                             options=[
-                                                {"label": y, "value": y} for y in range(2014, 2021)
+                                                {"label": y, "value": y}
+                                                for y in range(2014, 2021)
                                             ],
-                                            className="d-inline-block",
-                                            style={"float": "right", "width": "auto"}
+                                            className="graph-select-input d-inline-block",
+                                            style={"float": "right"},
                                         ),
                                     ],
+                                    style={"margin-bottom": "24px"},
                                 ),
                                 AtcBar(),
                             ],
@@ -162,21 +185,65 @@ def NatureSignalements() -> Component:
     )
 
 
-def compute_signal_by_atc_by_year(year):
+def compute_signal_by_atc_by_year(year: str) -> go.Figure:
     df = (
         pd.DataFrame.from_dict(RUPTURES_ATC_DICT[year], orient="index")
         .reset_index()
         .rename(columns={"index": "nom_atc", 0: "nb_signal"})
         .head(10)
     )
+    atc_list = list(df.nom_atc.unique())
 
-    fig = go.Figure(
+    fig = make_subplots(1, 2)
+    fig.add_trace(
         go.Bar(
             y=df.nom_atc,
             x=df.nb_signal,
             orientation="h",
             marker=dict(color=BAR_CHART_COLORS),
+            name="Nombre de signalements",
         )
+    )
+
+    if year in ["2017", "2018", "2019"]:
+        # Dictionnaire des ventes uniquement pour les 10 premières ATC
+        ventes_dict = {k: v for k, v in VENTES_ATC_DICT[year].items() if k in atc_list}
+        df_ventes = (
+            pd.DataFrame.from_dict(ventes_dict, orient="index")
+            .reset_index()
+            .rename(columns={"index": "nom_atc"})
+        )
+
+        # Réindexer les ventes dans le même ordre que les ruptures
+        # pour que la courbe n'aille pas dans tous les sens
+        df_ventes = df_ventes.set_index("nom_atc")
+        df_ventes = df_ventes.reindex(index=df["nom_atc"])
+        df_ventes = df_ventes.reset_index()
+
+        fig.add_trace(
+            go.Scatter(
+                x=df_ventes.total / 10 ** 6,
+                y=df_ventes.nom_atc,
+                line={
+                    "shape": "spline",
+                    "smoothing": 1,
+                    "width": 4,
+                    "color": "#00B3CC",
+                },
+                mode="lines",
+                name="Volume de ventes (en millions)",
+            ),
+            row=1,
+            col=1,
+        )
+
+    BAR_LAYOUT.update(
+        {
+            "legend": dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+            ),
+            "hovermode": "y unified",
+        }
     )
     fig.update_layout(BAR_LAYOUT)
     return fig
@@ -185,8 +252,11 @@ def compute_signal_by_atc_by_year(year):
 def AtcBar() -> Graph:
     fig = compute_signal_by_atc_by_year(INITIAL_YEAR)
     return Graph(
-        figure=fig, className="img-card", responsive=True, style={"height": "500px"},
-        id="atc-bar-chart"
+        figure=fig,
+        className="img-card",
+        responsive=True,
+        style={"height": "500px"},
+        id="atc-bar-chart",
     )
 
 
@@ -218,7 +288,6 @@ def Ruptures() -> Component:
     dd.Input("annee-dropdown", "value"),
 )
 def update_figure(value: str):
-    print("here " + str(value))
     if not value:
         raise PreventUpdate
     return compute_signal_by_atc_by_year(value)
