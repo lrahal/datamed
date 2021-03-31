@@ -490,18 +490,21 @@ def Indicateur(
 def PatientsTraites(selected_med: str) -> Component:
     if SPE_SA_DICT[selected_med] == "spécialité":
         medicament = SUBSTANCE_BY_SPECIALITE[selected_med]["produit"]
-        jumbotron = Jumbotron(
-            [
-                Div("Note d'attention", className="medium-text"),
-                Div(
-                    "Les données affichées ci-dessous sont l'agrégations des données de "
-                    "toutes les spécialités de médicament rattachées au produit : [{}]".format(
-                        medicament
+        jumbotron = Div(
+            Jumbotron(
+                [
+                    Div("Note d'attention", className="medium-text"),
+                    Div(
+                        "Les données affichées ci-dessous sont l'agrégations des données de "
+                        "toutes les spécialités de médicament rattachées au produit : [{}]".format(
+                            medicament
+                        ),
+                        className="normal-text mt-3",
                     ),
-                    className="normal-text mt-3",
-                ),
-            ],
-            className="patients-traites-jumbotron",
+                ],
+                className="col-xl-8 p-3 mb-2",
+            ),
+            className="row patients-traites-jumbotron",
         )
     else:
         medicament = selected_med
