@@ -471,6 +471,7 @@ def Indicateur(
             ),
         ],
         className=class_name,
+        style={"max-width": "390px"}
     )
 
 
