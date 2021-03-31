@@ -24,7 +24,7 @@ def SearchBar(search_bar_class_names: str, search_bar_id: str) -> Component:
     return Form(
         Dropdown(
             id=search_bar_id,
-            placeholder="Médicament",
+            placeholder="Médicament (par spécialité), substance active",
             className="normal-text main-dropdown",
         ),
         autoComplete="off",
