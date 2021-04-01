@@ -289,9 +289,6 @@ def SubstanceDiv(selected_med: str, spe_dataframe: pd.DataFrame) -> Component:
 
 def DescriptionSpecialite(selected_med: str) -> Component:
     if SPE_SA_DICT[selected_med] == "spécialité":
-        substances_actives = ", ".join(
-            SUBSTANCE_BY_SPECIALITE[selected_med]["substances"]
-        ).upper()
         substances_list = SUBSTANCE_BY_SPECIALITE[selected_med]["substances"]
         return SpecialiteDiv(selected_med, substances_list)
     else:
@@ -527,7 +524,7 @@ def PatientsTraites(selected_med: str) -> Component:
                     Div("Note d'attention", className="medium-text"),
                     Div(
                         "Les données affichées ci-dessous sont l'agrégations des données de "
-                        "toutes les spécialités de médicament rattachées au produit : [{}]".format(
+                        "toutes les spécialités de médicament rattachées au produit : {}".format(
                             medicament
                         ),
                         className="normal-text mt-3",
