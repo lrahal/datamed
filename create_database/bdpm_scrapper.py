@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from typing import List, Dict
+from typing import List, Dict, Union
 
 import requests
 from bs4 import BeautifulSoup
@@ -25,8 +25,9 @@ def get_spe_by_cis():
     return spe_by_cis
 
 
-def scrap_bdpm(cis_list: List, spe_by_cis: Dict) -> Dict:
+def scrap_bdpm(cis_list: List, spe_by_cis: Dict) -> Union[Dict, List[Dict]]:
     notice_dict = defaultdict()
+    notices = []
     for cis in tqdm(cis_list):
         page = requests.get(
             "http://base-donnees-publique.medicaments.gouv.fr/extrait.php?specid={}".format(
@@ -51,12 +52,15 @@ def scrap_bdpm(cis_list: List, spe_by_cis: Dict) -> Dict:
             else:
                 notice += ele.text.replace("\n", " ").strip().lower().capitalize() + " "
         notice_dict[spe_by_cis[cis]] = notice
-    return notice_dict
+        notices.append({"cis": cis, "specialite": spe_by_cis[cis], "notice": notice})
+    return notice_dict, notices
 
 
 def __main__():
     cis_list = get_cis_list()
     spe_by_cis = get_spe_by_cis()
-    notice_dict = scrap_bdpm(cis_list, spe_by_cis)
+    notice_dict, notices = scrap_bdpm(cis_list, spe_by_cis)
     with open("./datamed_dash/data/notice_by_spe.json", "w") as outfile:
         json.dump(notice_dict, outfile)
+    with open("./datamed_dash/data/notices.json", "w") as outfile:
+        json.dump(notices, outfile)
