@@ -1,10 +1,15 @@
+import json
 import re
+from datetime import datetime as dt
 from typing import List, Dict
-import paths
 
 import pandas as pd
+import unicodedata2
+from country_list import countries_for_language
 from sqlalchemy.orm import sessionmaker
 
+import paths
+from map_making.get_geoloc import get_locations
 from .jade_analysis import build_api_fab_sites_dataframe
 from .models import (
     connect_db,
@@ -26,13 +31,6 @@ from .upload_db import (
     upload_compo_from_rsp,
     upload_cis_cip_from_bdpm,
 )
-
-from map_making.get_geoloc import get_locations
-
-from country_list import countries_for_language
-import json
-import unicodedata2
-from datetime import datetime as dt
 
 
 def get_api_by_cis() -> Dict:
@@ -129,7 +127,7 @@ def get_cis_api_list() -> List[Dict]:
     """
     Table specialite_substance
     """
-    df = upload_compo_from_rsp(path.P_COMPO_RSP)
+    df = upload_compo_from_rsp(paths.P_COMPO_RSP)
     df_api = pd.read_sql_table("substance_active", connection)
     df = df.merge(
         df_api,
