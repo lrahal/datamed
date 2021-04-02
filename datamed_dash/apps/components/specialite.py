@@ -1,6 +1,8 @@
 import json
 import zipfile
 from typing import List
+import requests
+from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs, urlencode, quote_plus, unquote_plus
 
 import dash.dependencies as dd
@@ -49,6 +51,19 @@ SPE_SA_DICT = json.loads(file_liste_spe_sa.read())
 
 file_atc_by_spe = open("./data/atc_by_spe.json", "r")
 ATC_BY_SPE = json.loads(file_atc_by_spe.read())
+
+
+def get_bdpm_links(selected_med: str, link: str) -> str:
+    page = requests.get(link)
+    soup = BeautifulSoup(page.content, "html.parser")
+    if soup.body.findAll(
+        text="Le document demandé n'est pas disponible pour ce médicament"
+    ):
+        return (
+            "https://base-donnees-publique.medicaments.gouv.fr/extrait.php?specid="
+            + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
+        )
+    return link
 
 
 def SearchDiv() -> Component:
@@ -106,16 +121,25 @@ def SpecialiteDiv(selected_med: str, substances_list) -> Component:
         "une dénomination spéciale (Doliprane) et un conditionnement "
         "particulier (1000 mg, comprimé)."
     )
-    rcp_link = (
-        "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
-        + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
-        + "&typedoc=R"
+
+    rcp_link = get_bdpm_links(
+        selected_med,
+        (
+            "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
+            + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
+            + "&typedoc=R"
+        ),
     )
-    notice_link = (
-        "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
-        + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
-        + "&typedoc=N"
+
+    notice_link = get_bdpm_links(
+        selected_med,
+        (
+            "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
+            + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
+            + "&typedoc=N"
+        ),
     )
+
     return Div(
         Div(
             Div(
@@ -407,7 +431,10 @@ def BarNotif(medicament: str) -> Graph:
         )
         fig.update_layout(BAR_LAYOUT)
         return Graph(
-            figure=fig, className="img-card", responsive=True, style={"height": str(len(df_notif.typ_notif)*50)+"px"}
+            figure=fig,
+            className="img-card",
+            responsive=True,
+            style={"height": str(len(df_notif.typ_notif) * 50) + "px"},
         )
     else:
         return NoData()
@@ -438,7 +465,7 @@ def BarSoc(medicament: str) -> Graph:
                         responsive=True,
                         clear_on_unhover=True,
                         id="soc-bar-chart",
-                        style={"height": str(len(df_soc.n_decla_eff)*50)+"px"}
+                        style={"height": str(len(df_soc.n_decla_eff) * 50) + "px"},
                     ),
                     id="soc-chart-container",
                 ),
