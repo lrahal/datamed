@@ -1,15 +1,15 @@
 import json
 import zipfile
 from typing import List
-import requests
-from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs, urlencode, quote_plus, unquote_plus
 
 import dash.dependencies as dd
 import dash_table
 import pandas as pd
 import plotly.graph_objects as go
+import requests
 from app import app
+from bs4 import BeautifulSoup
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 from dash_bootstrap_components import (
@@ -907,14 +907,18 @@ def update_callback(
 
 @app.callback(
     dd.Output("url", "href"),
-    dd.Input("substance-specialite-table", "active_cell"),
+    [
+        dd.Input("substance-specialite-table", "active_cell"),
+        dd.Input("substance-specialite-table", "page_current"),
+        dd.Input("substance-specialite-table", "page_size"),
+    ],
     dd.State("substance-specialite-table", "data"),
 )
-def getActiveCell(active_cell, data):
+def getActiveCell(active_cell, page_current, page_size, data):
     if active_cell:
         col = active_cell["column_id"]
         row = active_cell["row"]
-        cellData = data[row][col]
+        cellData = data[(page_current or 0) * page_size + row][col]
         return "/apps/specialite?" + urlencode({"search": quote_plus(cellData)})
     else:
         raise PreventUpdate
