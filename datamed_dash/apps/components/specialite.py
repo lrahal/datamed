@@ -7,9 +7,7 @@ import dash.dependencies as dd
 import dash_table
 import pandas as pd
 import plotly.graph_objects as go
-# import requests
 from app import app
-#from bs4 import BeautifulSoup
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 from dash_bootstrap_components import (
@@ -51,18 +49,6 @@ SPE_SA_DICT = json.loads(file_liste_spe_sa.read())
 
 file_atc_by_spe = open("./data/atc_by_spe.json", "r")
 ATC_BY_SPE = json.loads(file_atc_by_spe.read())
-
-
-def get_bdpm_links(selected_med: str, link: str) -> str:
-    #page = requests.get(link)
-    #soup = BeautifulSoup(page.content, "html.parser")
-    #if soup.body.findAll(
-    #    text="Le document demandé n'est pas disponible pour ce médicament"
-    #):
-    return (
-        "https://base-donnees-publique.medicaments.gouv.fr/extrait.php?specid="
-        + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
-    )
 
 
 def SearchDiv() -> Component:
@@ -121,23 +107,9 @@ def SpecialiteDiv(selected_med: str, substances_list) -> Component:
         "particulier (1000 mg, comprimé)."
     )
 
-    rcp_link = get_bdpm_links(
-        selected_med,
-        (
-            "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
-            + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
-            + "&typedoc=R"
-        ),
-    )
+    rcp_link = "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid=" + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0] + "&typedoc=R"
 
-    notice_link = get_bdpm_links(
-        selected_med,
-        (
-            "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid="
-            + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
-            + "&typedoc=N"
-        ),
-    )
+    notice_link = "https://base-donnees-publique.medicaments.gouv.fr/affichageDoc.php?specid=" + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0] + "&typedoc=N"
 
     return Div(
         Div(
