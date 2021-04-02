@@ -62,7 +62,7 @@ def get_bdpm_links(selected_med: str, link: str) -> str:
     return (
         "https://base-donnees-publique.medicaments.gouv.fr/extrait.php?specid="
         + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
-    )git
+    )
 
 
 def SearchDiv() -> Component:
