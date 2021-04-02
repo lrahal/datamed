@@ -7,9 +7,9 @@ import dash.dependencies as dd
 import dash_table
 import pandas as pd
 import plotly.graph_objects as go
-import requests
+# import requests
 from app import app
-from bs4 import BeautifulSoup
+#from bs4 import BeautifulSoup
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 from dash_bootstrap_components import (
@@ -54,16 +54,15 @@ ATC_BY_SPE = json.loads(file_atc_by_spe.read())
 
 
 def get_bdpm_links(selected_med: str, link: str) -> str:
-    page = requests.get(link)
-    soup = BeautifulSoup(page.content, "html.parser")
-    if soup.body.findAll(
-        text="Le document demandé n'est pas disponible pour ce médicament"
-    ):
-        return (
-            "https://base-donnees-publique.medicaments.gouv.fr/extrait.php?specid="
-            + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
-        )
-    return link
+    #page = requests.get(link)
+    #soup = BeautifulSoup(page.content, "html.parser")
+    #if soup.body.findAll(
+    #    text="Le document demandé n'est pas disponible pour ce médicament"
+    #):
+    return (
+        "https://base-donnees-publique.medicaments.gouv.fr/extrait.php?specid="
+        + SUBSTANCE_BY_SPECIALITE[selected_med]["cis"][0]
+    )git
 
 
 def SearchDiv() -> Component:
